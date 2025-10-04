@@ -860,12 +860,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-
 ---
 
 ## 🚀 Deployment Guide
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Node.js 18+ (for local development)
 - Java 17+ (for local development)
@@ -874,18 +874,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Production Deployment
 
 1. **Clone the repository**
+
    ```bash
    git clone <your-repo-url>
    cd url-shortener
    ```
 
 2. **Configure environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 3. **Deploy with Docker**
+
    ```bash
    ./scripts/deploy.sh production
    ```
@@ -898,11 +901,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Development Setup
 
 1. **Start the database**
+
    ```bash
    docker-compose up postgres redis -d
    ```
 
 2. **Run backend**
+
    ```bash
    cd backend/url-service
    ./mvnw spring-boot:run
@@ -926,18 +931,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `POSTGRES_DB` | Database name | `urlshortener` |
-| `POSTGRES_USER` | Database user | `admin` |
-| `POSTGRES_PASSWORD` | Database password | `password` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | - |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | - |
-| `JWT_SECRET` | JWT signing secret | - |
+| Variable               | Description                | Default        |
+| ---------------------- | -------------------------- | -------------- |
+| `POSTGRES_DB`          | Database name              | `urlshortener` |
+| `POSTGRES_USER`        | Database user              | `admin`        |
+| `POSTGRES_PASSWORD`    | Database password          | `password`     |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID     | -              |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | -              |
+| `JWT_SECRET`           | JWT signing secret         | -              |
 
 ### Database Schema
 
 The application uses the following main entities:
+
 - **Users**: User accounts and authentication
 - **QR Codes**: QR code generation and tracking
 - **File Uploads**: File-to-URL conversion
@@ -946,21 +952,25 @@ The application uses the following main entities:
 ## 🛠️ Management Commands
 
 ### Backup Database
+
 ```bash
 ./scripts/backup.sh
 ```
 
 ### View Logs
+
 ```bash
 docker-compose logs -f [service-name]
 ```
 
 ### Scale Services
+
 ```bash
 docker-compose up --scale backend=3 -d
 ```
 
 ### Update Application
+
 ```bash
 ./scripts/deploy.sh production --clean
 ```

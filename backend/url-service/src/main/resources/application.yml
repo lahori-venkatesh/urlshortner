@@ -1,14 +1,28 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: url-service
   
+  # CORS Configuration for Vercel frontend
+  web:
+    cors:
+      allowed-origins: 
+        - ${FRONTEND_URL:http://localhost:3000}
+        - "https://*.vercel.app"
+        - "https://your-domain.com"
+      allowed-methods: 
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+  
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:urlshortener}
-    username: ${POSTGRES_USER:admin}
-    password: ${POSTGRES_PASSWORD:password}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/urlshortener}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -32,7 +46,7 @@ google:
     id: ${GOOGLE_CLIENT_ID}
     secret: ${GOOGLE_CLIENT_SECRET}
   redirect:
-    uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/auth/callback}
+    uri: ${GOOGLE_REDIRECT_URI:https://your-vercel-app.vercel.app/auth/callback}
 
 logging:
   level:

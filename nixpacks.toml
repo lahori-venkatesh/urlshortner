@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["openjdk17", "maven"]
+
+[phases.build]
+cmds = ["cd backend/url-service && ./mvnw clean package -DskipTests"]
+
+[start]
+cmd = "cd backend/url-service && java -jar target/*.jar"
