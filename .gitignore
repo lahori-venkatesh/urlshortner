@@ -1,27 +1,49 @@
+# Pebly - URL Shortener Platform
+# Comprehensive .gitignore file
+
 # Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
+yarn.lock
 
 # Production builds
-/frontend/build
+/frontend/build/
+/frontend/dist/
 /backend/*/target/
+/backend/*/build/
 /backend/*/dist/
 
-# Environment variables
+# Environment variables (IMPORTANT: Never commit these)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
-# IDE files
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+/uploads/*
+!/uploads/.gitkeep
+
+# Backup files
+/backups/
+*.sql
+*.dump
+
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # OS generated files
 .DS_Store
@@ -31,28 +53,35 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # Logs
-logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
 coverage/
-
-# nyc test coverage
-.nyc_output
+*.lcov
+.nyc_output/
 
 # Dependency directories
 jspm_packages/
 
 # Optional npm cache directory
 .npm
+
+# Optional eslint cache
+.eslintcache
 
 # Optional REPL history
 .node_repl_history
@@ -63,24 +92,55 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# Maven
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Java/Maven/Spring Boot
 .mvn/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
 
 # Gradle
-.gradle
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
 # IntelliJ IDEA
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
 
 # Eclipse
 .apt_generated
@@ -90,6 +150,7 @@ build/
 .settings
 .springBeans
 .sts4-cache
+bin/
 
 # NetBeans
 /nbproject/private/
@@ -98,17 +159,44 @@ build/
 /nbdist/
 /.nb-gradle/
 
-# VS Code
-.vscode/
-
 # Docker
 .dockerignore
+docker-compose.override.yml
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Redis dump file
+dump.rdb
+
+# PostgreSQL
+*.pgsql
+
+# Test files
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Certificates
+*.pem
+*.key
+*.crt
+*.p12
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+*.swp
+*.swo
+
+# Application specific
+/qr-codes/
+/shortened-urls/
+/analytics-data/
+
+# Deployment files (keep templates)
+docker-compose.prod.yml
+kubernetes/
+helm/
+
+# Security files
+secrets/
+*.secret

@@ -1,66 +1,39 @@
-# � ShLortLink Pro - India's Most Advanced URL Shortener
+# 🔗 Pebly - Modern URL Shortener Platform
 
-A **next-generation URL shortener platform** specifically designed for the **Indian market** with unique features that beat existing platforms like Bitly and TinyURL. Built with modern technologies, featuring **vernacular language support**, **UPI integration**, and **India-focused analytics**.
+A **modern, full-stack URL shortener platform** built with React TypeScript and Spring Boot. Features advanced analytics, QR code generation, file-to-URL conversion, and a comprehensive dashboard for link management.
+
+![Pebly Dashboard](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![React](https://img.shields.io/badge/React-18.2.0-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 
 ---
 
 ## 🎯 **Project Overview**
 
-## 🔥 **Features That Beat Existing Platforms**
+Pebly is a comprehensive URL shortening platform that goes beyond basic link shortening. It provides advanced analytics, QR code generation, file hosting, and team collaboration features in a modern, responsive interface.
 
-### � **Firee Forever Features (Ad-Supported)**
+### **Key Features**
 
-- ✅ **Unlimited Free Short Links** (Bitly restricts this)
-- ✅ **Indian Languages Support** - Generate slugs in Hindi, Telugu, Tamil, Marathi
-- ✅ **Regional Analytics** - Track clicks by Indian states & cities
-- ✅ **PayTM/UPI QR Code Shortener** - Generate payment links with QR codes
-- ✅ **WhatsApp/Telegram Deep Linking** - Direct redirects to chats/groups
-
-### 🚀 **Premium Differentiators**
-
-- ✅ **Image → Short URL** - Auto-host images & generate shareable links
-- ✅ **PDF → Short URL** - Upload documents → instant shareable links
-- ✅ **Custom Domains** - Brand your links (yourbrand.in/offer)
-- ✅ **Smart Analytics Dashboard** - CTR, device type, location heatmap
-- ✅ **Bulk Upload/API** - Excel/CSV → 1000+ links in one click
-- ✅ **AI-Powered Link Optimization** - AI suggests best slugs for SEO/CTR
-- ✅ **Team Collaboration** - Multi-user campaigns with roles
-- ✅ **One-Click Social Share** - Direct share to Instagram, WhatsApp, Twitter
-
-### 🎯 **India-Specific Features**
-
-- ✅ **Vernacular Language Support** - Perfect for Tier-2 & Tier-3 cities
-- ✅ **UPI Payment Link Shortener** - Huge use case for small businesses
-- ✅ **Regional Festival Campaigns** - Diwali, Holi, regional festivals
-- ✅ **Startup-Friendly Pricing** - Analytics at 1/10th of Bitly's cost
-
-### **Target Users**
-
-- 👨‍🎓 **Students & Professionals** → Share links and resources in regional languages
-- 🏢 **Small Businesses** → UPI payment links, regional marketing campaigns
-- 🚀 **Startups** → Cost-effective analytics and team collaboration
-- 👨‍💻 **Developers** → Comprehensive API with Indian market features
-
-### **Problem Statement & Our Edge**
-
-**Bitly/TinyURL Problems**: Limited free features, expensive premium plans, no India-specific features, no vernacular support.
-
-**ShortLink Pro's Edge**:
-✅ Free forever tier with ad-supported model  
-✅ Vernacular support for Tier-2 & Tier-3 India  
-✅ UPI/payment link shortener (huge use case for small businesses)  
-✅ PDF/Image → URL (useful for resumes, business documents)  
-✅ Startup-friendly analytics at low cost
+✅ **URL Shortening** - Create short, memorable links  
+✅ **QR Code Generation** - Generate QR codes for any link  
+✅ **File-to-URL** - Upload files and get shareable links  
+✅ **Advanced Analytics** - Track clicks, locations, devices  
+✅ **Custom Domains** - Brand your links with custom domains  
+✅ **Team Collaboration** - Multi-user workspace management  
+✅ **Bulk Operations** - Process multiple URLs at once  
+✅ **API Access** - RESTful API for integrations  
 
 ---
 
-## 🏗️ **System Design & Architecture**
+## 🏗️ **Architecture Overview**
 
-### **High-Level Architecture**
+### **System Architecture**
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   Frontend      │    │   API Gateway    │    │   Microservices     │
+│   Frontend      │    │   API Gateway    │    │   Backend Services  │
 │   (React TS)    │◄──►│   (NGINX)        │◄──►│   - URL Service     │
 │   Port: 3000    │    │   Port: 80       │    │   - Analytics       │
 └─────────────────┘    └──────────────────┘    │   - File Service    │
@@ -69,769 +42,474 @@ A **next-generation URL shortener platform** specifically designed for the **Ind
                               ┌──────────────────────────┼──────────────────────────┐
                               │                          │                          │
                     ┌─────────▼────────┐    ┌───────────▼──────────┐    ┌─────────▼────────┐
-                    │   PostgreSQL     │    │      Redis           │    │    MongoDB       │
-                    │   (URL Storage)  │    │   (Caching Layer)    │    │   (Analytics)    │
-                    │   Port: 5432     │    │   Port: 6379         │    │   Port: 27017    │
+                    │   PostgreSQL     │    │      Redis           │    │   File Storage   │
+                    │   (Primary DB)   │    │   (Cache Layer)      │    │   (Local/Cloud)  │
+                    │   Port: 5432     │    │   Port: 6379         │    │                  │
                     └──────────────────┘    └──────────────────────┘    └──────────────────┘
 ```
 
-### **Microservices Design Pattern**
-
-- **URL Service** (Java Spring Boot) - Core shortening logic
-- **Analytics Service** (Node.js) - Click tracking & insights
-- **File Service** (Node.js) - File upload & sharing
-- **API Gateway** (NGINX) - Request routing & rate limiting
-
-### **Database Design**
-
-#### **PostgreSQL Schema (URL Service)**
-
-```sql
-CREATE TABLE url_mappings (
-    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    short_code VARCHAR(255) UNIQUE NOT NULL,
-    original_url VARCHAR(2048) NOT NULL,
-    custom_alias VARCHAR(255),
-    password_hash VARCHAR(255),
-    expiration_date TIMESTAMP,
-    max_clicks INTEGER,
-    click_count BIGINT DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    is_one_time BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255)
-);
-
--- Indexes for performance optimization
-CREATE INDEX idx_short_code ON url_mappings(short_code);
-CREATE INDEX idx_created_at ON url_mappings(created_at);
-CREATE INDEX idx_expiration ON url_mappings(expiration_date);
-```
-
-#### **MongoDB Schema (Analytics Service)**
-
-```javascript
-// Click Events Collection
-{
-  _id: ObjectId,
-  shortCode: String,
-  timestamp: Date,
-  ipAddress: String,
-  userAgent: String,
-  referer: String,
-  country: String,
-  city: String,
-  device: {
-    type: "desktop" | "mobile" | "tablet",
-    os: String,
-    browser: String
-  },
-  isBot: Boolean,
-  sessionId: String
-}
-```
-
----
-
-## 🧮 **Data Structures & Algorithms**
-
-### **1. Base62 Encoding Algorithm**
-
-**Purpose**: Convert numeric IDs to short, URL-safe strings
-
-```java
-public class Base62Encoder {
-    private static final String BASE62_CHARS =
-        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    private static final int BASE = 62;
-
-    public String encode(long number) {
-        if (number == 0) return "0";
-
-        StringBuilder encoded = new StringBuilder();
-        while (number > 0) {
-            encoded.append(BASE62_CHARS.charAt((int) (number % BASE)));
-            number /= BASE;
-        }
-        return encoded.reverse().toString();
-    }
-
-    // Time Complexity: O(log₆₂(n))
-    // Space Complexity: O(log₆₂(n))
-}
-```
-
-**Algorithm Analysis**:
-
-- **Time Complexity**: O(log₆₂(n)) where n is the input number
-- **Space Complexity**: O(log₆₂(n)) for the result string
-- **Collision Handling**: Uses timestamp + counter for uniqueness
-
-### **2. Caching Strategy (Redis)**
-
-**LRU Cache Implementation** for frequently accessed URLs:
-
-```java
-@Cacheable(value = "urlMappings", key = "#shortCode")
-public Optional<UrlMapping> getUrlMapping(String shortCode) {
-    return urlMappingRepository.findByShortCodeAndIsActiveTrue(shortCode);
-}
-```
-
-**Cache Performance**:
-
-- **Hit Ratio**: ~80-90% for popular links
-- **TTL**: 1 hour (configurable)
-- **Eviction Policy**: LRU (Least Recently Used)
-
-### **3. Rate Limiting Algorithm**
-
-**Token Bucket Algorithm** implementation:
-
-```javascript
-const rateLimit = require("express-rate-limit");
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  algorithm: "token-bucket",
-});
-```
-
-### **4. Analytics Data Aggregation**
-
-**Time-Series Data Processing**:
-
-```javascript
-// MongoDB Aggregation Pipeline
-const clicksOverTime = await ClickEvent.aggregate([
-  { $match: { shortCode, timestamp: { $gte: startDate } } },
-  {
-    $group: {
-      _id: {
-        year: { $year: "$timestamp" },
-        month: { $month: "$timestamp" },
-        day: { $dayOfMonth: "$timestamp" },
-      },
-      count: { $sum: 1 },
-    },
-  },
-  { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
-]);
-```
-
----
-
-## ⚙️ **Java Spring Boot Implementation**
-
-### **Core Components**
-
-#### **1. URL Shortening Service**
-
-```java
-@Service
-@Transactional
-public class UrlShortenerService {
-
-    @Autowired
-    private UrlMappingRepository repository;
-
-    @Autowired
-    private Base62Encoder encoder;
-
-    public ShortenUrlResponse shortenUrl(ShortenUrlRequest request) {
-        // Generate unique short code
-        String shortCode = generateShortCode(request.getCustomAlias());
-
-        // Create URL mapping with business logic
-        UrlMapping mapping = new UrlMapping(shortCode, request.getOriginalUrl());
-
-        // Apply optional features
-        applySecurityFeatures(mapping, request);
-        applyExpirationRules(mapping, request);
-
-        // Persist to database
-        mapping = repository.save(mapping);
-
-        return buildResponse(mapping);
-    }
-
-    private String generateShortCode(String customAlias) {
-        if (customAlias != null && !customAlias.isEmpty()) {
-            validateCustomAlias(customAlias);
-            return customAlias;
-        }
-
-        // Generate unique code using timestamp + Base62
-        String shortCode;
-        do {
-            long timestamp = System.currentTimeMillis();
-            shortCode = encoder.encode(timestamp);
-        } while (repository.existsByShortCode(shortCode));
-
-        return shortCode;
-    }
-}
-```
-
-#### **2. Security Configuration**
-
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/shorten", "/h2-console/**").permitAll()
-                .requestMatchers("/{shortCode}").permitAll()
-                .anyRequest().authenticated()
-            );
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12); // Strong hashing
-    }
-}
-```
-
-#### **3. JPA Repository with Custom Queries**
-
-```java
-@Repository
-public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
-
-    @Query("SELECT u FROM UrlMapping u WHERE u.shortCode = :shortCode AND u.isActive = true")
-    Optional<UrlMapping> findByShortCodeAndIsActiveTrue(@Param("shortCode") String shortCode);
-
-    @Query("SELECT COUNT(u) > 0 FROM UrlMapping u WHERE u.shortCode = :shortCode")
-    boolean existsByShortCode(@Param("shortCode") String shortCode);
-
-    @Query("SELECT u FROM UrlMapping u WHERE u.expirationDate < CURRENT_TIMESTAMP")
-    List<UrlMapping> findExpiredUrls();
-}
-```
-
-### **Advanced Java Features Used**
-
-#### **1. Bean Validation**
-
-```java
-public class ShortenUrlRequest {
-    @NotBlank(message = "Original URL is required")
-    @Pattern(regexp = "^https?://.*", message = "URL must start with http:// or https://")
-    private String originalUrl;
-
-    @Size(min = 3, max = 50, message = "Custom alias must be between 3 and 50 characters")
-    @Pattern(regexp = "^[a-zA-Z0-9-_]+$", message = "Custom alias can only contain alphanumeric characters, hyphens, and underscores")
-    private String customAlias;
-
-    @Min(value = 1, message = "Expiration days must be at least 1")
-    @Max(value = 365, message = "Expiration days cannot exceed 365")
-    private Integer expirationDays;
-}
-```
-
-#### **2. Exception Handling**
-
-```java
-@ControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(UrlNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUrlNotFound(UrlNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse("URL_NOT_FOUND", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(CustomAliasAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleCustomAliasExists(CustomAliasAlreadyExistsException ex) {
-        ErrorResponse error = new ErrorResponse("ALIAS_EXISTS", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-}
-```
-
----
-
-## 🎨 **Frontend Implementation (React + TypeScript)**
-
-### **Modern React Patterns**
-
-#### **1. Custom Hooks**
-
-```typescript
-// useUrlShortener.ts
-export const useUrlShortener = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const shortenUrl = useCallback(async (data: ShortenUrlRequest) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await apiClient.post("/shorten", data);
-      return response.data;
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to shorten URL");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { shortenUrl, loading, error };
-};
-```
-
-#### **2. TypeScript Interfaces**
-
-```typescript
-// types/api.ts
-export interface ShortenUrlRequest {
-  originalUrl: string;
-  customAlias?: string;
-  password?: string;
-  expirationDays?: number;
-  maxClicks?: number;
-  isOneTime?: boolean;
-}
-
-export interface ShortenUrlResponse {
-  shortUrl: string;
-  shortCode: string;
-  originalUrl: string;
-  createdAt: string;
-}
-
-export interface AnalyticsData {
-  totalClicks: number;
-  uniqueClicks: number;
-  clicksByCountry: CountryClick[];
-  clicksByDevice: DeviceClick[];
-  clicksOverTime: TimeSeriesData[];
-}
-```
-
-#### **3. Component Architecture**
-
-```typescript
-// components/UrlShortener.tsx
-const UrlShortener: React.FC = () => {
-  const { shortenUrl, loading, error } = useUrlShortener();
-  const [formData, setFormData] = useState<ShortenUrlRequest>({
-    originalUrl: "",
-    customAlias: "",
-    expirationDays: undefined,
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const result = await shortenUrl(formData);
-      toast.success("URL shortened successfully!");
-      // Handle success
-    } catch (error) {
-      toast.error("Failed to shorten URL");
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Form implementation */}
-    </form>
-  );
-};
-```
-
----
-
-## 📦 **Libraries & Packages**
-
-### **Backend Dependencies (Java)**
-
-#### **Spring Boot Ecosystem**
-
-```xml
-<dependencies>
-    <!-- Core Spring Boot -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-        <version>3.2.0</version>
-    </dependency>
-
-    <!-- Data Access -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-
-    <!-- Caching -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-redis</artifactId>
-    </dependency>
-
-    <!-- Security -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-
-    <!-- Validation -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-validation</artifactId>
-    </dependency>
-
-    <!-- Database -->
-    <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-    </dependency>
-
-    <!-- JWT -->
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>0.11.5</version>
-    </dependency>
-</dependencies>
-```
-
-### **Frontend Dependencies (React)**
-
-#### **Core React Stack**
-
-```json
-{
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^4.9.5",
-    "react-router-dom": "^6.8.1",
-
-    "tailwindcss": "^3.2.7",
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.21",
-
-    "axios": "^1.3.4",
-    "react-hot-toast": "^2.4.0",
-    "lucide-react": "^0.323.0",
-
-    "recharts": "^2.5.0",
-    "qrcode": "^1.5.3",
-    "@types/qrcode": "^1.5.0"
-  }
-}
-```
-
-### **Analytics Service Dependencies (Node.js)**
-
-```json
-{
-  "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.0.3",
-    "redis": "^4.6.5",
-    "cors": "^2.8.5",
-    "helmet": "^6.1.5",
-    "express-rate-limit": "^6.7.0",
-    "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3",
-    "geoip-lite": "^1.4.7",
-    "useragent": "^2.3.0"
-  }
-}
-```
+### **Technology Stack**
+
+#### **Frontend**
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **React Router** for navigation
+- **Recharts** for analytics visualization
+- **Lucide React** for icons
+- **React Hot Toast** for notifications
+
+#### **Backend**
+- **Spring Boot 3.2** (Java 17)
+- **Spring Security** for authentication
+- **Spring Data JPA** for database operations
+- **PostgreSQL** as primary database
+- **Redis** for caching and sessions
+- **JWT** for stateless authentication
+
+#### **DevOps & Infrastructure**
+- **Docker** for containerization
+- **Docker Compose** for local development
+- **NGINX** as reverse proxy
+- **Railway/Vercel** for deployment
 
 ---
 
 ## 🚀 **Features Implemented**
 
-### **✅ Core Features**
+### **Core Functionality**
 
-#### **1. URL Shortening**
+#### **1. URL Shortening Service**
+- **Base62 Encoding** for short, readable URLs
+- **Custom Aliases** for branded links
+- **Link Expiration** (time-based and click-based)
+- **Password Protection** for sensitive links
+- **One-time Links** that self-destruct
 
-- **Base62 Encoding**: Generates short, readable codes
-- **Custom Aliases**: User-defined short codes
-- **Collision Detection**: Ensures uniqueness
-- **Bulk Operations**: Process multiple URLs
+#### **2. QR Code Generation**
+- **Dynamic QR Codes** for all shortened URLs
+- **Customizable Design** with different sizes
+- **Download Support** in PNG format
+- **Error Correction** for reliable scanning
 
-#### **2. Security Features**
+#### **3. File-to-URL Conversion**
+- **File Upload** with drag-and-drop interface
+- **Multiple File Types** (PDF, images, documents)
+- **Automatic Link Generation** for uploaded files
+- **File Management** with preview and deletion
 
-- **Password Protection**: BCrypt hashing (cost factor: 12)
-- **Link Expiration**: Time-based and click-based
-- **One-time Links**: Self-destruct after first access
-- **Rate Limiting**: Token bucket algorithm
+#### **4. Analytics Dashboard**
+- **Real-time Click Tracking** with detailed metrics
+- **Geographic Analytics** showing click locations
+- **Device Analytics** (desktop, mobile, tablet)
+- **Time-series Charts** for click trends
+- **Top Performing Links** identification
 
-#### **3. Analytics & Tracking**
+#### **5. User Management**
+- **Google OAuth Integration** for easy sign-up
+- **JWT-based Authentication** for security
+- **User Profiles** with customizable settings
+- **Team Collaboration** features
 
-- **Real-time Click Tracking**: MongoDB time-series
-- **Geolocation**: IP-based country/city detection
-- **Device Detection**: Browser, OS, device type
-- **Bot Filtering**: Automated traffic exclusion
+### **Advanced Features**
 
-#### **4. QR Code Generation**
+#### **1. Pricing & Subscription System**
+- **Free Tier** with 5 links per month
+- **Premium Plans** with unlimited links
+- **Lifetime Access** option
+- **Payment Integration** ready
+- **Feature-based Access Control**
 
-- **Dynamic QR Codes**: Generated for each short URL
-- **Customizable Size**: Configurable dimensions
-- **Download Support**: PNG format export
-- **Error Correction**: Level M (15% recovery)
+#### **2. Dashboard Interface**
+- **Unified Dashboard** with sidebar navigation
+- **Responsive Design** for all screen sizes
+- **Dark/Light Mode** support
+- **Real-time Updates** for analytics
+- **Bulk Operations** for link management
 
-### **🔄 Advanced Features**
+#### **3. Security Features**
+- **Rate Limiting** to prevent abuse
+- **CORS Protection** for API security
+- **Input Validation** and sanitization
+- **SQL Injection Prevention**
+- **XSS Protection** mechanisms
 
-#### **1. Caching Strategy**
+---
 
-```java
-// Multi-level caching
-@Cacheable(value = "urlMappings", key = "#shortCode", unless = "#result == null")
-public Optional<UrlMapping> getUrlMapping(String shortCode) {
-    // L1: Application cache (Caffeine)
-    // L2: Redis distributed cache
-    // L3: Database fallback
-}
+## 📦 **Project Structure**
+
 ```
-
-#### **2. Database Optimization**
-
-- **Connection Pooling**: HikariCP (max 20 connections)
-- **Query Optimization**: JPA criteria queries
-- **Indexing Strategy**: Composite indexes on frequently queried columns
-- **Pagination**: Cursor-based for large datasets
-
-#### **3. Monitoring & Observability**
-
-```yaml
-# application.yml
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  metrics:
-    export:
-      prometheus:
-        enabled: true
+pebly/
+├── frontend/                 # React TypeScript application
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   │   ├── dashboard/   # Dashboard-specific components
+│   │   │   ├── Header.tsx   # Main navigation header
+│   │   │   ├── AuthModal.tsx # Authentication modal
+│   │   │   └── ...
+│   │   ├── pages/          # Page components
+│   │   │   ├── LandingPage.tsx
+│   │   │   ├── Pricing.tsx
+│   │   │   ├── Profile.tsx
+│   │   │   └── ...
+│   │   ├── context/        # React context providers
+│   │   ├── services/       # API service functions
+│   │   └── App.tsx         # Main application component
+│   ├── public/             # Static assets
+│   └── package.json        # Frontend dependencies
+├── backend/                 # Spring Boot backend services
+│   └── url-service/        # Main URL shortening service
+│       ├── src/main/java/  # Java source code
+│       ├── src/main/resources/ # Configuration files
+│       └── pom.xml         # Maven dependencies
+├── infrastructure/         # Infrastructure configuration
+├── uploads/               # File upload storage
+├── docker-compose.yml     # Docker orchestration
+├── .env.example          # Environment variables template
+└── README.md             # Project documentation
 ```
 
 ---
 
-## 🐳 **DevOps & Deployment**
-
-### **Docker Configuration**
-
-#### **Multi-stage Frontend Build**
-
-```dockerfile
-# Frontend Dockerfile
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-#### **Java Backend Container**
-
-```dockerfile
-# Backend Dockerfile
-FROM openjdk:17-jdk-slim AS builder
-WORKDIR /app
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-RUN ./mvnw dependency:go-offline -B
-
-COPY src src
-RUN ./mvnw clean package -DskipTests
-
-FROM openjdk:17-jre-slim
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
-
-### **Docker Compose Orchestration**
-
-```yaml
-version: "3.8"
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: urlshortener
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-
-  url-service:
-    build: ./backend/url-service
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/urlshortener
-      - SPRING_REDIS_HOST=redis
-    depends_on:
-      - postgres
-      - redis
-    ports:
-      - "8080:8080"
-
-volumes:
-  postgres_data:
-  redis_data:
-```
-
----
-
-## 📊 **Performance Metrics**
-
-### **Benchmarks**
-
-- **URL Shortening**: ~50ms average response time
-- **Redirect Performance**: ~10ms with Redis cache hit
-- **Database Queries**: <100ms for complex analytics
-- **Concurrent Users**: Tested up to 1000 simultaneous requests
-
-### **Scalability**
-
-- **Horizontal Scaling**: Stateless microservices
-- **Database Sharding**: Ready for partition by short_code
-- **CDN Integration**: Static assets cached globally
-- **Load Balancing**: NGINX upstream configuration
-
----
-
-## 🚀 **Getting Started**
+## 🛠️ **Installation & Setup**
 
 ### **Prerequisites**
 
-- Java 17+
-- Node.js 18+
-- Docker & Docker Compose
-- PostgreSQL 15+
-- Redis 7+
+- **Node.js** 18+ and npm
+- **Java** 17+ and Maven
+- **Docker** and Docker Compose
+- **PostgreSQL** 15+ (optional for local development)
+- **Redis** 7+ (optional for local development)
 
-### **Quick Start**
+### **Quick Start with Docker**
 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/lahori-venkatesh/pebly.git
+   cd pebly
+   ```
+
+2. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Start all services**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8080
+   - Database: localhost:5432
+
+### **Local Development Setup**
+
+#### **Backend Setup**
 ```bash
-# Clone repository
-git clone https://github.com/lahori-venkatesh/urlshortner.git
-cd urlshortner
-
-# Environment setup
-cp .env.example .env
-# Edit .env with your configurations
-
-# Start with Docker
-docker-compose up -d
-
-# Or run individually
-# Backend
 cd backend/url-service
+./mvnw clean install
 ./mvnw spring-boot:run
+```
 
-# Frontend
+#### **Frontend Setup**
+```bash
 cd frontend
 npm install
 npm start
 ```
 
-### **API Endpoints**
-
+#### **Database Setup**
 ```bash
-# Shorten URL
-POST /api/shorten
-{
-  "originalUrl": "https://example.com",
-  "customAlias": "my-link",
-  "expirationDays": 30
-}
+# Start PostgreSQL and Redis with Docker
+docker-compose up postgres redis -d
 
-# Redirect
-GET /{shortCode}
-
-# Analytics
-GET /api/analytics/{shortCode}
+# Or install locally and create database
+createdb urlshortener
 ```
 
 ---
 
-## 🔮 **Future Enhancements**
+## 🔧 **Configuration**
 
-### **Planned Features**
+### **Environment Variables**
 
-- [ ] **AI-Powered Analytics**: ML-based click prediction
-- [ ] **GraphQL API**: Flexible data querying
-- [ ] **Mobile App**: React Native implementation
-- [ ] **Browser Extension**: One-click shortening
-- [ ] **A/B Testing**: Link performance comparison
-- [ ] **Webhook Integration**: Real-time notifications
-- [ ] **Enterprise SSO**: SAML/OAuth integration
+Create a `.env` file in the root directory:
 
-### **Technical Improvements**
+```env
+# Database Configuration
+POSTGRES_DB=urlshortener
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=your_secure_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
 
-- [ ] **Kubernetes Deployment**: Production orchestration
-- [ ] **Elasticsearch**: Advanced search capabilities
-- [ ] **Apache Kafka**: Event streaming architecture
-- [ ] **Prometheus + Grafana**: Comprehensive monitoring
-- [ ] **Automated Testing**: E2E test suite with Cypress
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key_here
+JWT_EXPIRATION=86400000
+
+# Google OAuth (Optional)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Application Configuration
+APP_BASE_URL=http://localhost:3000
+API_BASE_URL=http://localhost:8080
+
+# File Upload Configuration
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=10MB
+```
+
+### **Database Schema**
+
+The application automatically creates the required database tables on startup. Key entities include:
+
+- **Users** - User accounts and profiles
+- **URL Mappings** - Shortened URL data
+- **QR Codes** - Generated QR code information
+- **File Uploads** - Uploaded file metadata
+- **Analytics** - Click tracking and statistics
 
 ---
 
-## 📈 **System Metrics**
+## 🔌 **API Documentation**
 
-### **Current Implementation Stats**
+### **Authentication Endpoints**
 
-- **Lines of Code**: ~2,500 (Java), ~1,800 (TypeScript)
-- **Test Coverage**: 85%+ (Backend), 70%+ (Frontend)
-- **API Response Time**: <100ms (95th percentile)
-- **Database Performance**: <50ms query time
-- **Memory Usage**: <512MB per service
+```bash
+# Google OAuth Login
+GET /api/auth/google
+
+# JWT Token Refresh
+POST /api/auth/refresh
+```
+
+### **URL Shortening Endpoints**
+
+```bash
+# Create Short URL
+POST /api/shorten
+Content-Type: application/json
+{
+  "originalUrl": "https://example.com",
+  "customAlias": "my-link",
+  "expirationDays": 30,
+  "password": "optional_password"
+}
+
+# Get URL Details
+GET /api/urls/{shortCode}
+
+# Redirect to Original URL
+GET /{shortCode}
+
+# Get User's URLs
+GET /api/urls?page=0&size=10
+```
+
+### **Analytics Endpoints**
+
+```bash
+# Get URL Analytics
+GET /api/analytics/{shortCode}
+
+# Get Dashboard Stats
+GET /api/analytics/dashboard
+```
+
+### **QR Code Endpoints**
+
+```bash
+# Generate QR Code
+POST /api/qr/generate
+{
+  "url": "https://short.ly/abc123",
+  "size": 200
+}
+
+# Get QR Code Image
+GET /api/qr/{qrId}/image
+```
+
+### **File Upload Endpoints**
+
+```bash
+# Upload File
+POST /api/files/upload
+Content-Type: multipart/form-data
+
+# Get File
+GET /api/files/{fileId}
+
+# Delete File
+DELETE /api/files/{fileId}
+```
+
+---
+
+## 🧪 **Testing**
+
+### **Backend Testing**
+```bash
+cd backend/url-service
+./mvnw test
+```
+
+### **Frontend Testing**
+```bash
+cd frontend
+npm test
+npm run test:coverage
+```
+
+### **Integration Testing**
+```bash
+# Start test environment
+docker-compose -f docker-compose.test.yml up -d
+
+# Run integration tests
+./scripts/run-integration-tests.sh
+```
+
+---
+
+## 🚀 **Deployment**
+
+### **Production Deployment with Docker**
+
+1. **Build production images**
+   ```bash
+   docker-compose -f docker-compose.prod.yml build
+   ```
+
+2. **Deploy to production**
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+### **Cloud Deployment**
+
+#### **Railway Deployment**
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and deploy
+railway login
+railway link
+railway up
+```
+
+#### **Vercel Deployment (Frontend)**
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy frontend
+cd frontend
+vercel --prod
+```
+
+---
+
+## 📊 **Performance & Monitoring**
+
+### **Performance Metrics**
+- **URL Shortening**: ~50ms average response time
+- **Redirect Performance**: ~10ms with Redis cache
+- **Database Queries**: <100ms for complex analytics
+- **File Upload**: Supports up to 10MB files
+- **Concurrent Users**: Tested with 1000+ simultaneous users
+
+### **Monitoring & Health Checks**
+- **Health Endpoints**: `/actuator/health`
+- **Metrics**: `/actuator/metrics`
+- **Database Monitoring**: Connection pool metrics
+- **Redis Monitoring**: Cache hit/miss ratios
+- **Application Logs**: Structured JSON logging
+
+---
+
+## 🔒 **Security Features**
+
+### **Authentication & Authorization**
+- **JWT-based Authentication** with refresh tokens
+- **Google OAuth Integration** for social login
+- **Role-based Access Control** (RBAC)
+- **Session Management** with Redis
+
+### **Data Protection**
+- **Password Hashing** with BCrypt
+- **Input Validation** and sanitization
+- **SQL Injection Prevention** with JPA
+- **XSS Protection** with content security policy
+- **CORS Configuration** for API security
+
+### **Rate Limiting & Abuse Prevention**
+- **API Rate Limiting** (100 requests per 15 minutes)
+- **IP-based Blocking** for suspicious activity
+- **Bot Detection** and filtering
+- **Spam Link Prevention** with URL validation
 
 ---
 
 ## 🤝 **Contributing**
 
-### **Development Workflow**
+We welcome contributions! Please follow these guidelines:
 
+### **Development Workflow**
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes with proper tests
+4. Commit with conventional commits (`git commit -m 'feat: add amazing feature'`)
+5. Push to your branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ### **Code Standards**
+- **Java**: Follow Google Java Style Guide
+- **TypeScript**: Use ESLint and Prettier
+- **Testing**: Maintain 80%+ test coverage
+- **Documentation**: Update README for new features
 
-- **Java**: Google Java Style Guide
-- **TypeScript**: ESLint + Prettier
-- **Commits**: Conventional Commits specification
-- **Testing**: Minimum 80% coverage required
+### **Commit Convention**
+```
+feat: add new feature
+fix: bug fix
+docs: documentation changes
+style: formatting changes
+refactor: code refactoring
+test: adding tests
+chore: maintenance tasks
+```
+
+---
+
+## 📈 **Roadmap & Future Features**
+
+### **Planned Features**
+- [ ] **Mobile App** - React Native implementation
+- [ ] **Browser Extension** - One-click URL shortening
+- [ ] **API Rate Plans** - Tiered API access
+- [ ] **Advanced Analytics** - ML-powered insights
+- [ ] **A/B Testing** - Link performance comparison
+- [ ] **Webhook Integration** - Real-time notifications
+- [ ] **Custom Domains** - Full white-label solution
+- [ ] **Team Management** - Advanced collaboration features
+
+### **Technical Improvements**
+- [ ] **Kubernetes Deployment** - Production orchestration
+- [ ] **Microservices Architecture** - Service decomposition
+- [ ] **GraphQL API** - Flexible data querying
+- [ ] **Real-time Updates** - WebSocket integration
+- [ ] **Advanced Caching** - Multi-level cache strategy
+- [ ] **Monitoring Dashboard** - Grafana integration
 
 ---
 
@@ -841,154 +519,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 👨‍💻 **Author**
+## 👨‍💻 **Author & Maintainer**
 
 **Venkatesh Lahori**
-
-- GitHub: [@lahori-venkatesh](https://github.com/lahori-venkatesh)
-- LinkedIn: [Venkatesh Lahori](https://linkedin.com/in/venkatesh-lahori)
+- 🌐 GitHub: [@lahori-venkatesh](https://github.com/lahori-venkatesh)
+- 💼 LinkedIn: [Venkatesh Lahori](https://linkedin.com/in/venkatesh-lahori)
+- 📧 Email: venkatesh.lahori@example.com
 
 ---
 
 ## 🙏 **Acknowledgments**
 
-- Spring Boot Team for excellent framework
-- React Team for modern frontend capabilities
-- Redis Labs for high-performance caching
-- PostgreSQL Global Development Group
-- Open source community for invaluable libraries
+Special thanks to:
+- **Spring Boot Team** - For the excellent framework
+- **React Team** - For the modern frontend library
+- **Tailwind CSS** - For the utility-first CSS framework
+- **PostgreSQL Community** - For the robust database
+- **Redis Labs** - For high-performance caching
+- **Open Source Community** - For invaluable libraries and tools
 
 ---
 
+## 📞 **Support & Community**
+
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/lahori-venkatesh/pebly/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/lahori-venkatesh/pebly/discussions)
+- 📖 **Documentation**: [Wiki](https://github.com/lahori-venkatesh/pebly/wiki)
+- 💬 **Community**: [Discord Server](https://discord.gg/pebly)
+
 ---
 
-## 🚀 Deployment Guide
-
-### Prerequisites
-
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
-- Java 17+ (for local development)
-- PostgreSQL (for local development without Docker)
-
-### Production Deployment
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <your-repo-url>
-   cd url-shortener
-   ```
-
-2. **Configure environment variables**
-
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Deploy with Docker**
-
-   ```bash
-   ./scripts/deploy.sh production
-   ```
-
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
-   - Database: localhost:5432
-
-### Development Setup
-
-1. **Start the database**
-
-   ```bash
-   docker-compose up postgres redis -d
-   ```
-
-2. **Run backend**
-
-   ```bash
-   cd backend/url-service
-   ./mvnw spring-boot:run
-   ```
-
-3. **Run frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
-
-## 📦 Services
-
-- **Frontend**: React application with Tailwind CSS
-- **Backend**: Spring Boot REST API
-- **Database**: PostgreSQL with Redis caching
-- **Reverse Proxy**: Nginx for production
-
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable               | Description                | Default        |
-| ---------------------- | -------------------------- | -------------- |
-| `POSTGRES_DB`          | Database name              | `urlshortener` |
-| `POSTGRES_USER`        | Database user              | `admin`        |
-| `POSTGRES_PASSWORD`    | Database password          | `password`     |
-| `GOOGLE_CLIENT_ID`     | Google OAuth client ID     | -              |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | -              |
-| `JWT_SECRET`           | JWT signing secret         | -              |
-
-### Database Schema
-
-The application uses the following main entities:
-
-- **Users**: User accounts and authentication
-- **QR Codes**: QR code generation and tracking
-- **File Uploads**: File-to-URL conversion
-- **URL Mappings**: URL shortening functionality
-
-## 🛠️ Management Commands
-
-### Backup Database
-
-```bash
-./scripts/backup.sh
-```
-
-### View Logs
-
-```bash
-docker-compose logs -f [service-name]
-```
-
-### Scale Services
-
-```bash
-docker-compose up --scale backend=3 -d
-```
-
-### Update Application
-
-```bash
-./scripts/deploy.sh production --clean
-```
-
-## 🔒 Security Features
-
-- JWT-based authentication
-- Google OAuth integration
-- Rate limiting
-- SQL injection prevention
-- XSS protection
-- CORS configuration
-- SSL/TLS support
-
-## 📊 Monitoring
-
-- Health check endpoints
-- Application metrics
-- Database connection monitoring
-- Redis cache monitoring
-- Custom business metrics
+**⭐ If you find this project helpful, please consider giving it a star on GitHub!**

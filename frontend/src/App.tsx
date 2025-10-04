@@ -43,7 +43,12 @@ function App() {
             } />
             <Route path="/dashboard" element={
               <AuthRedirect requireAuth={true}>
-                <UnifiedDashboard />
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
               </AuthRedirect>
             } />
             <Route path="/analytics/:shortCode" element={

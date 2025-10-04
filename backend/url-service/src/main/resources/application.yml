@@ -48,6 +48,36 @@ google:
   redirect:
     uri: ${GOOGLE_REDIRECT_URI:https://your-vercel-app.vercel.app/auth/callback}
 
+# Razorpay Payment Configuration
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}
+
+# Application Configuration
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  
+# Performance Configuration for High Traffic
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+
 logging:
   level:
     com.urlshortener: INFO

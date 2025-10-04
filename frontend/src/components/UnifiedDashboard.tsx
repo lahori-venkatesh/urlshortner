@@ -155,7 +155,7 @@ const UnifiedDashboard: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
@@ -169,7 +169,7 @@ const UnifiedDashboard: React.FC = () => {
         fixed left-0 z-20 bg-white shadow-xl border-r border-gray-200 transform transition-all duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'w-16' : 'w-64'}
-        ${activeSection === 'dashboard' ? 'top-20 bottom-4 h-auto rounded-lg' : 'top-0 lg:top-20 bottom-0 lg:bottom-4 h-screen lg:h-auto lg:rounded-lg'}
+        top-0 lg:top-16 bottom-0 lg:bottom-4 h-screen lg:h-auto lg:rounded-lg
       `}>
         <div className="flex flex-col h-full relative">
           {/* Mobile Header */}
@@ -342,7 +342,7 @@ const UnifiedDashboard: React.FC = () => {
 
 
         {/* Mobile Menu Button for All Pages */}
-        <div className="lg:hidden fixed top-4 left-4 z-50">
+        <div className="lg:hidden fixed top-20 left-4 z-50">
           <button
             onClick={() => setSidebarOpen(true)}
             className="bg-white shadow-lg text-gray-600 hover:text-gray-900 p-2 rounded-lg"
@@ -352,7 +352,7 @@ const UnifiedDashboard: React.FC = () => {
         </div>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pt-2 lg:pb-6">
           {renderContent()}
         </main>
       </div>
