@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Databases
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  mongodb:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Backend Services
+  url-service:
+    build: ./backend/url-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/urlshortener
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+  analytics-service:
+    build: ./backend/analytics-service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/analytics?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_ANALYTICS_URL=http://localhost:3001
+    depends_on:
+      - url-service
+      - analytics-service
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:

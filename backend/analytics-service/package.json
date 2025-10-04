@@ -1,0 +1,40 @@
+{
+  "name": "analytics-service",
+  "version": "1.0.0",
+  "description": "Analytics service for URL shortener",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.3",
+    "redis": "^4.6.5",
+    "cors": "^2.8.5",
+    "helmet": "^6.1.5",
+    "express-rate-limit": "^6.7.0",
+    "jsonwebtoken": "^9.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
+    "uuid": "^9.0.0",
+    "geoip-lite": "^1.4.7",
+    "useragent": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.11",
+    "@types/cors": "^2.8.13",
+    "@types/jsonwebtoken": "^9.0.1",
+    "@types/bcryptjs": "^2.4.2",
+    "@types/uuid": "^9.0.1",
+    "@types/geoip-lite": "^1.4.1",
+    "@types/useragent": "^2.3.1",
+    "typescript": "^5.0.2",
+    "ts-node-dev": "^2.0.0",
+    "jest": "^29.5.0",
+    "@types/jest": "^29.5.0"
+  }
+}

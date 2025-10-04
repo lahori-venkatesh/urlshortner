@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: url-service
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${POSTGRES_DB:urlshortener}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  cache:
+    type: simple
+
+# Google OAuth Configuration
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID}
+    secret: ${GOOGLE_CLIENT_SECRET}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/auth/callback}
+
+logging:
+  level:
+    com.urlshortener: INFO
+    org.springframework.security: DEBUG
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
