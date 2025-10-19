@@ -1,0 +1,26 @@
+spring:
+  cache:
+    type: none  # Disable caching for development
+  data:
+    redis:
+      # Disable Redis for development
+      host: 
+      port: 
+      
+# Override cache configuration to disable Redis
+app:
+  cache:
+    url-ttl: 0
+    analytics-ttl: 0
+    geo-ttl: 0
+
+# Disable Redis health check
+management:
+  health:
+    redis:
+      enabled: false
+
+logging:
+  level:
+    com.urlshortener: DEBUG
+    org.springframework.cache: DEBUG

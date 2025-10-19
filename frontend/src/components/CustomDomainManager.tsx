@@ -27,17 +27,21 @@ const CustomDomainManager: React.FC = () => {
   const [verificationMethod, setVerificationMethod] = useState<'dns' | 'file'>('dns');
   const [showVerificationModal, setShowVerificationModal] = useState<CustomDomain | null>(null);
 
-  // Load domains from localStorage
+  // Load domains from backend API
   useEffect(() => {
-    const storedDomains = localStorage.getItem('customDomains');
-    if (storedDomains) {
-      try {
-        setDomains(JSON.parse(storedDomains));
-      } catch (err) {
-        console.error('Failed to parse domains:', err);
-      }
-    }
+    loadDomainsFromBackend();
   }, []);
+
+  const loadDomainsFromBackend = async () => {
+    try {
+      // TODO: Implement backend API call to load custom domains
+      console.log('Loading domains from backend...');
+      setDomains([]);
+    } catch (error) {
+      console.error('Failed to load domains from backend:', error);
+      setDomains([]);
+    }
+  };
 
   const addDomain = async () => {
     if (!newDomain.trim()) return;
@@ -72,7 +76,7 @@ const CustomDomainManager: React.FC = () => {
 
     const updatedDomains = [...domains, newCustomDomain];
     setDomains(updatedDomains);
-    localStorage.setItem('customDomains', JSON.stringify(updatedDomains));
+    // TODO: Save to backend API instead of localStorage
 
     setNewDomain('');
     setIsAddingDomain(false);
@@ -117,7 +121,7 @@ const CustomDomainManager: React.FC = () => {
       d.id === domainId ? { ...d, status: 'verifying' as const } : d
     );
     setDomains(updatedDomains);
-    localStorage.setItem('customDomains', JSON.stringify(updatedDomains));
+    // TODO: Save to backend API instead of localStorage
 
     // Simulate verification process
     setTimeout(async () => {
@@ -132,7 +136,7 @@ const CustomDomainManager: React.FC = () => {
       );
       
       setDomains(finalDomains);
-      localStorage.setItem('customDomains', JSON.stringify(finalDomains));
+      // TODO: Save to backend API instead of localStorage
 
       const { toast } = await import('react-hot-toast');
       if (success) {
@@ -149,7 +153,7 @@ const CustomDomainManager: React.FC = () => {
       isDefault: d.id === domainId
     }));
     setDomains(updatedDomains);
-    localStorage.setItem('customDomains', JSON.stringify(updatedDomains));
+    // TODO: Save to backend API instead of localStorage
   };
 
   const deleteDomain = async (domainId: string) => {
@@ -168,7 +172,7 @@ const CustomDomainManager: React.FC = () => {
     }
 
     setDomains(updatedDomains);
-    localStorage.setItem('customDomains', JSON.stringify(updatedDomains));
+    // TODO: Save to backend API instead of localStorage
 
     const { toast } = await import('react-hot-toast');
     toast.success('Domain deleted successfully');

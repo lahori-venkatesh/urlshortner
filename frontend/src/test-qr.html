@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <h1>QR Code Generation Test</h1>
+    <canvas id="qrCanvas"></canvas>
+    <br><br>
+    <button onclick="generateQR()">Generate QR Code</button>
+    <button onclick="downloadQR()">Download QR Code</button>
+    
+    <script>
+        async function generateQR() {
+            const canvas = document.getElementById('qrCanvas');
+            try {
+                await QRCode.toCanvas(canvas, 'https://example.com/test-url', {
+                    width: 300,
+                    margin: 4,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'M'
+                });
+                console.log('QR Code generated successfully!');
+            } catch (error) {
+                console.error('QR Code generation failed:', error);
+            }
+        }
+        
+        function downloadQR() {
+            const canvas = document.getElementById('qrCanvas');
+            if (canvas.width > 0 && canvas.height > 0) {
+                const link = document.createElement('a');
+                link.download = 'test-qr-code.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                console.log('QR Code downloaded!');
+            } else {
+                console.error('Canvas is empty, generate QR code first');
+            }
+        }
+        
+        // Auto-generate on page load
+        window.onload = generateQR;
+    </script>
+</body>
+</html>

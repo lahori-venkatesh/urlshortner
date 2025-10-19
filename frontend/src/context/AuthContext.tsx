@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { googleAuthService, GoogleUserInfo } from '../services/googleAuth';
+import * as api from '../services/api';
 
 interface User {
   id: string;
@@ -56,65 +57,114 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(parsedUser);
       setIsAuthenticated(true);
     } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
-      // Create user from Google info
-      const googleUser: User = {
-        id: googleUserInfo.id,
-        name: googleUserInfo.name,
-        email: googleUserInfo.email,
-        plan: 'free',
-        avatar: googleUserInfo.picture,
-        picture: googleUserInfo.picture,
-        createdAt: new Date().toISOString(),
-        timezone: 'Asia/Kolkata',
-        language: 'en',
-        isAuthenticated: true,
-        authProvider: 'google'
-      };
-      
-      setUser(googleUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(googleUser));
+      // Authenticate with backend using Google info
+      handleGoogleAuth(googleUserInfo);
     }
   }, []);
 
+  const handleGoogleAuth = async (googleUserInfo: GoogleUserInfo) => {
+    try {
+      const response = await api.googleAuth({
+        email: googleUserInfo.email,
+        googleId: googleUserInfo.id,
+        firstName: googleUserInfo.given_name || googleUserInfo.name.split(' ')[0] || '',
+        lastName: googleUserInfo.family_name || googleUserInfo.name.split(' ').slice(1).join(' ') || '',
+        profilePicture: googleUserInfo.picture
+      });
+      
+      if (response.success && response.user) {
+        const user: User = {
+          id: response.user.id,
+          name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
+          email: response.user.email,
+          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          avatar: response.user.profilePicture || googleUserInfo.picture,
+          picture: response.user.profilePicture || googleUserInfo.picture,
+          createdAt: response.user.createdAt,
+          timezone: 'Asia/Kolkata',
+          language: 'en',
+          isAuthenticated: true,
+          authProvider: 'google'
+        };
+        
+        setUser(user);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+    } catch (error) {
+      console.error('Google auth error:', error);
+      // If backend auth fails, clear Google auth
+      googleAuthService.logout();
+    }
+  };
+
   const login = async (email: string, password: string) => {
-    // Simulate API call for email/password login
-    const mockUser: User = {
-      id: Date.now().toString(),
-      name: email.split('@')[0],
-      email: email,
-      plan: 'free',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=3b82f6&color=fff`,
-      createdAt: new Date().toISOString(),
-      timezone: 'Asia/Kolkata',
-      language: 'en',
-      isAuthenticated: true,
-      authProvider: 'email'
-    };
-    
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    try {
+      const response = await api.login({ email, password });
+      
+      if (response.success && response.user) {
+        const user: User = {
+          id: response.user.id,
+          name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
+          email: response.user.email,
+          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
+          createdAt: response.user.createdAt,
+          timezone: 'Asia/Kolkata',
+          language: 'en',
+          isAuthenticated: true,
+          authProvider: 'email'
+        };
+        
+        setUser(user);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        throw new Error(response.message || 'Login failed');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Login failed');
+    }
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    // Simulate API call for email/password signup
-    const mockUser: User = {
-      id: Date.now().toString(),
-      name: name,
-      email: email,
-      plan: 'free',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`,
-      createdAt: new Date().toISOString(),
-      timezone: 'Asia/Kolkata',
-      language: 'en',
-      isAuthenticated: true,
-      authProvider: 'email'
-    };
-    
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    try {
+      const nameParts = name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const response = await api.signup({ 
+        email, 
+        password, 
+        firstName, 
+        lastName 
+      });
+      
+      if (response.success && response.user) {
+        const user: User = {
+          id: response.user.id,
+          name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
+          email: response.user.email,
+          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
+          createdAt: response.user.createdAt,
+          timezone: 'Asia/Kolkata',
+          language: 'en',
+          isAuthenticated: true,
+          authProvider: 'email'
+        };
+        
+        setUser(user);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        throw new Error(response.message || 'Signup failed');
+      }
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Signup failed');
+    }
   };
 
   const loginWithGoogle = () => {

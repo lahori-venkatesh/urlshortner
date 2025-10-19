@@ -300,6 +300,8 @@ const UnifiedDashboard: React.FC = () => {
             ))}
           </nav>
 
+
+
           {/* Upgrade Banner for Free Users */}
           {!isPremium && (
             <div className="p-4 border-t border-gray-200">

@@ -1,0 +1,163 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: pebly-url-service
+  
+  profiles:
+    active: prod
+  
+  # MongoDB Configuration for Production
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
+      database: ${MONGODB_DATABASE:pebly-database}
+      auto-index-creation: true
+      # Connection pool settings for production
+      options:
+        max-connection-pool-size: 50
+        min-connection-pool-size: 10
+        max-connection-idle-time: 30000
+        max-connection-life-time: 120000
+        connect-timeout: 10000
+        socket-timeout: 30000
+        server-selection-timeout: 10000
+        # Authentication settings
+        authentication-database: ${MONGODB_AUTH_DB:admin}
+        username: ${MONGODB_USERNAME:}
+        password: ${MONGODB_PASSWORD:}
+  
+  # Redis Configuration for Production Caching
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: 2000ms
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 hour
+      cache-null-values: false
+  
+  # CORS Configuration for Production
+  web:
+    cors:
+      allowed-origins: 
+        - ${FRONTEND_URL:https://your-domain.com}
+        - ${ADMIN_URL:https://admin.your-domain.com}
+      allowed-methods: 
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+# Security Configuration
+security:
+  jwt:
+    secret: ${JWT_SECRET:your_very_long_and_secure_jwt_secret_key_here}
+    expiration: 86400000  # 24 hours
+    refresh-expiration: 604800000  # 7 days
+
+# Google OAuth Configuration
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID:your_google_client_id}
+    secret: ${GOOGLE_CLIENT_SECRET:your_google_client_secret}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI:https://your-domain.com/auth/callback}
+
+# Razorpay Payment Configuration
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID:your_razorpay_key_id}
+    secret: ${RAZORPAY_KEY_SECRET:your_razorpay_key_secret}
+  webhook:
+    secret: ${RAZORPAY_WEBHOOK_SECRET:your_webhook_secret}
+
+# Application Configuration
+app:
+  frontend:
+    url: ${FRONTEND_URL:https://your-domain.com}
+  base-url: ${APP_BASE_URL:https://api.your-domain.com}
+  file-upload:
+    max-size: ${MAX_FILE_SIZE:10MB}
+    allowed-types: ${ALLOWED_FILE_TYPES:pdf,jpg,jpeg,png,gif,doc,docx,txt}
+    storage-path: ${FILE_STORAGE_PATH:/var/pebly/uploads}
+  analytics:
+    batch-size: 100
+    flush-interval: 30000  # 30 seconds
+  rate-limiting:
+    requests-per-minute: 100
+    burst-capacity: 200
+
+# Logging Configuration for Production
+logging:
+  level:
+    com.urlshortener: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:/var/log/pebly/application.log}
+    max-size: 100MB
+    max-history: 30
+
+# Actuator Configuration for Production Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      sla:
+        http.server.requests: 100ms, 500ms, 1s
+
+# Custom Application Properties
+pebly:
+  features:
+    analytics-enabled: true
+    file-upload-enabled: true
+    qr-code-enabled: true
+    premium-features-enabled: true
+  limits:
+    free-tier:
+      links-per-month: 5
+      file-size-mb: 5
+    premium-tier:
+      links-per-month: -1  # unlimited
+      file-size-mb: 50
+  cleanup:
+    expired-links-days: 30
+    inactive-users-days: 365
+    temp-files-hours: 24

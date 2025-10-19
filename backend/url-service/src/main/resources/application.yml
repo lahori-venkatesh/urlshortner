@@ -1,11 +1,20 @@
 server:
   port: ${PORT:8080}
+  # Production optimizations
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 10
+    connection-timeout: 20000
+    max-connections: 8192
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
 
 spring:
   application:
-    name: url-service
+    name: pebly-url-service
   
-  # CORS Configuration for Vercel frontend
+  # CORS Configuration
   web:
     cors:
       allowed-origins: 
@@ -21,74 +30,146 @@ spring:
       allowed-headers: "*"
       allow-credentials: true
   
-  datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/urlshortener}
-    driver-class-name: org.postgresql.Driver
-  
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        jdbc:
-          lob:
-            non_contextual_creation: true
+  # MongoDB Configuration - Production Ready
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
+      database: ${MONGODB_DATABASE:pebly-database}
+      auto-index-creation: true
+      # Connection pool settings for high performance
+      options:
+        max-pool-size: 100
+        min-pool-size: 10
+        max-idle-time: 60000
+        max-life-time: 120000
+        connect-timeout: 10000
+        socket-timeout: 5000
+        server-selection-timeout: 5000
+        heartbeat-frequency: 10000
+    
+    # Redis Configuration - Production Ready
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      database: 0
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 20
+          min-idle: 5
+          max-wait: 3000ms
+        shutdown-timeout: 100ms
 
   cache:
-    type: simple
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 hour
+      cache-null-values: false
+      key-prefix: "pebly:"
+      use-key-prefix: true
+  
+  # File upload configuration
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:10MB}
+      enabled: true
+  
+  # Async configuration for high performance
+  task:
+    execution:
+      pool:
+        core-size: 10
+        max-size: 50
+        queue-capacity: 100
+        keep-alive: 60s
+      thread-name-prefix: "async-"
 
 # Google OAuth Configuration
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID}
-    secret: ${GOOGLE_CLIENT_SECRET}
+    id: ${GOOGLE_CLIENT_ID:}
+    secret: ${GOOGLE_CLIENT_SECRET:}
   redirect:
-    uri: ${GOOGLE_REDIRECT_URI:https://your-vercel-app.vercel.app/auth/callback}
+    uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/auth/callback}
 
 # Razorpay Payment Configuration
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID}
-    secret: ${RAZORPAY_KEY_SECRET}
+    id: ${RAZORPAY_KEY_ID:}
+    secret: ${RAZORPAY_KEY_SECRET:}
 
 # Application Configuration
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
   
-# Performance Configuration for High Traffic
-spring:
-  datasource:
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+  # Rate limiting configuration
+  rate-limit:
+    enabled: true
+    requests-per-minute: 60
+    requests-per-hour: 1000
+    requests-per-day: 10000
   
-  jpa:
-    properties:
-      hibernate:
-        jdbc:
-          batch_size: 20
-        order_inserts: true
-        order_updates: true
-        batch_versioned_data: true
+  # Analytics configuration
+  analytics:
+    batch-size: 100
+    flush-interval: 5000  # 5 seconds
+    enable-real-time: true
+  
+  # Caching configuration
+  cache:
+    url-ttl: 3600  # 1 hour
+    analytics-ttl: 300  # 5 minutes
+    geo-ttl: 86400  # 24 hours
+  
+  # Security configuration
+  security:
+    enable-ip-whitelist: false
+    max-password-attempts: 5
+    password-attempt-window: 300  # 5 minutes
 
+# Logging Configuration - Production
 logging:
   level:
     com.urlshortener: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: WARN
+    org.springframework.data.mongodb: WARN
+    org.springframework.cache: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:./logs/application.log}
+    max-size: 100MB
+    max-history: 30
 
-# Actuator configuration
+# Actuator configuration - Production monitoring
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
+      base-path: /actuator
   endpoint:
     health:
       show-details: when-authorized
+      show-components: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
+
+# Connection pool monitoring
+spring.jpa.properties.hibernate.generate_statistics: true

@@ -41,17 +41,20 @@ const AdvancedQRGenerator: React.FC = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Load existing QR codes from localStorage
+  // Load existing QR codes from backend
   useEffect(() => {
-    const storedQRs = localStorage.getItem('qrCodes');
-    if (storedQRs) {
-      try {
-        setQrCodes(JSON.parse(storedQRs));
-      } catch (err) {
-        console.error('Failed to parse QR codes:', err);
-      }
-    }
+    loadQRCodesFromBackend();
   }, []);
+
+  const loadQRCodesFromBackend = async () => {
+    try {
+      // TODO: Load from backend API instead of localStorage
+      setQrCodes([]);
+    } catch (error) {
+      console.error('Failed to load QR codes from backend:', error);
+      setQrCodes([]);
+    }
+  };
 
   // Generate preview QR code
   useEffect(() => {
@@ -101,7 +104,7 @@ const AdvancedQRGenerator: React.FC = () => {
 
     const updatedQRs = [newQR, ...qrCodes];
     setQrCodes(updatedQRs);
-    localStorage.setItem('qrCodes', JSON.stringify(updatedQRs));
+    // TODO: Save to backend API instead of localStorage
 
     // Reset form
     setTitle('');
@@ -132,7 +135,7 @@ const AdvancedQRGenerator: React.FC = () => {
   const deleteQR = (qrId: string) => {
     const updatedQRs = qrCodes.filter(qr => qr.id !== qrId);
     setQrCodes(updatedQRs);
-    localStorage.setItem('qrCodes', JSON.stringify(updatedQRs));
+    // TODO: Delete via backend API instead of localStorage
   };
 
   return (

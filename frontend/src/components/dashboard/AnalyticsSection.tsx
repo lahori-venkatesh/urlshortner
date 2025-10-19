@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -13,20 +14,35 @@ import {
   Users
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../../context/AuthContext';
+import LocationAnalytics from './LocationAnalytics';
 
 const AnalyticsSection: React.FC = () => {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'location' | 'performance'>('overview');
   useEffect(() => {
     // Load analytics data for all users
-    const loadAnalytics = () => {
+    const loadAnalytics = async () => {
+      if (!user?.id) {
+        console.log('No user ID available for analytics');
+        return;
+      }
+
       try {
-        const links = JSON.parse(localStorage.getItem('shortenedLinks') || '[]');
-        const qrCodes = JSON.parse(localStorage.getItem('bitlyQRCodes') || '[]');
-        const fileLinks = JSON.parse(localStorage.getItem('fileToUrlLinks') || '[]');
+        console.log('Loading analytics for user:', user.id);
+        
+        // Load user's data from backend
+        const [urlsResponse, qrResponse, filesResponse] = await Promise.all([
+          fetch(`http://localhost:8080/api/v1/urls/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
+          fetch(`http://localhost:8080/api/v1/qr/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
+          fetch(`http://localhost:8080/api/v1/files/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] }))
+        ]);
+
+        const links = urlsResponse.success ? urlsResponse.data : [];
+        const qrCodes = qrResponse.success ? qrResponse.data : [];
+        const fileLinks = filesResponse.success ? filesResponse.data : [];
         
         const totalClicks = links.reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
         const totalScans = qrCodes.reduce((sum: number, qr: any) => sum + (qr.scans || 0), 0);
@@ -144,7 +160,7 @@ const AnalyticsSection: React.FC = () => {
     };
 
     loadAnalytics();
-  }, [timeRange]);
+  }, [timeRange, user]);
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -183,8 +199,54 @@ const AnalyticsSection: React.FC = () => {
         </select>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Navigation Tabs */}
+      <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'overview' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Overview</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('location')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'location' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <Globe className="w-4 h-4" />
+            <span>Location Analytics</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('performance')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'performance' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span>Performance</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'location' && (
+        <LocationAnalytics timeRange={timeRange} />
+      )}
+
+      {activeTab === 'overview' && (
+        <>
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -466,6 +528,37 @@ const AnalyticsSection: React.FC = () => {
           </button>
         </div>
       </div>
+        </>
+      )}
+
+      {activeTab === 'performance' && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h3>
+          <div className="text-center py-12">
+            <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">Advanced Performance Analytics</h4>
+            <p className="text-gray-600 mb-4">Detailed performance metrics coming soon</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h5 className="font-medium text-blue-900 mb-2">Click-through Rate</h5>
+                <p className="text-2xl font-bold text-blue-600">{analyticsData?.conversionRate || 0}%</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h5 className="font-medium text-green-900 mb-2">Engagement Score</h5>
+                <p className="text-2xl font-bold text-green-600">
+                  {analyticsData?.totalClicks > 0 ? Math.min(100, Math.floor((analyticsData.uniqueVisitors / analyticsData.totalClicks) * 100)) : 0}
+                </p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <h5 className="font-medium text-purple-900 mb-2">Return Visitors</h5>
+                <p className="text-2xl font-bold text-purple-600">
+                  {analyticsData?.totalClicks > 0 ? Math.floor((analyticsData.totalClicks - analyticsData.uniqueVisitors) / analyticsData.totalClicks * 100) : 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

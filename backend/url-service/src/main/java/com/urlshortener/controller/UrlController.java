@@ -1,30 +1,235 @@
 package com.urlshortener.controller;
 
-import com.urlshortener.dto.ShortenUrlRequest;
-import com.urlshortener.dto.ShortenUrlResponse;
-import com.urlshortener.service.UrlShortenerService;
-import jakarta.validation.Valid;
+import com.urlshortener.model.ShortenedUrl;
+import com.urlshortener.service.UrlShorteningService;
+import com.urlshortener.service.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/urls")
 @CrossOrigin(origins = "*")
 public class UrlController {
     
     @Autowired
-    private UrlShortenerService urlShortenerService;
+    private UrlShorteningService urlShorteningService;
     
-    @PostMapping("/shorten")
-    public ResponseEntity<ShortenUrlResponse> shortenUrl(@Valid @RequestBody ShortenUrlRequest request) {
+    @Autowired
+    private AnalyticsService analyticsService;
+    
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createShortUrl(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
         try {
-            ShortenUrlResponse response = urlShortenerService.shortenUrl(request);
+            String originalUrl = (String) request.get("originalUrl");
+            String userId = (String) request.get("userId");
+            String customAlias = (String) request.get("customAlias");
+            String password = (String) request.get("password");
+            Integer expirationDays = (Integer) request.get("expirationDays");
+            String title = (String) request.get("title");
+            String description = (String) request.get("description");
+            
+            if (originalUrl == null || originalUrl.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Original URL is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            ShortenedUrl shortenedUrl = urlShorteningService.createShortUrl(
+                originalUrl, userId, customAlias, password, expirationDays, title, description
+            );
+            
+            Map<String, Object> urlData = new HashMap<>();
+            urlData.put("id", shortenedUrl.getId());
+            urlData.put("shortCode", shortenedUrl.getShortCode());
+            urlData.put("shortUrl", shortenedUrl.getShortUrl());
+            urlData.put("originalUrl", shortenedUrl.getOriginalUrl());
+            urlData.put("title", shortenedUrl.getTitle());
+            urlData.put("description", shortenedUrl.getDescription());
+            urlData.put("createdAt", shortenedUrl.getCreatedAt());
+            urlData.put("expiresAt", shortenedUrl.getExpiresAt());
+            urlData.put("isPasswordProtected", shortenedUrl.isPasswordProtected());
+            
+            response.put("success", true);
+            response.put("message", "URL shortened successfully");
+            response.put("data", urlData);
+            
             return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
     
-
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<Map<String, Object>> getUrl(@PathVariable String shortCode) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCode(shortCode);
+            
+            if (urlOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "URL not found");
+                return ResponseEntity.notFound().build();
+            }
+            
+            ShortenedUrl url = urlOpt.get();
+            
+            Map<String, Object> urlData = new HashMap<>();
+            urlData.put("id", url.getId());
+            urlData.put("shortCode", url.getShortCode());
+            urlData.put("shortUrl", url.getShortUrl());
+            urlData.put("originalUrl", url.getOriginalUrl());
+            urlData.put("title", url.getTitle());
+            urlData.put("description", url.getDescription());
+            urlData.put("totalClicks", url.getTotalClicks());
+            urlData.put("createdAt", url.getCreatedAt());
+            urlData.put("isPasswordProtected", url.isPasswordProtected());
+            
+            response.put("success", true);
+            response.put("data", urlData);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserUrls(@PathVariable String userId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<ShortenedUrl> urls = urlShorteningService.getUserUrls(userId);
+            
+            List<Map<String, Object>> urlsData = urls.stream().map(url -> {
+                Map<String, Object> urlData = new HashMap<>();
+                urlData.put("id", url.getId());
+                urlData.put("shortCode", url.getShortCode());
+                urlData.put("shortUrl", url.getShortUrl());
+                urlData.put("originalUrl", url.getOriginalUrl());
+                urlData.put("title", url.getTitle());
+                urlData.put("description", url.getDescription());
+                urlData.put("totalClicks", url.getTotalClicks());
+                urlData.put("uniqueClicks", url.getUniqueClicks());
+                urlData.put("createdAt", url.getCreatedAt());
+                urlData.put("lastClickedAt", url.getLastClickedAt());
+                urlData.put("isPasswordProtected", url.isPasswordProtected());
+                urlData.put("hasQrCode", url.isHasQrCode());
+                return urlData;
+            }).toList();
+            
+            response.put("success", true);
+            response.put("count", urls.size());
+            response.put("data", urlsData);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PutMapping("/{shortCode}")
+    public ResponseEntity<Map<String, Object>> updateUrl(@PathVariable String shortCode, 
+                                                        @RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String userId = (String) request.get("userId");
+            
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "User ID is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            ShortenedUrl updates = new ShortenedUrl();
+            if (request.containsKey("title")) updates.setTitle((String) request.get("title"));
+            if (request.containsKey("description")) updates.setDescription((String) request.get("description"));
+            if (request.containsKey("password")) updates.setPassword((String) request.get("password"));
+            
+            ShortenedUrl updated = urlShorteningService.updateUrl(shortCode, userId, updates);
+            
+            response.put("success", true);
+            response.put("message", "URL updated successfully");
+            response.put("data", Map.of(
+                "shortCode", updated.getShortCode(),
+                "title", updated.getTitle(),
+                "description", updated.getDescription(),
+                "updatedAt", updated.getUpdatedAt()
+            ));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @DeleteMapping("/{shortCode}")
+    public ResponseEntity<Map<String, Object>> deleteUrl(@PathVariable String shortCode,
+                                                        @RequestParam String userId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            urlShorteningService.deleteUrl(shortCode, userId);
+            
+            response.put("success", true);
+            response.put("message", "URL deleted successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/{shortCode}/click")
+    public ResponseEntity<Map<String, Object>> recordClick(@PathVariable String shortCode,
+                                                          @RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String ipAddress = request.get("ipAddress");
+            String userAgent = request.get("userAgent");
+            String referrer = request.get("referrer");
+            String country = request.get("country");
+            String city = request.get("city");
+            String deviceType = request.get("deviceType");
+            String browser = request.get("browser");
+            String os = request.get("os");
+            
+            analyticsService.recordClick(shortCode, ipAddress, userAgent, referrer, 
+                                       country, city, deviceType, browser, os);
+            
+            response.put("success", true);
+            response.put("message", "Click recorded successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

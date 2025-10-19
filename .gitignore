@@ -1,59 +1,21 @@
-# Pebly - URL Shortener Platform
-# Comprehensive .gitignore file
-
 # Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
+*/node_modules/
 
 # Production builds
-/frontend/build/
-/frontend/dist/
-/backend/*/target/
-/backend/*/build/
-/backend/*/dist/
+build/
+dist/
+*/build/
+*/dist/
 
-# Environment variables (IMPORTANT: Never commit these)
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.production
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-/uploads/*
-!/uploads/.gitkeep
-
-# Backup files
-/backups/
-*.sql
-*.dump
-
-# IDE and Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-*.sublime-project
-*.sublime-workspace
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
+*/.env
+*/.env.local
 
 # Logs
 logs/
@@ -72,7 +34,9 @@ pids/
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
-.nyc_output/
+
+# nyc test coverage
+.nyc_output
 
 # Dependency directories
 jspm_packages/
@@ -82,6 +46,12 @@ jspm_packages/
 
 # Optional eslint cache
 .eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
 # Optional REPL history
 .node_repl_history
@@ -101,7 +71,6 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
 
 # Gatsby files
 .cache/
@@ -115,18 +84,41 @@ public
 tmp/
 temp/
 
-# Java/Maven/Spring Boot
-.mvn/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Java
+*.class
 *.jar
 *.war
-*.nar
 *.ear
-*.zip
-*.tar.gz
-*.rar
+*.nar
+hs_err_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # Gradle
 .gradle/
@@ -141,6 +133,8 @@ build/
 *.iml
 *.ipr
 out/
+!**/src/main/**/out/
+!**/src/test/**/out/
 
 # Eclipse
 .apt_generated
@@ -151,6 +145,8 @@ out/
 .springBeans
 .sts4-cache
 bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
 # NetBeans
 /nbproject/private/
@@ -159,44 +155,26 @@ bin/
 /nbdist/
 /.nb-gradle/
 
-# Docker
-.dockerignore
-docker-compose.override.yml
+# VS Code
+.vscode/
 
-# Redis dump file
-dump.rdb
+# File uploads (don't commit uploaded files)
+uploads/
+*/uploads/
 
-# PostgreSQL
-*.pgsql
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
 
 # Test files
-/test-results/
-/playwright-report/
-/playwright/.cache/
+test-results/
+coverage/
 
-# Certificates
-*.pem
-*.key
-*.crt
-*.p12
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.swp
-*.swo
-
-# Application specific
-/qr-codes/
-/shortened-urls/
-/analytics-data/
-
-# Deployment files (keep templates)
-docker-compose.prod.yml
-kubernetes/
-helm/
-
-# Security files
-secrets/
-*.secret
+# Deployment files (sensitive)
+docker-compose.override.yml
+k8s-secrets.yml

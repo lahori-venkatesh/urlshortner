@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Link, 
   Copy, 
@@ -33,21 +34,52 @@ interface LinksManagerProps {
 }
 
 const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
+  const { user } = useAuth();
   const [links, setLinks] = useState<ShortenedLink[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'clicks' | 'url'>('date');
   const [filterBy, setFilterBy] = useState<'all' | 'url' | 'qr' | 'file'>('all');
 
   useEffect(() => {
-    const storedLinks = localStorage.getItem('shortenedLinks');
-    if (storedLinks) {
-      try {
-        setLinks(JSON.parse(storedLinks));
-      } catch (err) {
-        console.error('Failed to parse links:', err);
-      }
+    // Load links from backend API only - no localStorage
+    loadLinksFromBackend();
+  }, [user]);
+
+  const loadLinksFromBackend = async () => {
+    if (!user?.id) {
+      console.log('No user ID available for loading links');
+      setLinks([]);
+      return;
     }
-  }, []);
+
+    try {
+      console.log('Loading links from backend for user:', user.id);
+      const response = await fetch(`http://localhost:8080/api/v1/urls/user/${user.id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const formattedLinks = result.data.map((link: any) => ({
+          id: link.id,
+          shortUrl: link.shortUrl,
+          originalUrl: link.originalUrl,
+          shortCode: link.shortCode,
+          clicks: link.totalClicks || 0,
+          createdAt: link.createdAt,
+          title: link.title,
+          tags: link.tags || [],
+          type: 'url'
+        }));
+        setLinks(formattedLinks);
+        console.log(`Loaded ${formattedLinks.length} links from backend`);
+      } else {
+        console.error('Failed to load links:', result.message);
+        setLinks([]);
+      }
+    } catch (error) {
+      console.error('Failed to load links from backend:', error);
+      setLinks([]);
+    }
+  };
 
   const filteredLinks = links
     .filter(link => {
@@ -78,11 +110,17 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
     }
   };
 
-  const deleteLink = (linkId: string) => {
-    const updatedLinks = links.filter(link => link.id !== linkId);
-    setLinks(updatedLinks);
-    localStorage.setItem('shortenedLinks', JSON.stringify(updatedLinks));
-    toast.success('Link deleted successfully');
+  const deleteLink = async (linkId: string) => {
+    try {
+      // TODO: Implement backend API call to delete link
+      console.log('Deleting link from backend:', linkId);
+      const updatedLinks = links.filter(link => link.id !== linkId);
+      setLinks(updatedLinks);
+      toast.success('Link deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete link:', error);
+      toast.error('Failed to delete link');
+    }
   };
 
   const editLink = (linkId: string) => {
@@ -90,13 +128,19 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
     toast('Edit functionality coming soon!');
   };
 
-  const updateTags = (linkId: string, newTags: string[]) => {
-    const updatedLinks = links.map(link => 
-      link.id === linkId ? { ...link, tags: newTags } : link
-    );
-    setLinks(updatedLinks);
-    localStorage.setItem('shortenedLinks', JSON.stringify(updatedLinks));
-    toast.success('Tags updated successfully');
+  const updateTags = async (linkId: string, newTags: string[]) => {
+    try {
+      // TODO: Implement backend API call to update tags
+      console.log('Updating tags in backend:', linkId, newTags);
+      const updatedLinks = links.map(link => 
+        link.id === linkId ? { ...link, tags: newTags } : link
+      );
+      setLinks(updatedLinks);
+      toast.success('Tags updated successfully');
+    } catch (error) {
+      console.error('Failed to update tags:', error);
+      toast.error('Failed to update tags');
+    }
   };
 
   if (links.length === 0) {

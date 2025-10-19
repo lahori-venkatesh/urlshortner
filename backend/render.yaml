@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: pebly-backend
+    env: java
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/url-service-1.0.0.jar
+    plan: starter
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: MONGODB_URI
+        fromDatabase:
+          name: pebly-mongodb
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: pebly-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: pebly-redis
+          property: port
+      - key: FRONTEND_URL
+        value: https://your-frontend-domain.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+databases:
+  - name: pebly-mongodb
+    databaseName: pebly-database
+    user: pebly-user
+
+services:
+  - type: redis
+    name: pebly-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru

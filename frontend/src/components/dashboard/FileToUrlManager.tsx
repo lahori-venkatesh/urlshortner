@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   File, 
   Image, 
@@ -9,9 +10,12 @@ import {
   Trash2,
   Eye,
   Search,
-  Plus} from 'lucide-react';
+  Plus,
+  Upload,
+  RefreshCw,
+  Link as LinkIcon} from 'lucide-react';
 import toast from 'react-hot-toast';
-import LinkActions from '../LinkActions';
+import { fileService, FileInfo } from '../../services/fileService';
 
 interface FileLink {
   id: string;
@@ -26,6 +30,8 @@ interface FileLink {
   shortCode: string;
   tags?: string[];
   type: 'file';
+  isPasswordProtected?: boolean;
+  expiresAt?: string;
 }
 
 interface FileToUrlManagerProps {
@@ -33,43 +39,99 @@ interface FileToUrlManagerProps {
 }
 
 const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) => {
+  const { user } = useAuth();
   const [fileLinks, setFileLinks] = useState<FileLink[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'image' | 'document' | 'other'>('all');
+  const [filterBy, setFilterBy] = useState<'all' | 'image' | 'document' | 'video' | 'audio' | 'other'>('all');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalFiles: 0,
+    totalSize: 0,
+    totalDownloads: 0,
+    fileTypeStats: {} as Record<string, number>
+  });
 
   useEffect(() => {
-    // Load file links from localStorage
-    const storedLinks = localStorage.getItem('shortenedLinks');
-    if (storedLinks) {
-      try {
-        const allLinks = JSON.parse(storedLinks);
-        const fileOnlyLinks = allLinks
-          .filter((link: any) => link.type === 'file')
-          .map((link: any) => ({
-            id: link.id,
-            fileName: link.originalUrl.split('/').pop() || 'Unknown File',
-            fileType: getFileType(link.originalUrl),
-            fileSize: Math.floor(Math.random() * 5000000) + 100000, // Mock file size
-            shortUrl: link.shortUrl,
-            originalUrl: link.originalUrl,
-            clicks: link.clicks || 0,
-            createdAt: link.createdAt,
-            downloadCount: Math.floor(Math.random() * 50),
-            shortCode: link.shortCode || link.shortUrl.split('/').pop() || '',
-            tags: link.tags || [],
-            type: 'file' as const
-          }));
-        setFileLinks(fileOnlyLinks);
-      } catch (err) {
-        console.error('Failed to parse file links:', err);
-      }
+    loadFileLinks();
+    loadFileStats();
+  }, [user]);
+
+  const loadFileLinks = async () => {
+    if (!user?.id) {
+      console.log('No user ID available for loading files');
+      setFileLinks([]);
+      setLoading(false);
+      return;
     }
-  }, []);
+
+    try {
+      setLoading(true);
+      console.log('Loading file links for user:', user.id);
+      
+      const response = await fetch(`http://localhost:8080/api/v1/files/user/${user.id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const fileLinksData: FileLink[] = result.data.map((file: any) => ({
+          id: file.id,
+          fileName: file.originalFileName,
+          fileType: getFileTypeCategory(file.fileType),
+          fileSize: file.fileSize,
+          shortUrl: file.fileUrl,
+          originalUrl: file.fileUrl,
+          clicks: file.totalDownloads || 0,
+          createdAt: file.uploadedAt,
+          downloadCount: file.totalDownloads || 0,
+          shortCode: file.fileCode,
+          tags: file.tags || [],
+          type: 'file' as const,
+          isPasswordProtected: file.requiresPassword,
+          expiresAt: file.expiresAt
+        }));
+        
+        setFileLinks(fileLinksData);
+        console.log(`Loaded ${fileLinksData.length} file links`);
+      } else {
+        console.log('No file links found for user');
+        setFileLinks([]);
+      }
+    } catch (error) {
+      console.error('Failed to load file links:', error);
+      toast.error('Failed to load file links');
+      setFileLinks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFileTypeCategory = (fileType: string): string => {
+    if (!fileType) return 'other';
+    if (fileType.startsWith('image/')) return 'image';
+    if (fileType.startsWith('video/')) return 'video';
+    if (fileType.startsWith('audio/')) return 'audio';
+    if (fileType.includes('pdf') || fileType.includes('document') || fileType.includes('text')) return 'document';
+    return 'other';
+  };
+
+  const loadFileStats = async () => {
+    try {
+      const response = await fileService.getFileStats();
+      if (response.success) {
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load file stats:', error);
+    }
+  };
+
+  // localStorage fallback removed - backend only
 
   const getFileType = (url: string): string => {
     const extension = url.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return 'image';
     if (['pdf', 'doc', 'docx', 'txt'].includes(extension || '')) return 'document';
+    if (['mp4', 'avi', 'mov', 'wmv'].includes(extension || '')) return 'video';
+    if (['mp3', 'wav', 'flac', 'aac'].includes(extension || '')) return 'audio';
     return 'other';
   };
 
@@ -79,6 +141,10 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
         return <Image className="w-5 h-5 text-green-600" />;
       case 'document':
         return <FileText className="w-5 h-5 text-blue-600" />;
+      case 'video':
+        return <div className="w-5 h-5 text-purple-600">🎥</div>;
+      case 'audio':
+        return <div className="w-5 h-5 text-orange-600">🎵</div>;
       default:
         return <File className="w-5 h-5 text-gray-600" />;
     }
@@ -108,17 +174,42 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     toast('Edit functionality coming soon!');
   };
 
-  const deleteFileLink = (linkId: string) => {
-    if (window.confirm('Are you sure you want to delete this file link?')) {
-      const updatedLinks = fileLinks.filter(link => link.id !== linkId);
-      setFileLinks(updatedLinks);
-      
-      // Also update the main links storage
-      const allLinks = JSON.parse(localStorage.getItem('shortenedLinks') || '[]');
-      const updatedAllLinks = allLinks.filter((link: any) => link.id !== linkId);
-      localStorage.setItem('shortenedLinks', JSON.stringify(updatedAllLinks));
-      
-      toast.success('File link deleted successfully');
+  const deleteFileLink = async (linkId: string) => {
+    if (window.confirm('Are you sure you want to delete this file link? This action cannot be undone.')) {
+      try {
+        const response = await fileService.deleteFile(linkId);
+        if (response.success) {
+          setFileLinks(prev => prev.filter(link => link.id !== linkId));
+          toast.success('File link deleted successfully');
+          
+          // Reload stats
+          loadFileStats();
+        }
+      } catch (error) {
+        console.error('Failed to delete file link:', error);
+        toast.error('Failed to delete file link');
+        
+        // Remove from local state only
+        const updatedLinks = fileLinks.filter(link => link.id !== linkId);
+        setFileLinks(updatedLinks);
+        toast.success('File link removed from display');
+      }
+    }
+  };
+
+  const downloadFile = async (fileId: string, fileName: string) => {
+    try {
+      await fileService.downloadFile(fileId, fileName);
+      toast.success('Download started');
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Failed to download file');
+    }
+  };
+
+  const handleCreateFileLink = () => {
+    if (onCreateClick) {
+      onCreateClick();
     }
   };
 
@@ -128,12 +219,7 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     );
     setFileLinks(updatedLinks);
     
-    // Also update the main links storage
-    const allLinks = JSON.parse(localStorage.getItem('shortenedLinks') || '[]');
-    const updatedAllLinks = allLinks.map((link: any) => 
-      link.id === linkId ? { ...link, tags: newTags } : link
-    );
-    localStorage.setItem('shortenedLinks', JSON.stringify(updatedAllLinks));
+    // TODO: Update tags via backend API instead of localStorage
     
     toast.success('Tags updated successfully');
   };
@@ -151,21 +237,34 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-2xl p-6">
+      <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-2xl p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">File Links Manager</h2>
-            <p className="text-green-100">
-              Upload files and create shareable links
+            <h2 className="text-2xl font-bold mb-2 flex items-center space-x-2">
+              <LinkIcon className="w-8 h-8" />
+              <span>File Links Manager</span>
+            </h2>
+            <p className="text-orange-100">
+              Manage your file-to-link conversions and shareable file links
             </p>
           </div>
-          <button
-            onClick={onCreateClick}
-            className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>File to Link</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={loadFileLinks}
+              disabled={loading}
+              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+            <button
+              onClick={handleCreateFileLink}
+              className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create File Link</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -196,6 +295,8 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
               <option value="all">All Files</option>
               <option value="image">Images</option>
               <option value="document">Documents</option>
+              <option value="video">Videos</option>
+              <option value="audio">Audio</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -204,8 +305,8 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="text-2xl font-bold text-gray-900">{fileLinks.length}</div>
-            <div className="text-sm text-gray-600">Total Files</div>
+            <div className="text-2xl font-bold text-gray-900">{stats.totalFiles || fileLinks.length}</div>
+            <div className="text-sm text-gray-600">File Links</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-2xl font-bold text-blue-600">
@@ -215,31 +316,43 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-2xl font-bold text-green-600">
-              {fileLinks.reduce((sum, link) => sum + link.downloadCount, 0)}
+              {stats.totalDownloads || fileLinks.reduce((sum, link) => sum + link.downloadCount, 0)}
             </div>
             <div className="text-sm text-gray-600">Downloads</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-2xl font-bold text-purple-600">
-              {formatFileSize(fileLinks.reduce((sum, link) => sum + link.fileSize, 0))}
+              {formatFileSize(stats.totalSize || fileLinks.reduce((sum, link) => sum + link.fileSize, 0))}
             </div>
             <div className="text-sm text-gray-600">Total Size</div>
           </div>
         </div>
 
         {/* File Links List */}
-        {filteredLinks.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <RefreshCw className="w-12 h-12 text-gray-300 mx-auto mb-3 animate-spin" />
+            <p className="text-gray-500">Loading file links...</p>
+          </div>
+        ) : filteredLinks.length === 0 ? (
           <div className="text-center py-12">
             {fileLinks.length === 0 ? (
               <>
-                <File className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h4 className="text-lg font-medium text-gray-900 mb-2">No file links yet</h4>
-                <p className="text-gray-600">Your file links will appear here once created</p>
+                <LinkIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 mb-2">No file links created yet</h4>
+                <p className="text-gray-600 mb-4">Create your first file-to-link conversion to get started</p>
+                <button
+                  onClick={handleCreateFileLink}
+                  className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2 mx-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create File Link</span>
+                </button>
               </>
             ) : (
               <>
                 <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No files found matching your criteria</p>
+                <p className="text-gray-500">No file links found matching your criteria</p>
               </>
             )}
           </div>
@@ -282,17 +395,42 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                           <span>{fileLink.downloadCount} downloads</span>
                         </span>
                         <span>{new Date(fileLink.createdAt).toLocaleDateString()}</span>
+                        {fileLink.isPasswordProtected && (
+                          <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">🔒 Protected</span>
+                        )}
+                        {fileLink.expiresAt && (
+                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">⏰ Expires</span>
+                        )}
                       </div>
+                      
+                      {fileLink.tags && fileLink.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {fileLink.tags.map(tag => (
+                            <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => deleteFileLink(fileLink.id)}
-                    className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded ml-4"
-                    title="Delete file link"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <button
+                      onClick={() => downloadFile(fileLink.id, fileLink.fileName)}
+                      className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded"
+                      title="Download file"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteFileLink(fileLink.id)}
+                      className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded"
+                      title="Delete file link"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   QrCode, 
   Plus, 
@@ -56,6 +57,7 @@ interface QRManageSectionProps {
 }
 
 const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
+  const { user } = useAuth();
   const [qrCodes, setQrCodes] = useState<QRCodeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -66,36 +68,66 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
-    const loadQRCodes = () => {
-      try {
-        const storedQRs = localStorage.getItem('bitlyQRCodes');
-        if (storedQRs) {
-          const parsedQRs = JSON.parse(storedQRs).map((qr: any) => ({
-            ...qr,
-            customization: qr.customization || {
-              foregroundColor: '#000000',
-              backgroundColor: '#ffffff',
-              style: 'square',
-              size: 256,
-              errorCorrection: 'M'
-            },
-            isHidden: qr.isHidden || false,
-            isFavorite: qr.isFavorite || false,
-            category: qr.category || 'General',
-            tags: qr.tags || [],
-            type: qr.type || 'url'
-          }));
-          setQrCodes(parsedQRs);
-        }
-      } catch (err) {
-        console.error('Failed to parse QR codes:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadQRCodes();
   }, []);
+
+  const loadQRCodes = async () => {
+    if (!user?.id) {
+      console.log('No user ID available for loading QR codes');
+      setQrCodes([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Loading QR codes from backend for user:', user.id);
+      
+      const response = await fetch(`http://localhost:8080/api/v1/qr/user/${user.id}`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const qrCodesData: QRCodeData[] = result.data.map((qr: any) => ({
+          id: qr.id,
+          title: qr.title || 'QR Code',
+          url: qr.content || qr.originalUrl,
+          shortUrl: qr.shortUrl,
+          scans: qr.scans || 0,
+          createdAt: qr.createdAt,
+          updatedAt: qr.updatedAt,
+          customization: qr.customization || {
+            foregroundColor: qr.foregroundColor || '#000000',
+            backgroundColor: qr.backgroundColor || '#ffffff',
+            style: 'square',
+            size: qr.size || 256,
+            errorCorrection: qr.errorCorrectionLevel || 'M'
+          },
+          isPremium: false,
+          trackingEnabled: true,
+          isDynamic: false,
+          isHidden: false,
+          isFavorite: false,
+          category: 'General',
+          tags: [],
+          qrCodeImage: qr.qrCodeImage,
+          type: qr.type || 'url'
+        }));
+        
+        setQrCodes(qrCodesData);
+        console.log(`Loaded ${qrCodesData.length} QR codes from backend`);
+        toast.success(`Loaded ${qrCodesData.length} QR codes`);
+      } else {
+        console.log('No QR codes found for user');
+        setQrCodes([]);
+      }
+    } catch (error) {
+      console.error('Failed to load QR codes from backend:', error);
+      toast.error('Failed to load QR codes');
+      setQrCodes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -110,9 +142,10 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [activeDropdown]);
 
-  const updateQRCodes = (updatedQRs: QRCodeData[]) => {
+  const updateQRCodes = async (updatedQRs: QRCodeData[]) => {
     setQrCodes(updatedQRs);
-    localStorage.setItem('bitlyQRCodes', JSON.stringify(updatedQRs));
+    // TODO: Update via backend API instead of localStorage
+    // localStorage.setItem('bitlyQRCodes', JSON.stringify(updatedQRs));
   };
 
   const copyQRUrl = async (url: string) => {
@@ -179,26 +212,35 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   };
 
   const downloadQR = async (qr: QRCodeData) => {
-    // Generate QR code and download
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      canvas.width = qr.customization.size;
-      canvas.height = qr.customization.size;
+    try {
+      // Generate QR code using the qrcode library
+      const canvas = document.createElement('canvas');
       
-      // Simple QR code placeholder (in real app, use QR library)
-      ctx.fillStyle = qr.customization.backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = qr.customization.foregroundColor;
-      ctx.fillText('QR Code', 50, 50);
+      // Import QRCode dynamically to avoid issues
+      const QRCode = await import('qrcode');
       
-      // Download
+      // Generate QR code on canvas
+      await QRCode.toCanvas(canvas, qr.url, {
+        width: qr.customization.size,
+        margin: 4, // Default margin since it's not in the interface
+        color: {
+          dark: qr.customization.foregroundColor,
+          light: qr.customization.backgroundColor
+        },
+        errorCorrectionLevel: qr.customization.errorCorrection
+      });
+      
+      // Download the canvas as PNG
       const link = document.createElement('a');
-      link.download = `${qr.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
-      link.href = canvas.toDataURL();
+      link.download = `${qr.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_qr_code.png`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
+      
+      toast.success('QR Code downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating QR code for download:', error);
+      toast.error('Failed to download QR code. Please try again.');
     }
-    toast.success('QR Code downloaded!');
     setActiveDropdown(null);
   };
 
@@ -284,16 +326,26 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
           <div>
             <h2 className="text-2xl font-bold mb-2">QR Code Manager</h2>
             <p className="text-purple-100">
-              Manage and track your QR codes with advanced features
+              Manage and track your QR codes from MongoDB database
             </p>
           </div>
-          <button
-            onClick={onCreateClick}
-            className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Create QR Code</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={loadQRCodes}
+              disabled={loading}
+              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+            <button
+              onClick={onCreateClick}
+              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create QR Code</span>
+            </button>
+          </div>
         </div>
       </div>
 
