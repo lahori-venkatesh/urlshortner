@@ -43,19 +43,14 @@ interface DashboardStats {
   clicksOverTime: any[];
 }
 
-interface QuickCreateFormData {
-  url: string;
-  customCode?: string;
-}
+
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) => {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showQuickCreate, setShowQuickCreate] = useState(false);
-  const [quickCreateForm, setQuickCreateForm] = useState<QuickCreateFormData>({ url: '' });
-  const [creatingLink, setCreatingLink] = useState(false);
+
 
   const loadDashboardData = async (showRefreshIndicator = false) => {
     if (!user?.id) {
@@ -199,45 +194,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
     }
   };
 
-  const handleQuickCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickCreateForm.url.trim() || !user?.id) return;
 
-    setCreatingLink(true);
-    try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/urls/shorten`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          originalUrl: quickCreateForm.url.trim(),
-          customCode: quickCreateForm.customCode?.trim() || undefined,
-          userId: user.id
-        }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success('Short link created successfully!');
-        setQuickCreateForm({ url: '' });
-        setShowQuickCreate(false);
-        // Refresh dashboard data
-        loadDashboardData(true);
-        // Copy to clipboard
-        copyToClipboard(result.data.shortUrl);
-      } else {
-        toast.error(result.message || 'Failed to create short link');
-      }
-    } catch (error) {
-      console.error('Error creating short link:', error);
-      toast.error('Failed to create short link');
-    } finally {
-      setCreatingLink(false);
-    }
-  };
 
   const handleRefresh = () => {
     loadDashboardData(true);
@@ -290,11 +247,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
         
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => setShowQuickCreate(!showQuickCreate)}
+            onClick={() => onCreateClick('url')}
             className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
           >
-            <Plus className="w-4 h-4" />
-            <span>Quick Create</span>
+            <Link className="w-4 h-4" />
+            <span>Create Short Link</span>
           </button>
           <button
             onClick={() => onCreateClick('qr')}
@@ -308,48 +265,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
             className="bg-white/10 text-white px-4 py-2 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center space-x-2"
           >
             <Upload className="w-4 h-4" />
-            <span>Upload File</span>
+            <span>Upload File to URL</span>
           </button>
         </div>
 
-        {/* Quick Create Form */}
-        {showQuickCreate && (
-          <div className="mt-4 p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-            <form onSubmit={handleQuickCreate} className="space-y-3">
-              <div>
-                <input
-                  type="url"
-                  placeholder="Enter URL to shorten..."
-                  value={quickCreateForm.url}
-                  onChange={(e) => setQuickCreateForm(prev => ({ ...prev, url: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Custom code (optional)"
-                  value={quickCreateForm.customCode || ''}
-                  onChange={(e) => setQuickCreateForm(prev => ({ ...prev, customCode: e.target.value }))}
-                  className="flex-1 px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-                <button
-                  type="submit"
-                  disabled={creatingLink || !quickCreateForm.url.trim()}
-                  className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                >
-                  {creatingLink ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Link className="w-4 h-4" />
-                  )}
-                  <span>{creatingLink ? 'Creating...' : 'Create'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+
       </div>
 
       {/* Enhanced Stats Cards */}
