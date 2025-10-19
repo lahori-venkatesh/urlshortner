@@ -117,6 +117,16 @@ public class UrlShorteningService {
         return shortenedUrlRepository.save(existing);
     }
     
+    public void incrementClicks(String shortCode) {
+        Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
+        if (urlOpt.isPresent()) {
+            ShortenedUrl url = urlOpt.get();
+            url.setTotalClicks(url.getTotalClicks() + 1);
+            url.setLastAccessedAt(LocalDateTime.now());
+            shortenedUrlRepository.save(url);
+        }
+    }
+    
     public void deleteUrl(String shortCode, String userId) {
         Optional<ShortenedUrl> existingOpt = shortenedUrlRepository.findByShortCode(shortCode);
         

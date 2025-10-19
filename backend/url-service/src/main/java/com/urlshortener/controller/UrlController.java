@@ -69,7 +69,7 @@ public class UrlController {
         }
     }
     
-    @GetMapping("/{shortCode}")
+    @GetMapping("/info/{shortCode}")
     public ResponseEntity<Map<String, Object>> getUrl(@PathVariable String shortCode) {
         Map<String, Object> response = new HashMap<>();
         
