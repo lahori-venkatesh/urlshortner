@@ -35,9 +35,9 @@ const AnalyticsSection: React.FC = () => {
         
         // Load user's data from backend
         const [urlsResponse, qrResponse, filesResponse] = await Promise.all([
-          fetch(`http://localhost:8080/api/v1/urls/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-          fetch(`http://localhost:8080/api/v1/qr/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-          fetch(`http://localhost:8080/api/v1/files/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] }))
+          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/urls/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
+          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/qr/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
+          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/files/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] }))
         ]);
 
         const links = urlsResponse.success ? urlsResponse.data : [];

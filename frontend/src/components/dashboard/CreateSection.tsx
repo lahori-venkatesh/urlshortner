@@ -505,6 +505,14 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         
         if (backendResult && backendResult.success) {
           console.log('Successfully saved to MongoDB:', backendResult);
+          
+          // Update newLink with the actual shortUrl from backend
+          if (backendResult.data && backendResult.data.shortUrl) {
+            newLink.shortUrl = backendResult.data.shortUrl;
+            newLink.id = backendResult.data.id || newLink.id;
+            newLink.shortCode = backendResult.data.shortCode || newLink.shortCode;
+          }
+          
           toast.success('Link created and saved to database!');
         } else {
           console.error('Backend save failed:', backendResult);

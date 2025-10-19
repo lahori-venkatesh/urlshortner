@@ -410,7 +410,8 @@ const UrlShortener: React.FC = () => {
       formData.append('isPublic', 'true');
 
       console.log('Making simple fetch request...');
-      const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/files/upload`, {
         method: 'POST',
         body: formData
       });
@@ -850,7 +851,8 @@ const UrlShortener: React.FC = () => {
                   formData.append('title', 'Debug Upload');
                   formData.append('isPublic', 'true');
                   
-                  const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+                  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+                  const response = await fetch(`${apiUrl}/v1/files/upload`, {
                     method: 'POST',
                     body: formData
                   });

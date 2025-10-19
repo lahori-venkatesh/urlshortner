@@ -35,9 +35,10 @@ const SimpleFileUpload: React.FC<SimpleFileUploadProps> = ({ onSuccess }) => {
       formData.append('description', 'Uploaded via Simple File Upload');
       formData.append('isPublic', 'true');
 
-      console.log('Making request to: http://localhost:8080/api/v1/files/upload');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      console.log(`Making request to: ${apiUrl}/v1/files/upload`);
 
-      const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+      const response = await fetch(`${apiUrl}/v1/files/upload`, {
         method: 'POST',
         body: formData
       });

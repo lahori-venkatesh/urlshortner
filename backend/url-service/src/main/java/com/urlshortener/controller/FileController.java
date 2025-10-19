@@ -285,10 +285,15 @@ public class FileController {
             // Record download analytics (if enabled)
             // You can add analytics recording here
             
-            // Return the download URL
+            // Return the download URL (full backend URL for actual file download)
+            String backendUrl = System.getenv("BACKEND_URL");
+            if (backendUrl == null) {
+                backendUrl = "https://urlshortner-mrrl.onrender.com"; // fallback to production backend
+            }
+            
             Map<String, Object> fileData = new HashMap<>();
-            fileData.put("fileUrl", "/api/v1/files/" + fileCode);
-            fileData.put("downloadUrl", "/api/v1/files/" + fileCode);
+            fileData.put("fileUrl", backendUrl + "/api/v1/files/" + fileCode);
+            fileData.put("downloadUrl", backendUrl + "/api/v1/files/" + fileCode);
             fileData.put("fileCode", file.getFileCode());
             fileData.put("originalFileName", file.getOriginalFileName());
             fileData.put("fileType", file.getFileType());
