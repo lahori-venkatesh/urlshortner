@@ -68,7 +68,8 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
       setLoading(true);
       console.log('Loading file links for user:', user.id);
       
-      const response = await fetch(`http://localhost:8080/api/v1/files/user/${user.id}`);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/files/user/${user.id}`);
       const result = await response.json();
       
       if (result.success) {

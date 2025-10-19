@@ -83,7 +83,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       setLoading(true);
       console.log('Loading QR codes from backend for user:', user.id);
       
-      const response = await fetch(`http://localhost:8080/api/v1/qr/user/${user.id}`);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/qr/user/${user.id}`);
       const result = await response.json();
       
       if (result.success && result.data) {

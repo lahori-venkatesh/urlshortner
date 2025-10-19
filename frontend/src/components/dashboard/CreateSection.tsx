@@ -423,7 +423,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           formData.append('description', 'Uploaded via Dashboard');
           formData.append('isPublic', 'true');
           
-          const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+          const response = await fetch(`${apiUrl}/v1/files/upload`, {
             method: 'POST',
             body: formData
           });
@@ -462,7 +463,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         
         if (mode === 'url') {
           // Call URL shortening API
-          const response = await fetch('http://localhost:8080/api/v1/urls', {
+          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+          const response = await fetch(`${apiUrl}/v1/urls`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -480,7 +482,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           backendResult = await response.json();
         } else if (mode === 'qr') {
           // Call QR code API
-          const response = await fetch('http://localhost:8080/api/v1/qr', {
+          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+          const response = await fetch(`${apiUrl}/v1/qr`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

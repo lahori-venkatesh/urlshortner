@@ -54,7 +54,8 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
 
     try {
       console.log('Loading links from backend for user:', user.id);
-      const response = await fetch(`http://localhost:8080/api/v1/urls/user/${user.id}`);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/urls/user/${user.id}`);
       const result = await response.json();
       
       if (result.success) {
