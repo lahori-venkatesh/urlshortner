@@ -179,6 +179,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.urlshortener.UrlShortenerSimpleApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
