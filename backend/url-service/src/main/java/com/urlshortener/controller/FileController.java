@@ -237,4 +237,71 @@ public class FileController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    
+    @PostMapping("/{fileCode}/redirect")
+    public ResponseEntity<Map<String, Object>> handleFileRedirect(
+            @PathVariable String fileCode,
+            @RequestBody(required = false) Map<String, Object> request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Optional<UploadedFile> fileOpt = fileUploadService.getFileByCode(fileCode);
+            
+            if (fileOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "File not found");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            UploadedFile file = fileOpt.get();
+            
+            // Check if file is active
+            if (!file.isActive()) {
+                response.put("success", false);
+                response.put("message", "File is no longer active");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            // Check if file has expired
+            if (file.getExpiresAt() != null && file.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                response.put("success", false);
+                response.put("message", "File has expired");
+                return ResponseEntity.status(410).body(response);
+            }
+            
+            // Check password protection
+            if (file.isRequiresPassword()) {
+                String providedPassword = request != null ? (String) request.get("password") : null;
+                
+                if (providedPassword == null || !providedPassword.equals(file.getPassword())) {
+                    response.put("success", false);
+                    response.put("message", "Password required");
+                    response.put("passwordRequired", true);
+                    return ResponseEntity.status(401).body(response);
+                }
+            }
+            
+            // Record download analytics (if enabled)
+            // You can add analytics recording here
+            
+            // Return the download URL
+            Map<String, Object> fileData = new HashMap<>();
+            fileData.put("fileUrl", "/api/v1/files/" + fileCode);
+            fileData.put("downloadUrl", "/api/v1/files/" + fileCode);
+            fileData.put("fileCode", file.getFileCode());
+            fileData.put("originalFileName", file.getOriginalFileName());
+            fileData.put("fileType", file.getFileType());
+            fileData.put("fileSize", file.getFileSize());
+            
+            response.put("success", true);
+            response.put("data", fileData);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Internal server error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

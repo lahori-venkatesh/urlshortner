@@ -93,7 +93,7 @@ public class QrCode {
         this.contentType = contentType;
         this.userId = userId;
         this.qrCode = generateQrCode();
-        this.qrImageUrl = "http://localhost:8080/qr/" + this.qrCode + ".png";
+        // qrImageUrl will be set by the service with proper domain
     }
     
     private String generateQrCode() {

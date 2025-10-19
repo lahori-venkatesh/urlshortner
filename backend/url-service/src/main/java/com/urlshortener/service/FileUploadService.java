@@ -5,6 +5,7 @@ import com.urlshortener.model.User;
 import com.urlshortener.repository.UploadedFileRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
@@ -29,6 +30,9 @@ public class FileUploadService {
     @Autowired
     private GridFsTemplate gridFsTemplate;
     
+    @Value("${app.shorturl.domain:https://pebly.vercel.app}")
+    private String shortUrlDomain;
+    
     private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     private static final String[] ALLOWED_TYPES = {
         "image/jpeg", "image/png", "image/gif", "image/webp",
@@ -52,6 +56,10 @@ public class FileUploadService {
             file.getSize(),
             userId
         );
+        
+        // Set the complete file URL with frontend domain
+        String fullFileUrl = shortUrlDomain + "/" + uploadedFile.getFileCode();
+        uploadedFile.setFileUrl(fullFileUrl);
         
         // Set additional properties
         uploadedFile.setTitle(title);

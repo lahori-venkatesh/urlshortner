@@ -96,7 +96,7 @@ public class UploadedFile {
         this.fileSize = fileSize;
         this.userId = userId;
         this.fileCode = generateFileCode();
-        this.fileUrl = "http://localhost:8080/files/" + this.fileCode;
+        // fileUrl will be set by the service with proper domain
     }
     
     private String generateFileCode() {

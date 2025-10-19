@@ -5,6 +5,7 @@ import com.urlshortener.model.User;
 import com.urlshortener.repository.QrCodeRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -26,6 +27,9 @@ public class QrCodeService {
     @Autowired
     private UserRepository userRepository;
     
+    @Value("${app.shorturl.domain:https://pebly.vercel.app}")
+    private String shortUrlDomain;
+    
     public QrCode createQrCode(String content, String contentType, String userId, 
                               String title, String description, String style,
                               String foregroundColor, String backgroundColor, 
@@ -38,6 +42,11 @@ public class QrCodeService {
         
         // Create QR code
         QrCode qrCode = new QrCode(content, contentType, userId);
+        
+        // Set the complete QR image URL with frontend domain
+        String fullQrImageUrl = shortUrlDomain + "/qr/" + qrCode.getQrCode() + ".png";
+        qrCode.setQrImageUrl(fullQrImageUrl);
+        
         qrCode.setTitle(title);
         qrCode.setDescription(description);
         qrCode.setStyle(style != null ? style : "STANDARD");

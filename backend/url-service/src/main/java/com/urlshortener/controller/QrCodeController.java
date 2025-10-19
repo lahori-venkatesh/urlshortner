@@ -232,4 +232,65 @@ public class QrCodeController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    
+    @PostMapping("/{qrCodeId}/redirect")
+    public ResponseEntity<Map<String, Object>> handleQrRedirect(
+            @PathVariable String qrCodeId,
+            @RequestBody(required = false) Map<String, Object> request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Optional<QrCode> qrCodeOpt = qrCodeService.getByQrCode(qrCodeId);
+            
+            if (qrCodeOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "QR Code not found");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            QrCode qrCode = qrCodeOpt.get();
+            
+            // Check if QR code is active
+            if (!qrCode.isActive()) {
+                response.put("success", false);
+                response.put("message", "QR Code is no longer active");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            // Check if QR code has expired
+            if (qrCode.getExpiresAt() != null && qrCode.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                response.put("success", false);
+                response.put("message", "QR Code has expired");
+                return ResponseEntity.status(410).body(response);
+            }
+            
+            // Record scan analytics (if enabled)
+            if (qrCode.isTrackScans() && request != null) {
+                String ipAddress = (String) request.get("ipAddress");
+                String userAgent = (String) request.get("userAgent");
+                String country = (String) request.get("country");
+                String city = (String) request.get("city");
+                String deviceType = (String) request.get("deviceType");
+                
+                qrCodeService.recordScan(qrCodeId, ipAddress, userAgent, country, city, deviceType);
+            }
+            
+            // Return the QR code content
+            Map<String, Object> qrData = new HashMap<>();
+            qrData.put("content", qrCode.getContent());
+            qrData.put("contentType", qrCode.getContentType());
+            qrData.put("qrCode", qrCode.getQrCode());
+            qrData.put("title", qrCode.getTitle());
+            
+            response.put("success", true);
+            response.put("data", qrData);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Internal server error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

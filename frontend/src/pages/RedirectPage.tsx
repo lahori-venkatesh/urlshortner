@@ -20,10 +20,19 @@ const RedirectPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Call backend API to get the original URL
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
       
-      const response = await fetch(`${API_BASE_URL}/v1/urls/${shortCode}/redirect`, {
+      // Determine the type of redirect based on shortCode pattern
+      let endpoint = '';
+      if (shortCode?.startsWith('file_')) {
+        endpoint = `/v1/files/${shortCode}/redirect`;
+      } else if (shortCode?.startsWith('qr_')) {
+        endpoint = `/v1/qr/${shortCode}/redirect`;
+      } else {
+        endpoint = `/v1/urls/${shortCode}/redirect`;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,11 +65,28 @@ const RedirectPage: React.FC = () => {
 
       const data = await response.json();
       
-      if (data.success && data.data && data.data.originalUrl) {
-        // Record the click and redirect
-        setTimeout(() => {
-          window.location.href = data.data.originalUrl;
-        }, 1000);
+      if (data.success && data.data) {
+        // Handle different types of redirects
+        if (data.data.originalUrl) {
+          // URL redirect
+          setTimeout(() => {
+            window.location.href = data.data.originalUrl;
+          }, 1000);
+        } else if (data.data.fileUrl || data.data.downloadUrl) {
+          // File download
+          const downloadUrl = data.data.fileUrl || data.data.downloadUrl;
+          setTimeout(() => {
+            window.location.href = downloadUrl;
+          }, 1000);
+        } else if (data.data.content) {
+          // QR code content redirect
+          setTimeout(() => {
+            window.location.href = data.data.content;
+          }, 1000);
+        } else {
+          setError('Invalid link or unable to redirect');
+          setLoading(false);
+        }
       } else {
         setError('Invalid link or unable to redirect');
         setLoading(false);
