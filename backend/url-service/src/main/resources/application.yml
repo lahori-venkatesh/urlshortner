@@ -19,16 +19,24 @@ spring:
     cors:
       allowed-origins: 
         - ${FRONTEND_URL:http://localhost:3000}
+        - "https://pebly.vercel.app"
         - "https://*.vercel.app"
-        - "https://your-domain.com"
+        - "https://urlshortner-mrrl.onrender.com"
       allowed-methods: 
         - GET
         - POST
         - PUT
         - DELETE
         - OPTIONS
-      allowed-headers: "*"
+        - PATCH
+      allowed-headers: 
+        - "*"
+        - "Authorization"
+        - "Content-Type"
+        - "X-Requested-With"
       allow-credentials: true
+      exposed-headers:
+        - "Authorization"
   
   # MongoDB Configuration - Production Ready
   data:
