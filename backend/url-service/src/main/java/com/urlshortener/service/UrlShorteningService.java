@@ -131,7 +131,7 @@ public class UrlShorteningService {
         if (urlOpt.isPresent()) {
             ShortenedUrl url = urlOpt.get();
             url.setTotalClicks(url.getTotalClicks() + 1);
-            url.setLastAccessedAt(LocalDateTime.now());
+            url.setLastClickedAt(LocalDateTime.now());
             shortenedUrlRepository.save(url);
         }
     }

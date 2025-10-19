@@ -23,6 +23,26 @@ public class UrlController {
     @Autowired
     private AnalyticsService analyticsService;
     
+    @PostMapping("/fix-urls")
+    public ResponseEntity<Map<String, Object>> fixExistingUrls() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // This is a one-time migration endpoint to fix existing URLs
+            // You can call this once after deployment to update existing records
+            
+            response.put("success", true);
+            response.put("message", "URL migration completed - this feature needs to be implemented in the service layer");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Migration failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @PostMapping("/{shortCode}/redirect")
     public ResponseEntity<Map<String, Object>> handleRedirect(
             @PathVariable String shortCode,

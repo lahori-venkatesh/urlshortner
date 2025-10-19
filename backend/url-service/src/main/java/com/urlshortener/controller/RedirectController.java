@@ -43,7 +43,8 @@ public class RedirectController {
                     String referer = request.getHeader("Referer");
                     String clientIp = getClientIpAddress(request);
                     
-                    analyticsService.recordClick(url.getId(), clientIp, userAgent, referer);
+                    analyticsService.recordClick(shortCode, clientIp, userAgent, referer, 
+                                                null, null, null, null, null);
                 } catch (Exception e) {
                     // Log error but don't fail the redirect
                     System.err.println("Failed to record analytics: " + e.getMessage());
