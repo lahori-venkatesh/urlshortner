@@ -1,19 +1,19 @@
 # Multi-stage build for production optimization
-FROM maven:3.8.6-openjdk-17-slim AS build
+FROM maven:3.9.4-eclipse-temurin-17 AS build
 
 # Set working directory
 WORKDIR /app
 
 # Copy pom.xml and download dependencies (for better caching)
-COPY pom.xml .
+COPY url-service/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copy source code and build
-COPY src ./src
+COPY url-service/src ./src
 RUN mvn clean package -DskipTests
 
 # Production stage
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre-jammy
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
@@ -25,7 +25,7 @@ RUN addgroup --system app && adduser --system --group app
 WORKDIR /app
 
 # Copy jar from build stage
-COPY --from=build /app/target/url-service-*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Change ownership to app user
 RUN chown -R app:app /app
