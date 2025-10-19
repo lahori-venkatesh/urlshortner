@@ -24,8 +24,7 @@ public class MinimalApplication {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/health")
-    @GetMapping("/actuator/health")
+    @GetMapping({"/health", "/actuator/health"})
     public ResponseEntity<Map<String, String>> health() {
         Map<String, String> response = new HashMap<>();
         response.put("status", "UP");
