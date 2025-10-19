@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: pebly-backend
+  
+  # Minimal MongoDB config
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/test}
+      
+logging:
+  level:
+    root: INFO
+    com.urlshortener: DEBUG

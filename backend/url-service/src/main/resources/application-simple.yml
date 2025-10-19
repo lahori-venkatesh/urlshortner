@@ -1,0 +1,42 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: pebly-backend
+  
+  # MongoDB Configuration
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
+      database: ${MONGODB_DATABASE:pebly-database}
+  
+  # Disable Redis for now to avoid connection issues
+  cache:
+    type: simple
+  
+  # Security - disable for now
+  security:
+    enabled: false
+    
+  # CORS
+  web:
+    cors:
+      allowed-origins: 
+        - ${FRONTEND_URL:http://localhost:3000}
+        - "https://pebly.vercel.app"
+        - "https://*.vercel.app"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
+
+# Disable Redis auto-configuration
+spring.autoconfigure.exclude: 
+  - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+  - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
+
+logging:
+  level:
+    com.urlshortener: DEBUG
+    org.springframework: INFO
+    org.mongodb: INFO
