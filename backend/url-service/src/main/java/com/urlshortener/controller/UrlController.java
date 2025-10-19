@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/urls")
@@ -22,6 +23,73 @@ public class UrlController {
     @Autowired
     private AnalyticsService analyticsService;
     
+    @PostMapping("/{shortCode}/redirect")
+    public ResponseEntity<Map<String, Object>> handleRedirect(
+            @PathVariable String shortCode,
+            @RequestBody(required = false) Map<String, Object> request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCode(shortCode);
+            
+            if (urlOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "URL not found");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            ShortenedUrl url = urlOpt.get();
+            
+            // Check if URL is active
+            if (!url.isActive()) {
+                response.put("success", false);
+                response.put("message", "URL is no longer active");
+                return ResponseEntity.status(404).body(response);
+            }
+            
+            // Check if URL has expired
+            if (url.getExpiresAt() != null && url.getExpiresAt().isBefore(LocalDateTime.now())) {
+                response.put("success", false);
+                response.put("message", "URL has expired");
+                return ResponseEntity.status(410).body(response);
+            }
+            
+            // Check password protection
+            if (url.isPasswordProtected()) {
+                String providedPassword = request != null ? (String) request.get("password") : null;
+                
+                if (providedPassword == null || !providedPassword.equals(url.getPassword())) {
+                    response.put("success", false);
+                    response.put("message", "Password required");
+                    response.put("passwordRequired", true);
+                    return ResponseEntity.status(401).body(response);
+                }
+            }
+            
+            // Record analytics (if enabled)
+            if (url.isTrackClicks() && request != null) {
+                // You can add analytics recording here
+                urlShorteningService.incrementClicks(shortCode);
+            }
+            
+            // Return the original URL
+            Map<String, Object> urlData = new HashMap<>();
+            urlData.put("originalUrl", url.getOriginalUrl());
+            urlData.put("shortCode", url.getShortCode());
+            urlData.put("title", url.getTitle());
+            
+            response.put("success", true);
+            response.put("data", urlData);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Internal server error: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createShortUrl(@RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();

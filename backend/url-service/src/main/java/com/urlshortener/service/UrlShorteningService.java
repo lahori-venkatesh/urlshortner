@@ -5,6 +5,7 @@ import com.urlshortener.model.User;
 import com.urlshortener.repository.ShortenedUrlRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,6 +20,9 @@ public class UrlShorteningService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Value("${app.shorturl.domain:https://pebly.vercel.app}")
+    private String shortUrlDomain;
     
     private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final int SHORT_CODE_LENGTH = 6;
@@ -44,6 +48,11 @@ public class UrlShorteningService {
         
         // Create shortened URL
         ShortenedUrl shortenedUrl = new ShortenedUrl(originalUrl, shortCode, userId);
+        
+        // Set the complete short URL with frontend domain
+        String fullShortUrl = shortUrlDomain + "/" + shortCode;
+        shortenedUrl.setShortUrl(fullShortUrl);
+        
         shortenedUrl.setCustomAlias(customAlias);
         shortenedUrl.setTitle(title);
         shortenedUrl.setDescription(description);

@@ -46,7 +46,7 @@ const LandingPage: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       const shortCode = Math.random().toString(36).substr(2, 6);
-      const baseUrl = window.location.origin; // This will be http://localhost:3000 in development
+      const baseUrl = process.env.REACT_APP_SHORT_URL_DOMAIN || window.location.origin;
       setShortenedUrl(`${baseUrl}/${shortCode}`);
       setIsLoading(false);
     }, 1500);

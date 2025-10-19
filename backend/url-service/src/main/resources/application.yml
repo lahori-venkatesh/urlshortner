@@ -113,6 +113,8 @@ razorpay:
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
+  shorturl:
+    domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
   
   # Rate limiting configuration
   rate-limit:

@@ -20,65 +20,55 @@ const RedirectPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Check localStorage for stored links first (for demo purposes)
-      const storedLinks = localStorage.getItem('shortenedLinks');
-      let foundLink: { originalUrl: string; shortCode: string } | null = null;
+      // Call backend API to get the original URL
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
       
-      console.log('Checking for shortCode:', shortCode);
-      console.log('Stored links:', storedLinks);
-      
-      if (storedLinks) {
-        try {
-          const parsedLinks = JSON.parse(storedLinks);
-          console.log('Parsed links:', parsedLinks);
-          foundLink = parsedLinks.find((link: any) => link.shortCode === shortCode) || null;
-          console.log('Found link:', foundLink);
-        } catch (parseError) {
-          console.error('Error parsing stored links:', parseError);
-        }
+      const response = await fetch(`${API_BASE_URL}/v1/urls/${shortCode}/redirect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: passwordInput || undefined,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer,
+        }),
+      });
+
+      if (response.status === 401) {
+        // Password required
+        setPasswordRequired(true);
+        setLoading(false);
+        return;
       }
 
-      // Default demo links
-      const defaultLinks: Record<string, string> = {
-        'abc123': 'https://example.com/very-long-url-here',
-        'xyz789': 'https://github.com/lahori-venkatesh/urlshortner',
-        'demo': 'https://www.google.com',
-        'test': 'https://www.github.com',
-        'protected': 'https://secret-site.com'
-      };
-
-      if (foundLink && foundLink.originalUrl) {
-        // Redirect to the stored original URL
-        setTimeout(() => {
-          window.location.href = foundLink!.originalUrl;
-        }, 2000);
-        return;
-      } else if (defaultLinks[shortCode || '']) {
-        // Handle special cases
-        if (shortCode === 'protected') {
-          setPasswordRequired(true);
-          setLoading(false);
-          return;
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Link not found or has expired');
+        } else if (response.status === 403) {
+          setError('Access denied. Please check your password.');
+        } else {
+          setError('An error occurred while processing your request');
         }
-        
-        // Redirect to default demo URL
-        setTimeout(() => {
-          window.location.href = defaultLinks[shortCode || ''];
-        }, 2000);
+        setLoading(false);
         return;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data && data.data.originalUrl) {
+        // Record the click and redirect
+        setTimeout(() => {
+          window.location.href = data.data.originalUrl;
+        }, 1000);
       } else {
-        // For demo purposes, if no link is found, redirect to a default URL
-        console.log('No link found, redirecting to default URL');
-        setTimeout(() => {
-          window.location.href = 'https://example.com';
-        }, 2000);
-        return;
+        setError('Invalid link or unable to redirect');
+        setLoading(false);
       }
 
     } catch (err) {
       console.error('Redirect error:', err);
       setError('An error occurred while processing your request');
-    } finally {
       setLoading(false);
     }
   };

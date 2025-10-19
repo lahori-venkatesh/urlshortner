@@ -88,7 +88,8 @@ public class ShortenedUrl {
         this.originalUrl = originalUrl;
         this.shortCode = shortCode;
         this.userId = userId;
-        this.shortUrl = "http://localhost:8080/" + shortCode;
+        // Short URL will be set by the service with proper domain
+        this.shortUrl = shortCode; // Temporary, will be updated by service
     }
     
     // Getters and Setters
