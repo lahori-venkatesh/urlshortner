@@ -178,3 +178,9 @@ coverage/
 # Deployment files (sensitive)
 docker-compose.override.yml
 k8s-secrets.yml
+
+# Credentials and secrets
+CREDENTIALS.md
+credentials.md
+secrets.md
+SECRETS.md

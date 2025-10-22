@@ -30,8 +30,10 @@ spring:
 # Google OAuth Configuration
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID:}
-    secret: ${GOOGLE_CLIENT_SECRET:}
+    id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+    secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI:https://urlshortner-mrrl.onrender.com/auth/callback}
 
 # Application Configuration
 app:
