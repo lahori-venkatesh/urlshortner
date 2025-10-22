@@ -45,10 +45,6 @@ const Analytics: React.FC = () => {
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [loadAnalytics]);
-
   const loadAnalytics = useCallback(async () => {
     if (!shortCode || !user?.id) {
       console.log('Missing shortCode or user ID:', { shortCode, userId: user?.id });
@@ -94,6 +90,10 @@ const Analytics: React.FC = () => {
     }
   }, [shortCode, timeRange, user]);
 
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
+
   const goBack = () => {
     navigate('/dashboard/links');
   };
@@ -101,6 +101,24 @@ const Analytics: React.FC = () => {
   // Use real data if available, otherwise fall back to mock data
   const displayData = analyticsData || mockData;
   const hasRealData = !!analyticsData;
+
+  // If no shortCode, show error
+  if (!shortCode) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Invalid Link</h2>
+          <p className="text-red-600 mb-4">No short code provided for analytics.</p>
+          <button
+            onClick={() => navigate('/dashboard/links')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Back to Links
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
