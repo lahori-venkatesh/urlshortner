@@ -43,14 +43,14 @@ const AuthCallback: React.FC = () => {
             id: authResponse.user.id,
             name: `${authResponse.user.firstName} ${authResponse.user.lastName}`,
             email: authResponse.user.email,
-            plan: authResponse.user.subscriptionPlan || 'free',
+            plan: (authResponse.user.subscriptionPlan || 'free') as 'free' | 'premium' | 'enterprise',
             avatar: authResponse.user.profilePicture,
             picture: authResponse.user.profilePicture,
             createdAt: new Date().toISOString(),
             timezone: 'Asia/Kolkata',
             language: 'en',
             isAuthenticated: true,
-            authProvider: 'google'
+            authProvider: 'google' as 'google'
           };
           
           console.log('Setting user data:', userData);
