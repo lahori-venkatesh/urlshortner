@@ -159,7 +159,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   };
 
   const createShortLink = (qr: QRCodeData) => {
-    const shortUrl = `https://shlnk.pro/${Math.random().toString(36).substring(2, 10)}`;
+    const shortUrl = `https://pebly.vercel.app/${Math.random().toString(36).substring(2, 10)}`;
     const updatedQRs = qrCodes.map(q => 
       q.id === qr.id ? { ...q, shortUrl } : q
     );

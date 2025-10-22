@@ -11,7 +11,7 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-1 py-2">
         <div className="flex items-center justify-between">
-          <Link to={isAuthenticated ? "/app" : "/"} className="flex items-center space-x-2">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <LinkIcon className="h-5 w-5 text-white" />
             </div>

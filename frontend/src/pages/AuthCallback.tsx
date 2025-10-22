@@ -60,7 +60,7 @@ const AuthCallback: React.FC = () => {
         
         // Redirect to dashboard after a short delay
         setTimeout(() => {
-          navigate('/app', { replace: true });
+          navigate('/dashboard', { replace: true });
         }, 2000);
 
         } else {
@@ -121,7 +121,7 @@ const AuthCallback: React.FC = () => {
 
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           {status === 'loading' && 'Authenticating...'}
-          {status === 'success' && 'Welcome to ShLnk Pro!'}
+          {status === 'success' && 'Welcome to Pebly!'}
           {status === 'error' && 'Authentication Failed'}
         </h2>
 

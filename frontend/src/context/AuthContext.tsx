@@ -185,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const redirectAfterAuth = () => {
     // This will be called by components that have access to navigate
-    window.location.href = '/app';
+    window.location.href = '/dashboard';
   };
 
   return (

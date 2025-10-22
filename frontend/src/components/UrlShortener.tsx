@@ -55,7 +55,7 @@ const UrlShortener: React.FC = () => {
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customAlias, setCustomAlias] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('shlnk.pro');
+  const [selectedDomain, setSelectedDomain] = useState('pebly.vercel.app');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [expirationDays, setExpirationDays] = useState<number | ''>('');
@@ -154,13 +154,13 @@ const UrlShortener: React.FC = () => {
   const [aiSuggestions, setAiSuggestions] = useState<AliasSuggestion[]>([]);
   const [securityCheck, setSecurityCheck] = useState<SecurityCheck | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [customDomains, setCustomDomains] = useState<string[]>(['shlnk.pro']);
+  const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
 
   // Custom domains configuration (removed localStorage dependency)
   React.useEffect(() => {
     // Load custom domains from backend API in the future
     // For now, use default domain
-    setCustomDomains(['shlnk.pro']);
+    setCustomDomains(['pebly.vercel.app']);
   }, []);
 
   // AI-powered URL analysis
@@ -212,7 +212,7 @@ const UrlShortener: React.FC = () => {
     }
     if (activeTab === 'file') {
       console.log('File tab - navigating to file-to-link section');
-      window.location.href = '/app?section=file-to-url';
+      window.location.href = '/dashboard?section=file-to-url';
       setIsLoading(false);
       return;
     }
@@ -566,7 +566,7 @@ const UrlShortener: React.FC = () => {
                 <button
                   onClick={() => {
                     // Navigate to dashboard file section
-                    window.location.href = '/app?section=file-to-url';
+                    window.location.href = '/dashboard?section=file-to-url';
                   }}
                   className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center space-x-2 mx-auto"
                 >

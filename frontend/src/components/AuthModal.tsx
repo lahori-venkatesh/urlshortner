@@ -52,7 +52,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
       onClose();
       
       // Redirect to dashboard after successful auth
-      navigate('/app');
+      navigate('/dashboard');
       
       if (onSuccess) {
         onSuccess();
@@ -97,7 +97,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, mode, onSwitchMo
       toast.success('Successfully signed in with GitHub!');
       setIsLoading(false);
       onClose();
-      navigate('/app');
+      navigate('/dashboard');
       
       if (onSuccess) {
         onSuccess();

@@ -10,7 +10,7 @@ interface AuthRedirectProps {
 
 const AuthRedirect: React.FC<AuthRedirectProps> = ({ 
   children, 
-  redirectTo = '/app', 
+  redirectTo = '/dashboard', 
   requireAuth = false 
 }) => {
   const { isAuthenticated } = useAuth();

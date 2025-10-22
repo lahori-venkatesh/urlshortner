@@ -91,13 +91,13 @@ const CustomDomainManager: React.FC = () => {
       {
         type: 'CNAME',
         name: domain,
-        value: 'shlnk.pro',
+        value: 'pebly.vercel.app',
         ttl: 300
       },
       {
         type: 'TXT',
-        name: `_shlnk-verification.${domain}`,
-        value: `shlnk-verification=${generateVerificationToken()}`,
+        name: `_pebly-verification.${domain}`,
+        value: `pebly-verification=${generateVerificationToken()}`,
         ttl: 300
       }
     ];

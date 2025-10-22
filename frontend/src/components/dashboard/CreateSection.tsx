@@ -72,7 +72,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customAlias, setCustomAlias] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('shlnk.pro');
+  const [selectedDomain, setSelectedDomain] = useState('pebly.vercel.app');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [expirationDays, setExpirationDays] = useState<number | ''>('');
@@ -111,7 +111,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const [aiSuggestions, setAiSuggestions] = useState<AliasSuggestion[]>([]);
   const [securityCheck, setSecurityCheck] = useState<SecurityCheck | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [customDomains, setCustomDomains] = useState<string[]>(['shlnk.pro']);
+  const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -154,10 +154,10 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const loadCustomDomainsFromBackend = async () => {
     try {
       // TODO: Load from backend API instead of localStorage
-      setCustomDomains(['shlnk.pro']); // Default domain only
+      setCustomDomains(['pebly.vercel.app']); // Default domain only
     } catch (error) {
       console.error('Failed to load custom domains:', error);
-      setCustomDomains(['shlnk.pro']);
+      setCustomDomains(['pebly.vercel.app']);
     }
   };
 
@@ -443,7 +443,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         }
       }
 
-      const finalDomain = selectedDomain === 'shlnk.pro' ? baseUrl : `https://${selectedDomain}`;
+      const finalDomain = selectedDomain === 'pebly.vercel.app' ? baseUrl : `https://${selectedDomain}`;
       
       const newLink: ShortenedLink = {
         id: Date.now().toString(),
@@ -452,7 +452,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         originalUrl,
         clicks: 0,
         createdAt: new Date().toISOString(),
-        customDomain: selectedDomain !== 'shlnk.pro' ? selectedDomain : undefined,
+        customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined,
         type: mode,
         qrCustomization: mode === 'qr' ? qrCustomization : undefined
       };

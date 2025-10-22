@@ -59,7 +59,7 @@ const LandingPage: React.FC = () => {
 
   const handleAuthSuccess = () => {
     // Redirect to dashboard after successful login/signup
-    navigate('/app');
+    navigate('/dashboard');
   };
 
   const handleSignupPrompt = () => {
@@ -249,7 +249,7 @@ const LandingPage: React.FC = () => {
                   </div>
                   <ArrowRight className="w-6 h-6 text-blue-600" />
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-sm">
-                    shlnk.pro/abc123
+                    pebly.vercel.app/abc123
                   </div>
                 </div>
               </div>
@@ -404,7 +404,7 @@ const LandingPage: React.FC = () => {
               variants={fadeInUp}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Why Choose ShLnk Pro Over Competitors?
+                Why Choose Pebly Over Competitors?
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 We're not just another URL shortener. We're built specifically for the modern web with features that actually matter.
@@ -616,7 +616,7 @@ const LandingPage: React.FC = () => {
               Trusted by Growing Companies
             </h2>
             <p className="text-xl text-gray-600">
-              Join thousands of businesses already using ShLnk Pro
+              Join thousands of businesses already using Pebly
             </p>
           </motion.div>
 
@@ -699,7 +699,7 @@ const LandingPage: React.FC = () => {
               Start shortening smarter today!
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of businesses and individuals who trust ShLnk Pro for their link management needs.
+              Join thousands of businesses and individuals who trust Pebly for their link management needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
@@ -728,7 +728,7 @@ const LandingPage: React.FC = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Link className="w-5 h-5 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold">ShLnk Pro</span>
+                <span className="ml-2 text-xl font-bold">Pebly</span>
               </div>
               <p className="text-gray-400 mb-4">
                 The smartest URL shortener for modern businesses and individuals.
@@ -782,7 +782,7 @@ const LandingPage: React.FC = () => {
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400">
-              © 2024 ShLnk Pro. All rights reserved. Made with ❤️ for the modern web.
+              © 2024 Pebly. All rights reserved. Made with ❤️ for the modern web.
             </p>
           </div>
         </div>
