@@ -107,7 +107,13 @@ const LinkActions: React.FC<LinkActionsProps> = ({
   };
 
   const viewDetails = () => {
-    window.open(`/analytics/${link.shortCode}`, '_blank');
+    console.log('Opening analytics for link:', link);
+    console.log('Short code:', link.shortCode);
+    console.log('Analytics URL:', `/analytics/${link.shortCode}`);
+    
+    // Use navigate instead of window.open for better routing
+    const analyticsUrl = `/analytics/${link.shortCode}`;
+    window.location.href = analyticsUrl;
   };
 
   const generateQRCode = async () => {

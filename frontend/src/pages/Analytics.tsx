@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Calendar, Globe, Smartphone, MousePointer, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Calendar, Globe, Smartphone, MousePointer, ArrowLeft, RefreshCw, BarChart3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -48,6 +48,7 @@ const Analytics: React.FC = () => {
 
   const loadAnalytics = async () => {
     if (!shortCode || !user?.id) {
+      console.log('Missing shortCode or user ID:', { shortCode, userId: user?.id });
       setLoading(false);
       return;
     }
@@ -55,23 +56,36 @@ const Analytics: React.FC = () => {
     try {
       setLoading(true);
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/analytics/url/${shortCode}?userId=${user.id}&timeRange=${timeRange}`);
+      const analyticsUrl = `${apiUrl}/v1/analytics/url/${shortCode}?userId=${user.id}&timeRange=${timeRange}`;
+      
+      console.log('Loading analytics from:', analyticsUrl);
+      
+      const response = await fetch(analyticsUrl);
+      
+      console.log('Analytics response status:', response.status);
       
       if (response.ok) {
         const result = await response.json();
+        console.log('Analytics result:', result);
+        
         if (result.success) {
           setAnalyticsData(result.data);
+          console.log('Analytics data loaded successfully:', result.data);
         } else {
           console.warn('Analytics API returned error:', result.message);
           setAnalyticsData(null);
+          toast.error(`Analytics error: ${result.message}`);
         }
       } else {
-        console.warn('Analytics API request failed:', response.status);
+        const errorText = await response.text();
+        console.warn('Analytics API request failed:', response.status, errorText);
         setAnalyticsData(null);
+        toast.error(`Failed to load analytics: ${response.status}`);
       }
     } catch (error) {
       console.error('Failed to load analytics:', error);
       setAnalyticsData(null);
+      toast.error('Failed to load analytics');
     } finally {
       setLoading(false);
     }
@@ -83,6 +97,7 @@ const Analytics: React.FC = () => {
 
   // Use real data if available, otherwise fall back to mock data
   const displayData = analyticsData || mockData;
+  const hasRealData = !!analyticsData;
 
   if (loading) {
     return (
@@ -90,6 +105,69 @@ const Analytics: React.FC = () => {
         <div className="flex items-center justify-center min-h-96">
           <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
           <span className="ml-2 text-gray-600">Loading analytics...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasRealData && (!mockData || displayData.totalClicks === 0)) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-4 mb-2">
+                <button
+                  onClick={goBack}
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span>Back to Links</span>
+                </button>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Analytics for /{shortCode}
+              </h1>
+              <p className="text-gray-600">
+                No analytics data available yet. This link hasn't been clicked.
+              </p>
+            </div>
+            <button
+              onClick={loadAnalytics}
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
+          <div className="text-gray-400 mb-4">
+            <BarChart3 className="w-16 h-16 mx-auto" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Data Yet</h3>
+          <p className="text-gray-600 mb-4">
+            This link hasn't received any clicks yet. Share your link to start collecting analytics data.
+          </p>
+          <div className="bg-gray-50 rounded-lg p-4 text-left">
+            <p className="text-sm text-gray-700 font-medium mb-2">Your short link:</p>
+            <div className="flex items-center space-x-2">
+              <code className="bg-white px-3 py-2 rounded border text-blue-600 flex-1">
+                {process.env.REACT_APP_SHORT_URL_DOMAIN || 'https://pebly.vercel.app'}/{shortCode}
+              </code>
+              <button
+                onClick={() => {
+                  const url = `${process.env.REACT_APP_SHORT_URL_DOMAIN || 'https://pebly.vercel.app'}/${shortCode}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Link copied to clipboard!');
+                }}
+                className="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -114,8 +192,8 @@ const Analytics: React.FC = () => {
             </h1>
             <p className="text-gray-600">
               Detailed analytics and insights for your short link
-              {!analyticsData && (
-                <span className="text-orange-600 ml-2">(Showing demo data - connect to backend for real analytics)</span>
+              {!hasRealData && (
+                <span className="text-orange-600 ml-2">(Showing demo data - no real clicks yet)</span>
               )}
             </p>
           </div>
