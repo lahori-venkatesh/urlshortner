@@ -290,40 +290,29 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     } else {
       toast.success('Analytics available for QR codes with short URLs');
     }
+  };
+
+  const customizeQR = (qr: QRCodeData) => {
+    // Simple customization - in a real app, this would open a customization modal
+    const newColor = window.prompt('Enter new foreground color (hex):', qr.customization.foregroundColor);
+    if (newColor !== null && newColor.trim() !== '') {
+      const updatedQRs = qrCodes.map(q => 
+        q.id === qr.id ? { 
+          ...q, 
+          customization: { 
+            ...q.customization, 
+            foregroundColor: newColor.trim() 
+          } 
+        } : q
+      );
+      setQrCodes(updatedQRs);
+      toast.success('QR code customization updated successfully');
+    }
     setActiveDropdown(null);
   };
 
   const QRDropdownMenu: React.FC<{ qr: QRCodeData }> = ({ qr }) => (
     <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-      <button
-        onClick={() => viewQRAnalytics(qr)}
-        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <BarChart3 className="w-4 h-4 mr-3" />
-        View Analytics
-      </button>
-      
-      <button
-        onClick={() => editQR(qr)}
-        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <Edit3 className="w-4 h-4 mr-3" />
-        Edit QR Code
-      </button>
-      
-      <button
-        onClick={() => {
-          downloadQR(qr);
-          setActiveDropdown(null);
-        }}
-        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <Download className="w-4 h-4 mr-3" />
-        Download QR Code
-      </button>
-      
-      <div className="border-t border-gray-100 my-1"></div>
-      
       <button
         onClick={() => duplicateQR(qr)}
         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -340,14 +329,12 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
         Create Link
       </button>
       
-      <div className="border-t border-gray-100 my-1"></div>
-      
       <button
-        onClick={() => deleteQR(qr.id)}
-        className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+        onClick={() => customizeQR(qr)}
+        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
       >
-        <Trash2 className="w-4 h-4 mr-3" />
-        Delete
+        <Palette className="w-4 h-4 mr-3" />
+        Customization
       </button>
     </div>
   );
@@ -631,6 +618,43 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
 
                   {/* Action Buttons - Right Side */}
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* View Analytics */}
+                    <button
+                      onClick={() => viewQRAnalytics(qr)}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View Analytics"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Edit */}
+                    <button
+                      onClick={() => editQR(qr)}
+                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Edit QR Code"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Download */}
+                    <button
+                      onClick={() => downloadQR(qr)}
+                      className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Download QR Code"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Delete */}
+                    <button
+                      onClick={() => deleteQR(qr.id)}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete QR Code"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Three Dots Menu */}
                     <div className="relative" ref={el => dropdownRefs.current[qr.id] = el}>
                       <button
                         onClick={() => setActiveDropdown(activeDropdown === qr.id ? null : qr.id)}
@@ -725,6 +749,43 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
 
                   {/* Actions */}
                   <div className="flex items-center space-x-2 ml-4">
+                    {/* View Analytics */}
+                    <button
+                      onClick={() => viewQRAnalytics(qr)}
+                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded transition-colors"
+                      title="View Analytics"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Edit */}
+                    <button
+                      onClick={() => editQR(qr)}
+                      className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded transition-colors"
+                      title="Edit QR Code"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Download */}
+                    <button
+                      onClick={() => downloadQR(qr)}
+                      className="text-gray-400 hover:text-purple-600 p-2 hover:bg-purple-50 rounded transition-colors"
+                      title="Download QR Code"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Delete */}
+                    <button
+                      onClick={() => deleteQR(qr.id)}
+                      className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded transition-colors"
+                      title="Delete QR Code"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Three Dots Menu */}
                     <div className="relative" ref={el => dropdownRefs.current[qr.id] = el}>
                       <button
                         onClick={() => setActiveDropdown(activeDropdown === qr.id ? null : qr.id)}
