@@ -25,6 +25,7 @@ interface LinkActionsProps {
     createdAt: string;
     tags?: string[];
     type?: 'url' | 'qr' | 'file';
+    title?: string;
   };
   onEdit?: (linkId: string) => void;
   onDelete?: (linkId: string) => void;

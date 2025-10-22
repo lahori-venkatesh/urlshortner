@@ -224,7 +224,7 @@ const Analytics: React.FC = () => {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {displayData.clicksByDevice.map((entry, index) => (
+                {displayData.clicksByDevice.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -238,7 +238,7 @@ const Analytics: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
         <div className="space-y-4">
-          {displayData.clicksByCountry.map((country, index) => (
+          {displayData.clicksByCountry.map((country: any, index: number) => (
             <div key={country.name} className="flex items-center justify-between">
               <div className="flex items-center">
                 <div 

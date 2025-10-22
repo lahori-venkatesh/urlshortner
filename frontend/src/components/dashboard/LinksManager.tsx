@@ -27,6 +27,7 @@ interface ShortenedLink {
   customDomain?: string;
   type: 'url' | 'qr' | 'file';
   tags?: string[];
+  title?: string;
 }
 
 interface LinksManagerProps {
