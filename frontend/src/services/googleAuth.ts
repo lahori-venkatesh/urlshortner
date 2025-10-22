@@ -50,19 +50,34 @@ class GoogleAuthService {
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
 
-  // Exchange authorization code for access token (via backend)
+  // Exchange authorization code for access token (directly with Google)
   async exchangeCodeForToken(code: string): Promise<GoogleAuthResponse> {
-    // Send the code to your backend instead of directly to Google
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/api/auth/google`, {
+    const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+    
+    const params = new URLSearchParams({
+      client_id: this.clientId,
+      client_secret: '', // We'll handle this differently for security
+      code: code,
+      grant_type: 'authorization_code',
+      redirect_uri: this.redirectUri
+    });
+
+    // For security, we should use the backend to exchange the code
+    // Let's create a new endpoint for this
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/auth/google/callback`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ 
+        code: code,
+        redirectUri: this.redirectUri 
+      })
     });
 
     if (!response.ok) {
-      throw new Error('Failed to exchange code for token');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to exchange code for token');
     }
 
     return response.json();
@@ -92,19 +107,17 @@ class GoogleAuthService {
   }
 
   // Handle OAuth callback
-  async handleCallback(code: string): Promise<GoogleUserInfo> {
+  async handleCallback(code: string): Promise<any> {
     try {
-      // Exchange code for tokens
-      const tokenResponse = await this.exchangeCodeForToken(code);
-      
-      // Get user info
-      const userInfo = await this.getUserInfo(tokenResponse.access_token);
+      // Exchange code for tokens and get user info from backend
+      const authResponse = await this.exchangeCodeForToken(code);
       
       // Store tokens in localStorage (in production, use secure storage)
-      localStorage.setItem('google_access_token', tokenResponse.access_token);
-      localStorage.setItem('google_id_token', tokenResponse.id_token);
+      if (authResponse.access_token) {
+        localStorage.setItem('google_access_token', authResponse.access_token);
+      }
       
-      return userInfo;
+      return authResponse;
     } catch (error) {
       console.error('OAuth callback error:', error);
       throw error;

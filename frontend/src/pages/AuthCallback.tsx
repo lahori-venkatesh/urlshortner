@@ -29,23 +29,25 @@ const AuthCallback: React.FC = () => {
         setMessage('Exchanging authorization code...');
         
         // Handle the OAuth callback
-        const userInfo = await googleAuthService.handleCallback(code);
+        const authResponse = await googleAuthService.handleCallback(code);
         
         setMessage('Setting up your account...');
         
-        // Store user info
-        googleAuthService.storeUserInfo(userInfo);
-        
-        // Update auth context
-        setUser({
-          id: userInfo.id,
-          name: userInfo.name,
-          email: userInfo.email,
-          plan: 'free',
-          avatar: userInfo.picture,
-          picture: userInfo.picture,
-          createdAt: new Date().toISOString(),
-          timezone: 'Asia/Kolkata',
+        // The response now contains both user info and tokens
+        if (authResponse.user) {
+          // Store user info
+          googleAuthService.storeUserInfo(authResponse.user);
+          
+          // Update auth context with the user data from backend
+          setUser({
+            id: authResponse.user.id,
+            name: `${authResponse.user.firstName} ${authResponse.user.lastName}`,
+            email: authResponse.user.email,
+            plan: authResponse.user.subscriptionPlan || 'free',
+            avatar: authResponse.user.profilePicture,
+            picture: authResponse.user.profilePicture,
+            createdAt: new Date().toISOString(),
+            timezone: 'Asia/Kolkata',
           language: 'en',
           isAuthenticated: true,
           authProvider: 'google'
@@ -61,16 +63,33 @@ const AuthCallback: React.FC = () => {
           navigate('/app', { replace: true });
         }, 2000);
 
+        } else {
+          throw new Error('Invalid response from authentication server');
+        }
+
       } catch (error) {
         console.error('Auth callback error:', error);
         setStatus('error');
-        setMessage(error instanceof Error ? error.message : 'Authentication failed');
-        toast.error('Authentication failed. Please try again.');
+        
+        let errorMessage = 'Authentication failed';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        
+        // Add more specific error messages
+        if (errorMessage.includes('Failed to exchange code')) {
+          errorMessage = 'Failed to verify with Google. Please check your internet connection and try again.';
+        } else if (errorMessage.includes('Authentication failed')) {
+          errorMessage = 'Google authentication failed. Please ensure you have the correct permissions and try again.';
+        }
+        
+        setMessage(errorMessage);
+        toast.error(errorMessage);
         
         // Redirect to home page after error
         setTimeout(() => {
           navigate('/', { replace: true });
-        }, 3000);
+        }, 5000);
       }
     };
 
