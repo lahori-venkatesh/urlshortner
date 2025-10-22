@@ -135,7 +135,7 @@ const Analytics: React.FC = () => {
     );
   }
 
-  if (!hasRealData && (!mockData || displayData.totalClicks === 0)) {
+  if (!hasRealData && displayData.totalClicks === 0) {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
