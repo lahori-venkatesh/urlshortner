@@ -103,7 +103,7 @@ const ProfileDropdown: React.FC = () => {
               <button 
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/analytics');
+                  navigate('/dashboard/analytics');
                 }}
                 className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
               >

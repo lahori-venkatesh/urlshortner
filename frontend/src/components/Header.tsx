@@ -22,41 +22,7 @@ const Header: React.FC = () => {
           
           <nav className="flex items-center space-x-6">
             {isAuthenticated ? (
-              <>
-                <div className="hidden md:flex items-center space-x-4">
-                  <Link 
-                    to="/dashboard" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link 
-                    to="/links" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    Links
-                  </Link>
-                  <Link 
-                    to="/qr-codes" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    QR Codes
-                  </Link>
-                  <Link 
-                    to="/file-links" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    Files
-                  </Link>
-                  <Link 
-                    to="/analytics" 
-                    className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    Analytics
-                  </Link>
-                </div>
-                <ProfileDropdown />
-              </>
+              <ProfileDropdown />
             ) : (
               <Link 
                 to="/" 

@@ -7,10 +7,6 @@ import Header from './components/Header';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Analytics from './pages/Analytics';
-import AnalyticsPage from './pages/AnalyticsPage';
-import LinksPage from './pages/LinksPage';
-import QRCodesPage from './pages/QRCodesPage';
-import FileLinksPage from './pages/FileLinksPage';
 import Pricing from './pages/Pricing';
 import Profile from './pages/Profile';
 import AccountSettings from './pages/AccountSettings';
@@ -45,6 +41,7 @@ function App() {
                 </div>
               </AuthRedirect>
             } />
+            {/* Dashboard Routes */}
             <Route path="/dashboard" element={
               <AuthRedirect requireAuth={true}>
                 <div className="min-h-screen bg-gray-50">
@@ -55,35 +52,55 @@ function App() {
                 </div>
               </AuthRedirect>
             } />
+            
+            <Route path="/dashboard/links" element={
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/qr-codes" element={
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/file-links" element={
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/analytics" element={
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
+              </AuthRedirect>
+            } />
+            
             {/* Individual Link Analytics */}
             <Route path="/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
                 <Analytics />
-              </AuthRedirect>
-            } />
-            
-            {/* Separate Pages for Each Section */}
-            <Route path="/links" element={
-              <AuthRedirect requireAuth={true}>
-                <LinksPage />
-              </AuthRedirect>
-            } />
-            
-            <Route path="/qr-codes" element={
-              <AuthRedirect requireAuth={true}>
-                <QRCodesPage />
-              </AuthRedirect>
-            } />
-            
-            <Route path="/file-links" element={
-              <AuthRedirect requireAuth={true}>
-                <FileLinksPage />
-              </AuthRedirect>
-            } />
-            
-            <Route path="/analytics" element={
-              <AuthRedirect requireAuth={true}>
-                <AnalyticsPage />
               </AuthRedirect>
             } />
             

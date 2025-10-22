@@ -40,6 +40,22 @@ const UnifiedDashboard: React.FC = () => {
     setSidebarOpen(false);
   }, [activeSection]);
 
+  // Set active section based on current URL
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/dashboard') {
+      setActiveSection('dashboard');
+    } else if (path === '/dashboard/links') {
+      setActiveSection('links');
+    } else if (path === '/dashboard/qr-codes') {
+      setActiveSection('qr-codes');
+    } else if (path === '/dashboard/file-links') {
+      setActiveSection('file-to-url');
+    } else if (path === '/dashboard/analytics') {
+      setActiveSection('analytics');
+    }
+  }, [location.pathname]);
+
   // Check if returning from pricing page or navigating from profile
   useEffect(() => {
     const returnToDashboard = localStorage.getItem('returnToDashboard');
@@ -230,6 +246,18 @@ const UnifiedDashboard: React.FC = () => {
                   <button
                     onClick={() => {
                       setActiveSection(item.id);
+                      // Navigate to the appropriate route
+                      if (item.id === 'dashboard') {
+                        navigate('/dashboard');
+                      } else if (item.id === 'links') {
+                        navigate('/dashboard/links');
+                      } else if (item.id === 'qr-codes') {
+                        navigate('/dashboard/qr-codes');
+                      } else if (item.id === 'file-to-url') {
+                        navigate('/dashboard/file-links');
+                      } else if (item.id === 'analytics') {
+                        navigate('/dashboard/analytics');
+                      }
                     }}
                     className={`
                       w-full flex items-center px-3 py-3 rounded-xl text-left transition-all duration-200 group relative hover:shadow-md
