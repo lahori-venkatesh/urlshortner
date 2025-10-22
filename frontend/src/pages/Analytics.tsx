@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Calendar, Globe, Smartphone, MousePointer } from 'lucide-react';
+import { Calendar, Globe, Smartphone, MousePointer, ArrowLeft, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Analytics: React.FC = () => {
   const { shortCode } = useParams<{ shortCode: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
 
-  // Mock analytics data
+  // Fallback mock data
   const mockData = {
     totalClicks: 156,
     uniqueClicks: 89,
@@ -36,13 +42,91 @@ const Analytics: React.FC = () => {
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
+  useEffect(() => {
+    loadAnalytics();
+  }, [shortCode, timeRange, user]);
+
+  const loadAnalytics = async () => {
+    if (!shortCode || !user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/analytics/url/${shortCode}?userId=${user.id}&timeRange=${timeRange}`);
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setAnalyticsData(result.data);
+        } else {
+          console.warn('Analytics API returned error:', result.message);
+          setAnalyticsData(null);
+        }
+      } else {
+        console.warn('Analytics API request failed:', response.status);
+        setAnalyticsData(null);
+      }
+    } catch (error) {
+      console.error('Failed to load analytics:', error);
+      setAnalyticsData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goBack = () => {
+    navigate('/dashboard/links');
+  };
+
+  // Use real data if available, otherwise fall back to mock data
+  const displayData = analyticsData || mockData;
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-center min-h-96">
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600">Loading analytics...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Analytics for /{shortCode}
-        </h1>
-        <p className="text-gray-600">Detailed analytics and insights for your short link</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center space-x-4 mb-2">
+              <button
+                onClick={goBack}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back to Links</span>
+              </button>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Analytics for /{shortCode}
+            </h1>
+            <p className="text-gray-600">
+              Detailed analytics and insights for your short link
+              {!analyticsData && (
+                <span className="text-orange-600 ml-2">(Showing demo data - connect to backend for real analytics)</span>
+              )}
+            </p>
+          </div>
+          <button
+            onClick={loadAnalytics}
+            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Time Range Selector */}
@@ -73,7 +157,7 @@ const Analytics: React.FC = () => {
             <MousePointer className="h-8 w-8 text-blue-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Clicks</p>
-              <p className="text-2xl font-bold text-gray-900">{mockData.totalClicks}</p>
+              <p className="text-2xl font-bold text-gray-900">{displayData.totalClicks}</p>
             </div>
           </div>
         </div>
@@ -83,7 +167,7 @@ const Analytics: React.FC = () => {
             <Globe className="h-8 w-8 text-green-600" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Unique Visitors</p>
-              <p className="text-2xl font-bold text-gray-900">{mockData.uniqueClicks}</p>
+              <p className="text-2xl font-bold text-gray-900">{displayData.uniqueClicks}</p>
             </div>
           </div>
         </div>
@@ -115,7 +199,7 @@ const Analytics: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Clicks Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockData.clicksOverTime}>
+            <BarChart data={displayData.clicksOverTime}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
               <YAxis />
@@ -131,7 +215,7 @@ const Analytics: React.FC = () => {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={mockData.clicksByDevice}
+                data={displayData.clicksByDevice}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -140,7 +224,7 @@ const Analytics: React.FC = () => {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {mockData.clicksByDevice.map((entry, index) => (
+                {displayData.clicksByDevice.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -154,7 +238,7 @@ const Analytics: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
         <div className="space-y-4">
-          {mockData.clicksByCountry.map((country, index) => (
+          {displayData.clicksByCountry.map((country, index) => (
             <div key={country.name} className="flex items-center justify-between">
               <div className="flex items-center">
                 <div 
@@ -168,7 +252,7 @@ const Analytics: React.FC = () => {
                   <div 
                     className="h-2 rounded-full"
                     style={{ 
-                      width: `${(country.value / mockData.totalClicks) * 100}%`,
+                      width: `${(country.value / displayData.totalClicks) * 100}%`,
                       backgroundColor: COLORS[index % COLORS.length]
                     }}
                   ></div>

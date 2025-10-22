@@ -259,9 +259,7 @@ const LinkActions: React.FC<LinkActionsProps> = ({
                 {onDelete && (
                   <button
                     onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this link?')) {
-                        onDelete(link.id);
-                      }
+                      onDelete(link.id);
                       setShowDropdown(false);
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"

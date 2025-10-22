@@ -112,12 +112,35 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
   };
 
   const deleteLink = async (linkId: string) => {
+    if (!window.confirm('Are you sure you want to delete this link? This action cannot be undone.')) {
+      return;
+    }
+
     try {
-      // TODO: Implement backend API call to delete link
       console.log('Deleting link from backend:', linkId);
-      const updatedLinks = links.filter(link => link.id !== linkId);
-      setLinks(updatedLinks);
-      toast.success('Link deleted successfully');
+      
+      // Find the link to get its shortCode
+      const linkToDelete = links.find(link => link.id === linkId);
+      if (!linkToDelete) {
+        toast.error('Link not found');
+        return;
+      }
+
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/urls/${linkToDelete.shortCode}?userId=${user?.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Remove from local state only after successful backend deletion
+        const updatedLinks = links.filter(link => link.id !== linkId);
+        setLinks(updatedLinks);
+        toast.success('Link deleted successfully');
+      } else {
+        toast.error(result.message || 'Failed to delete link');
+      }
     } catch (error) {
       console.error('Failed to delete link:', error);
       toast.error('Failed to delete link');
@@ -125,19 +148,88 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
   };
 
   const editLink = (linkId: string) => {
-    // For now, just show a toast. In a real app, this would open an edit modal
-    toast('Edit functionality coming soon!');
+    // Navigate to create page with edit mode
+    const linkToEdit = links.find(link => link.id === linkId);
+    if (linkToEdit) {
+      // For now, show a simple prompt to edit the title
+      const newTitle = window.prompt('Enter new title for this link:', linkToEdit.title || '');
+      if (newTitle !== null) {
+        updateLinkTitle(linkId, newTitle);
+      }
+    }
+  };
+
+  const updateLinkTitle = async (linkId: string, newTitle: string) => {
+    try {
+      const linkToUpdate = links.find(link => link.id === linkId);
+      if (!linkToUpdate) {
+        toast.error('Link not found');
+        return;
+      }
+
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/urls/${linkToUpdate.shortCode}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newTitle,
+          userId: user?.id
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state
+        const updatedLinks = links.map(link => 
+          link.id === linkId ? { ...link, title: newTitle } : link
+        );
+        setLinks(updatedLinks);
+        toast.success('Link updated successfully');
+      } else {
+        toast.error(result.message || 'Failed to update link');
+      }
+    } catch (error) {
+      console.error('Failed to update link:', error);
+      toast.error('Failed to update link');
+    }
   };
 
   const updateTags = async (linkId: string, newTags: string[]) => {
     try {
-      // TODO: Implement backend API call to update tags
+      const linkToUpdate = links.find(link => link.id === linkId);
+      if (!linkToUpdate) {
+        toast.error('Link not found');
+        return;
+      }
+
       console.log('Updating tags in backend:', linkId, newTags);
-      const updatedLinks = links.map(link => 
-        link.id === linkId ? { ...link, tags: newTags } : link
-      );
-      setLinks(updatedLinks);
-      toast.success('Tags updated successfully');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/urls/${linkToUpdate.shortCode}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tags: newTags,
+          userId: user?.id
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state
+        const updatedLinks = links.map(link => 
+          link.id === linkId ? { ...link, tags: newTags } : link
+        );
+        setLinks(updatedLinks);
+        toast.success('Tags updated successfully');
+      } else {
+        toast.error(result.message || 'Failed to update tags');
+      }
     } catch (error) {
       console.error('Failed to update tags:', error);
       toast.error('Failed to update tags');
