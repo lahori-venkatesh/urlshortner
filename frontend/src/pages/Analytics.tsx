@@ -100,16 +100,34 @@ const Analytics: React.FC = () => {
   const hasRealData = !!analyticsData;
 
   // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Analytics component rendered with:', { shortCode, user: user?.id });
-    console.log('Loading state:', loading);
-    console.log('Analytics data:', analyticsData);
-    console.log('Has real data:', hasRealData);
-  }
+  console.log('=== ANALYTICS DEBUG ===');
+  console.log('Analytics component rendered with:', { shortCode, user: user?.id });
+  console.log('Loading state:', loading);
+  console.log('Analytics data:', analyticsData);
+  console.log('Has real data:', hasRealData);
+  console.log('Display data:', displayData);
+  console.log('Mock data total clicks:', mockData.totalClicks);
+  console.log('Condition checks:');
+  console.log('- !shortCode:', !shortCode);
+  console.log('- loading:', loading);
+  console.log('- !hasRealData:', !hasRealData);
+  console.log('- !mockData:', !mockData);
+  console.log('- displayData.totalClicks === 0:', displayData.totalClicks === 0);
+  console.log('- Final condition (!hasRealData && (!mockData || displayData.totalClicks === 0)):', !hasRealData && (!mockData || displayData.totalClicks === 0));
+  console.log('=== END DEBUG ===');
 
-  // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Analytics component is rendering...');
+  // TEMPORARY: Force render test
+  if (shortCode === 'FwUEnJ') {
+    console.log('FORCING TEST RENDER FOR FwUEnJ');
+    return (
+      <div style={{ padding: '20px', backgroundColor: 'red', color: 'white', minHeight: '200px' }}>
+        <h1>ANALYTICS TEST RENDER</h1>
+        <p>ShortCode: {shortCode}</p>
+        <p>Loading: {loading ? 'YES' : 'NO'}</p>
+        <p>Has Real Data: {hasRealData ? 'YES' : 'NO'}</p>
+        <p>User ID: {user?.id}</p>
+      </div>
+    );
   }
 
   // If no shortCode, show error
