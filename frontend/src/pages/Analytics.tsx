@@ -203,173 +203,129 @@ const Analytics: React.FC = () => {
     );
   }
 
+  // FORCE SIMPLE ANALYTICS UI
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center space-x-4 mb-2">
-              <button
-                onClick={goBack}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Links</span>
-              </button>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Analytics for /{shortCode}
-            </h1>
-            <p className="text-gray-600">
-              Detailed analytics and insights for your short link
-              {!hasRealData && (
-                <span className="text-orange-600 ml-2">(Showing demo data - no real clicks yet)</span>
-              )}
-            </p>
-          </div>
-          <button
-            onClick={loadAnalytics}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Refresh</span>
-          </button>
-        </div>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '30px' }}>
+        <button
+          onClick={goBack}
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#3B82F6', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '5px',
+            marginBottom: '20px',
+            cursor: 'pointer'
+          }}
+        >
+          ← Back to Links
+        </button>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0 0 10px 0' }}>
+          Analytics for /{shortCode}
+        </h1>
+        <p style={{ color: '#666', margin: '0' }}>
+          Analytics data for your short link
+          {hasRealData ? ' (Real Data)' : ' (Demo Data)'}
+        </p>
       </div>
 
-      {/* Time Range Selector */}
-      <div className="mb-6">
-        <div className="flex space-x-2">
-          {['24h', '7d', '30d', 'all'].map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                timeRange === range
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {range === '24h' ? '24 Hours' : 
-               range === '7d' ? '7 Days' :
-               range === '30d' ? '30 Days' : 'All Time'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center">
-            <MousePointer className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Clicks</p>
-              <p className="text-2xl font-bold text-gray-900">{displayData.totalClicks}</p>
-            </div>
-          </div>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+        gap: '20px',
+        marginBottom: '30px'
+      }}>
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Total Clicks</h3>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', color: '#3B82F6' }}>
+            {displayData.totalClicks}
+          </p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center">
-            <Globe className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Unique Visitors</p>
-              <p className="text-2xl font-bold text-gray-900">{displayData.uniqueClicks}</p>
-            </div>
-          </div>
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Unique Visitors</h3>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', color: '#10B981' }}>
+            {displayData.uniqueClicks}
+          </p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center">
-            <Smartphone className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Mobile %</p>
-              <p className="text-2xl font-bold text-gray-900">42%</p>
-            </div>
-          </div>
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Mobile %</h3>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', color: '#8B5CF6' }}>
+            42%
+          </p>
         </div>
         
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Avg. Daily</p>
-              <p className="text-2xl font-bold text-gray-900">22</p>
-            </div>
-          </div>
+        <div style={{ 
+          backgroundColor: 'white', 
+          padding: '20px', 
+          borderRadius: '8px', 
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Avg. Daily</h3>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', color: '#F59E0B' }}>
+            22
+          </p>
         </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Clicks Over Time */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Clicks Over Time</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={displayData.clicksOverTime}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="clicks" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Device Types */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Types</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={displayData.clicksByDevice}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {displayData.clicksByDevice.map((entry: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+      <div style={{ 
+        backgroundColor: 'white', 
+        padding: '20px', 
+        borderRadius: '8px', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+      }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Geographic Distribution</h3>
+        {displayData.clicksByCountry.map((country: any, index: number) => (
+          <div key={country.name} style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            padding: '8px 0',
+            borderBottom: index < displayData.clicksByCountry.length - 1 ? '1px solid #eee' : 'none'
+          }}>
+            <span style={{ color: '#333' }}>{country.name}</span>
+            <span style={{ fontWeight: 'bold', color: '#666' }}>{country.value}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Geographic Distribution */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
-        <div className="space-y-4">
-          {displayData.clicksByCountry.map((country: any, index: number) => (
-            <div key={country.name} className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div 
-                  className="w-4 h-4 rounded-full mr-3"
-                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                ></div>
-                <span className="text-sm font-medium text-gray-900">{country.name}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-32 bg-gray-200 rounded-full h-2 mr-3">
-                  <div 
-                    className="h-2 rounded-full"
-                    style={{ 
-                      width: `${(country.value / displayData.totalClicks) * 100}%`,
-                      backgroundColor: COLORS[index % COLORS.length]
-                    }}
-                  ></div>
-                </div>
-                <span className="text-sm text-gray-600 w-8">{country.value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div style={{ 
+        backgroundColor: 'white', 
+        padding: '20px', 
+        borderRadius: '8px', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Device Types</h3>
+        {displayData.clicksByDevice.map((device: any, index: number) => (
+          <div key={device.name} style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            padding: '8px 0',
+            borderBottom: index < displayData.clicksByDevice.length - 1 ? '1px solid #eee' : 'none'
+          }}>
+            <span style={{ color: '#333' }}>{device.name}</span>
+            <span style={{ fontWeight: 'bold', color: '#666' }}>{device.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
