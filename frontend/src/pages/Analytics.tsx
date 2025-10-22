@@ -6,12 +6,18 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Analytics: React.FC = () => {
+  console.log('🔥 ANALYTICS COMPONENT CALLED');
+  
   const { shortCode } = useParams<{ shortCode: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('7d');
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
+  
+  console.log('🔥 ANALYTICS PARAMS:', { shortCode, userExists: !!user });
+
+
 
   // Fallback mock data
   const mockData = {
@@ -108,6 +114,19 @@ const Analytics: React.FC = () => {
     displayData: displayData ? { totalClicks: displayData.totalClicks } : null,
     willShowNoData: !hasRealData && (!displayData || displayData.totalClicks === 0)
   });
+
+  // TEMPORARY: Test if component is being called
+  if (shortCode === 'FwUEnJ') {
+    return (
+      <div style={{ padding: '50px', backgroundColor: 'blue', color: 'white', fontSize: '24px' }}>
+        <h1>🔥 ANALYTICS COMPONENT IS WORKING!</h1>
+        <p>ShortCode: {shortCode}</p>
+        <p>User: {user?.id || 'No user'}</p>
+        <p>Loading: {loading ? 'YES' : 'NO'}</p>
+        <p>Has Real Data: {hasRealData ? 'YES' : 'NO'}</p>
+      </div>
+    );
+  }
 
 
 
