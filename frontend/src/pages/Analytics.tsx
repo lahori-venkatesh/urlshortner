@@ -100,9 +100,14 @@ const Analytics: React.FC = () => {
   const hasRealData = !!analyticsData;
 
   // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Analytics component rendered:', { shortCode, loading, hasRealData });
-  }
+  console.log('Analytics DEBUG:', { 
+    shortCode, 
+    loading, 
+    hasRealData, 
+    analyticsData,
+    displayData: displayData ? { totalClicks: displayData.totalClicks } : null,
+    willShowNoData: !hasRealData && (!displayData || displayData.totalClicks === 0)
+  });
 
 
 
@@ -135,7 +140,8 @@ const Analytics: React.FC = () => {
     );
   }
 
-  if (!hasRealData && displayData.totalClicks === 0) {
+  // Force show main UI if we have real data, otherwise check for empty state
+  if (!hasRealData && (!displayData || displayData.totalClicks === 0)) {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
@@ -370,4 +376,21 @@ const Analytics: React.FC = () => {
   );
 };
 
-export default Analytics;
+// Fallback component in case of any issues
+const AnalyticsWrapper: React.FC = () => {
+  try {
+    return <Analytics />;
+  } catch (error) {
+    console.error('Analytics component error:', error);
+    return (
+      <div className="max-w-6xl mx-auto p-8">
+        <div className="bg-red-100 border border-red-400 rounded p-4">
+          <h2 className="text-red-800 font-bold">Analytics Error</h2>
+          <p className="text-red-700">Component failed to render. Check console for details.</p>
+        </div>
+      </div>
+    );
+  }
+};
+
+export default AnalyticsWrapper;
