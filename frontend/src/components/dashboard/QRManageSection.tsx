@@ -296,6 +296,22 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
         Customization
       </button>
       
+      <button
+        onClick={() => {
+          if (qr.shortUrl) {
+            const shortCode = qr.shortUrl.split('/').pop();
+            window.open(`/analytics/${shortCode}`, '_blank');
+          } else {
+            toast.success('Analytics available for QR codes with short URLs');
+          }
+          setActiveDropdown(null);
+        }}
+        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <BarChart3 className="w-4 h-4 mr-3" />
+        View Analytics
+      </button>
+      
       <div className="border-t border-gray-100 my-1"></div>
       
       <button
@@ -612,9 +628,16 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                     </div>
                     
                     <button
-                      onClick={() => toast.success('QR code scan data would be shown here')}
+                      onClick={() => {
+                        if (qr.shortUrl) {
+                          const shortCode = qr.shortUrl.split('/').pop();
+                          window.open(`/analytics/${shortCode}`, '_blank');
+                        } else {
+                          toast.success('Analytics available for QR codes with short URLs');
+                        }
+                      }}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Scan data"
+                      title="View Analytics"
                     >
                       <BarChart3 className="w-4 h-4" />
                     </button>
@@ -636,11 +659,18 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                     </button>
                     
                     <button
-                      onClick={() => toast.success('Analytics modal would open here')}
+                      onClick={() => {
+                        if (qr.shortUrl) {
+                          const shortCode = qr.shortUrl.split('/').pop();
+                          window.open(`/analytics/${shortCode}`, '_blank');
+                        } else {
+                          toast.success('Analytics available for QR codes with short URLs');
+                        }
+                      }}
                       className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium"
-                      title="View details"
+                      title="View Analytics"
                     >
-                      View details
+                      View Analytics
                     </button>
                   </div>
                 </div>

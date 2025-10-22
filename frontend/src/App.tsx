@@ -7,6 +7,10 @@ import Header from './components/Header';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Analytics from './pages/Analytics';
+import AnalyticsPage from './pages/AnalyticsPage';
+import LinksPage from './pages/LinksPage';
+import QRCodesPage from './pages/QRCodesPage';
+import FileLinksPage from './pages/FileLinksPage';
 import Pricing from './pages/Pricing';
 import Profile from './pages/Profile';
 import AccountSettings from './pages/AccountSettings';
@@ -51,17 +55,40 @@ function App() {
                 </div>
               </AuthRedirect>
             } />
+            {/* Individual Link Analytics */}
             <Route path="/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <Header />
-                  <main className="container mx-auto px-4 py-8">
-                    <Analytics />
-                  </main>
-                </div>
+                <Analytics />
               </AuthRedirect>
             } />
+            
+            {/* Separate Pages for Each Section */}
+            <Route path="/links" element={
+              <AuthRedirect requireAuth={true}>
+                <LinksPage />
+              </AuthRedirect>
+            } />
+            
             <Route path="/qr-codes" element={
+              <AuthRedirect requireAuth={true}>
+                <QRCodesPage />
+              </AuthRedirect>
+            } />
+            
+            <Route path="/file-links" element={
+              <AuthRedirect requireAuth={true}>
+                <FileLinksPage />
+              </AuthRedirect>
+            } />
+            
+            <Route path="/analytics" element={
+              <AuthRedirect requireAuth={true}>
+                <AnalyticsPage />
+              </AuthRedirect>
+            } />
+            
+            {/* Legacy QR Generator Route */}
+            <Route path="/qr-generator" element={
               <div className="min-h-screen bg-gray-50">
                 <Header />
                 <main className="container mx-auto px-4 py-8">
@@ -69,6 +96,7 @@ function App() {
                 </main>
               </div>
             } />
+            
             <Route path="/domains" element={
               <div className="min-h-screen bg-gray-50">
                 <Header />

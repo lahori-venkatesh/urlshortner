@@ -59,13 +59,19 @@ const UnifiedDashboard: React.FC = () => {
       console.log('Returned to dashboard from pricing');
     }
 
-    // Check if navigating from profile dropdown to analytics
+    // Check if navigating from profile dropdown to analytics or other sections
     if (location.state?.activeSection) {
       setActiveSection(location.state.activeSection as SidebarSection);
+      
+      // Also handle createMode if provided
+      if (location.state?.createMode) {
+        setCreateMode(location.state.createMode as CreateMode);
+      }
+      
       // Clear the state to prevent it from persisting
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate]);
+  }, [location.state, navigate, activeSection]);
 
   const sidebarItems = [
     {

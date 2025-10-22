@@ -408,7 +408,19 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
                   </div>
 
                   {/* Actions */}
-                  <div className="ml-4">
+                  <div className="ml-4 flex items-center space-x-2">
+                    {/* Direct Analytics Button */}
+                    <button
+                      onClick={() => {
+                        const shortCode = link.shortUrl.split('/').pop();
+                        window.open(`/analytics/${shortCode}`, '_blank');
+                      }}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="View Analytics"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </button>
+                    
                     <LinkActions
                       link={link}
                       onEdit={editLink}

@@ -13,6 +13,7 @@ import {
   Plus,
   Upload,
   RefreshCw,
+  BarChart3,
   Link as LinkIcon} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fileService, FileInfo } from '../../services/fileService';
@@ -417,6 +418,16 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                   </div>
 
                   <div className="flex items-center space-x-2 ml-4">
+                    <button
+                      onClick={() => {
+                        const shortCode = fileLink.shortCode || fileLink.shortUrl.split('/').pop();
+                        window.open(`/analytics/${shortCode}`, '_blank');
+                      }}
+                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded"
+                      title="View Analytics"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => downloadFile(fileLink.id, fileLink.fileName)}
                       className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded"
