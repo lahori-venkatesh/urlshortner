@@ -99,39 +99,17 @@ const Analytics: React.FC = () => {
   const displayData = analyticsData || mockData;
   const hasRealData = !!analyticsData;
 
-  // Debug logging (after all hooks are called)
-  console.log('Analytics component rendered with:', { shortCode, user: user?.id });
-  console.log('Loading state:', loading);
-  console.log('Analytics data:', analyticsData);
-  console.log('Has real data:', hasRealData);
-
-  // Temporary debug render test
+  // Debug logging for development
   if (process.env.NODE_ENV === 'development') {
-    console.log('Analytics component is rendering...');
+    console.log('Analytics component rendered with:', { shortCode, user: user?.id });
+    console.log('Loading state:', loading);
+    console.log('Analytics data:', analyticsData);
+    console.log('Has real data:', hasRealData);
   }
 
-  // TEMPORARY: Simple test render to check if component is working
-  // Remove this after testing
-  if (shortCode === 'FwUEnJ') {
-    return (
-      <div className="max-w-6xl mx-auto p-8">
-        <div className="bg-green-100 border border-green-400 rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-green-800">Analytics Component Test</h1>
-          <p className="text-green-700 mt-2">
-            Component is rendering! ShortCode: {shortCode}
-          </p>
-          <p className="text-green-700">User ID: {user?.id || 'Not available'}</p>
-          <p className="text-green-700">Loading: {loading ? 'Yes' : 'No'}</p>
-          <p className="text-green-700">Has Real Data: {hasRealData ? 'Yes' : 'No'}</p>
-          <button
-            onClick={() => navigate('/dashboard/links')}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Back to Links
-          </button>
-        </div>
-      </div>
-    );
+  // Debug logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Analytics component is rendering...');
   }
 
   // If no shortCode, show error
