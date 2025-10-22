@@ -39,7 +39,7 @@ const AuthCallback: React.FC = () => {
           googleAuthService.storeUserInfo(authResponse.user);
           
           // Update auth context with the user data from backend
-          setUser({
+          const userData = {
             id: authResponse.user.id,
             name: `${authResponse.user.firstName} ${authResponse.user.lastName}`,
             email: authResponse.user.email,
@@ -48,20 +48,22 @@ const AuthCallback: React.FC = () => {
             picture: authResponse.user.profilePicture,
             createdAt: new Date().toISOString(),
             timezone: 'Asia/Kolkata',
-          language: 'en',
-          isAuthenticated: true,
-          authProvider: 'google'
-        });
+            language: 'en',
+            isAuthenticated: true,
+            authProvider: 'google'
+          };
+          
+          console.log('Setting user data:', userData);
+          setUser(userData);
 
-        setStatus('success');
-        setMessage('Authentication successful! Redirecting...');
-        
-        toast.success('Successfully signed in with Google!');
-        
-        // Redirect to dashboard after a short delay
-        setTimeout(() => {
+          setStatus('success');
+          setMessage('Authentication successful! Redirecting...');
+          
+          toast.success('Successfully signed in with Google!');
+          
+          // Redirect immediately after setting user
+          console.log('Redirecting to dashboard...');
           navigate('/dashboard', { replace: true });
-        }, 2000);
 
         } else {
           throw new Error('Invalid response from authentication server');

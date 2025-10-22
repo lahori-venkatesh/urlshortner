@@ -47,6 +47,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Custom setUser function that also updates isAuthenticated
+  const setUserWithAuth = (newUser: User | null) => {
+    setUser(newUser);
+    setIsAuthenticated(!!newUser);
+    if (newUser) {
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
+
   useEffect(() => {
     // Check if user is logged in from localStorage or Google OAuth
     const savedUser = localStorage.getItem('user');
@@ -87,9 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'google'
         };
         
-        setUser(user);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(user));
+        setUserWithAuth(user);
       }
     } catch (error) {
       console.error('Google auth error:', error);
@@ -173,9 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('user');
+    setUserWithAuth(null);
     
     // Also logout from Google if authenticated via Google
     if (user?.authProvider === 'google') {
@@ -191,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, 
-      setUser, 
+      setUser: setUserWithAuth, 
       login, 
       signup, 
       loginWithGoogle, 
