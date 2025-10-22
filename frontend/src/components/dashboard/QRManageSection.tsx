@@ -296,22 +296,6 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
         Customization
       </button>
       
-      <button
-        onClick={() => {
-          if (qr.shortUrl) {
-            const shortCode = qr.shortUrl.split('/').pop();
-            window.open(`/analytics/${shortCode}`, '_blank');
-          } else {
-            toast.success('Analytics available for QR codes with short URLs');
-          }
-          setActiveDropdown(null);
-        }}
-        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <BarChart3 className="w-4 h-4 mr-3" />
-        View Analytics
-      </button>
-      
       <div className="border-t border-gray-100 my-1"></div>
       
       <button
@@ -631,7 +615,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                       onClick={() => {
                         if (qr.shortUrl) {
                           const shortCode = qr.shortUrl.split('/').pop();
-                          window.open(`/analytics/${shortCode}`, '_blank');
+                          window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
                         } else {
                           toast.success('Analytics available for QR codes with short URLs');
                         }
@@ -662,7 +646,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                       onClick={() => {
                         if (qr.shortUrl) {
                           const shortCode = qr.shortUrl.split('/').pop();
-                          window.open(`/analytics/${shortCode}`, '_blank');
+                          window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
                         } else {
                           toast.success('Analytics available for QR codes with short URLs');
                         }

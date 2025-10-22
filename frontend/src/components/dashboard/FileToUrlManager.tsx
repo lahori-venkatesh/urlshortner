@@ -421,23 +421,23 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                     <button
                       onClick={() => {
                         const shortCode = fileLink.shortCode || fileLink.shortUrl.split('/').pop();
-                        window.open(`/analytics/${shortCode}`, '_blank');
+                        window.open(`/dashboard/file-links/analytics/${shortCode}`, '_blank');
                       }}
-                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded"
+                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded transition-colors"
                       title="View Analytics"
                     >
                       <BarChart3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => downloadFile(fileLink.id, fileLink.fileName)}
-                      className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded"
+                      className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded transition-colors"
                       title="Download file"
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deleteFileLink(fileLink.id)}
-                      className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded"
+                      className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded transition-colors"
                       title="Delete file link"
                     >
                       <Trash2 className="w-4 h-4" />

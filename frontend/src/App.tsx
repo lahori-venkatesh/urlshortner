@@ -97,7 +97,26 @@ function App() {
               </AuthRedirect>
             } />
             
-            {/* Individual Link Analytics */}
+            {/* Individual Analytics Routes */}
+            <Route path="/dashboard/links/analytics/:shortCode" element={
+              <AuthRedirect requireAuth={true}>
+                <Analytics />
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/qr-codes/analytics/:shortCode" element={
+              <AuthRedirect requireAuth={true}>
+                <Analytics />
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/file-links/analytics/:shortCode" element={
+              <AuthRedirect requireAuth={true}>
+                <Analytics />
+              </AuthRedirect>
+            } />
+            
+            {/* Legacy Individual Link Analytics */}
             <Route path="/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
                 <Analytics />

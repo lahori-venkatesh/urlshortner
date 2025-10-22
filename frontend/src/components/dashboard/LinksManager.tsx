@@ -413,7 +413,7 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
                     <button
                       onClick={() => {
                         const shortCode = link.shortUrl.split('/').pop();
-                        window.open(`/analytics/${shortCode}`, '_blank');
+                        window.open(`/dashboard/links/analytics/${shortCode}`, '_blank');
                       }}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="View Analytics"

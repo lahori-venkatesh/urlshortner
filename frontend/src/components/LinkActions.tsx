@@ -111,10 +111,18 @@ const LinkActions: React.FC<LinkActionsProps> = ({
   const viewDetails = () => {
     console.log('Opening analytics for link:', link);
     console.log('Short code:', link.shortCode);
-    console.log('Analytics URL:', `/analytics/${link.shortCode}`);
     
-    // Use React Router navigate for proper SPA routing
-    const analyticsUrl = `/analytics/${link.shortCode}`;
+    // Determine the correct analytics URL based on link type
+    let analyticsUrl = `/analytics/${link.shortCode}`;
+    if (link.type === 'url') {
+      analyticsUrl = `/dashboard/links/analytics/${link.shortCode}`;
+    } else if (link.type === 'qr') {
+      analyticsUrl = `/dashboard/qr-codes/analytics/${link.shortCode}`;
+    } else if (link.type === 'file') {
+      analyticsUrl = `/dashboard/file-links/analytics/${link.shortCode}`;
+    }
+    
+    console.log('Analytics URL:', analyticsUrl);
     navigate(analyticsUrl);
   };
 
