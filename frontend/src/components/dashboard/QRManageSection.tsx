@@ -270,8 +270,60 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       }
     });
 
+  const editQR = (qr: QRCodeData) => {
+    // Simple edit functionality - in a real app, this would open a modal
+    const newTitle = window.prompt('Enter new title for this QR code:', qr.title);
+    if (newTitle !== null && newTitle.trim() !== '') {
+      const updatedQRs = qrCodes.map(q => 
+        q.id === qr.id ? { ...q, title: newTitle.trim() } : q
+      );
+      setQrCodes(updatedQRs);
+      toast.success('QR code title updated successfully');
+    }
+    setActiveDropdown(null);
+  };
+
+  const viewQRAnalytics = (qr: QRCodeData) => {
+    if (qr.shortUrl) {
+      const shortCode = qr.shortUrl.split('/').pop();
+      window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
+    } else {
+      toast.success('Analytics available for QR codes with short URLs');
+    }
+    setActiveDropdown(null);
+  };
+
   const QRDropdownMenu: React.FC<{ qr: QRCodeData }> = ({ qr }) => (
     <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+      <button
+        onClick={() => viewQRAnalytics(qr)}
+        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <BarChart3 className="w-4 h-4 mr-3" />
+        View Analytics
+      </button>
+      
+      <button
+        onClick={() => editQR(qr)}
+        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <Edit3 className="w-4 h-4 mr-3" />
+        Edit QR Code
+      </button>
+      
+      <button
+        onClick={() => {
+          downloadQR(qr);
+          setActiveDropdown(null);
+        }}
+        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <Download className="w-4 h-4 mr-3" />
+        Download QR Code
+      </button>
+      
+      <div className="border-t border-gray-100 my-1"></div>
+      
       <button
         onClick={() => duplicateQR(qr)}
         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -286,14 +338,6 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       >
         <Link className="w-4 h-4 mr-3" />
         Create Link
-      </button>
-      
-      <button
-        onClick={() => toast.success('Customization modal would open here')}
-        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <Palette className="w-4 h-4 mr-3" />
-        Customization
       </button>
       
       <div className="border-t border-gray-100 my-1"></div>
@@ -610,52 +654,6 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                         </AnimatePresence>
                       )}
                     </div>
-                    
-                    <button
-                      onClick={() => {
-                        if (qr.shortUrl) {
-                          const shortCode = qr.shortUrl.split('/').pop();
-                          window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
-                        } else {
-                          toast.success('Analytics available for QR codes with short URLs');
-                        }
-                      }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="View Analytics"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                    </button>
-                    
-                    <button
-                      onClick={() => toast.success('Edit modal would open here')}
-                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                      title="Edit QR code"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    
-                    <button
-                      onClick={() => downloadQR(qr)}
-                      className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                      title="Download QR code"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        if (qr.shortUrl) {
-                          const shortCode = qr.shortUrl.split('/').pop();
-                          window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
-                        } else {
-                          toast.success('Analytics available for QR codes with short URLs');
-                        }
-                      }}
-                      className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors font-medium"
-                      title="View Analytics"
-                    >
-                      View Analytics
-                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -727,14 +725,6 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
 
                   {/* Actions */}
                   <div className="flex items-center space-x-2 ml-4">
-                    <button
-                      onClick={() => downloadQR(qr)}
-                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded transition-colors"
-                      title="Download QR code"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    
                     <div className="relative" ref={el => dropdownRefs.current[qr.id] = el}>
                       <button
                         onClick={() => setActiveDropdown(activeDropdown === qr.id ? null : qr.id)}
