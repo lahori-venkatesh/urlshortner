@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Copy, 
   Share2, 
@@ -40,6 +41,7 @@ const LinkActions: React.FC<LinkActionsProps> = ({
   onUpdateTags,
   showQRCode = true
 }) => {
+  const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showTagEditor, setShowTagEditor] = useState(false);
@@ -111,9 +113,9 @@ const LinkActions: React.FC<LinkActionsProps> = ({
     console.log('Short code:', link.shortCode);
     console.log('Analytics URL:', `/analytics/${link.shortCode}`);
     
-    // Use navigate instead of window.open for better routing
+    // Use React Router navigate for proper SPA routing
     const analyticsUrl = `/analytics/${link.shortCode}`;
-    window.location.href = analyticsUrl;
+    navigate(analyticsUrl);
   };
 
   const generateQRCode = async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Calendar, Globe, Smartphone, MousePointer, ArrowLeft, RefreshCw, BarChart3 } from 'lucide-react';
@@ -12,6 +12,9 @@ const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('7d');
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
+
+  // Debug logging
+  console.log('Analytics component rendered with:', { shortCode, user: user?.id });
 
   // Fallback mock data
   const mockData = {
@@ -44,9 +47,9 @@ const Analytics: React.FC = () => {
 
   useEffect(() => {
     loadAnalytics();
-  }, [shortCode, timeRange, user]);
+  }, [loadAnalytics]);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     if (!shortCode || !user?.id) {
       console.log('Missing shortCode or user ID:', { shortCode, userId: user?.id });
       setLoading(false);
@@ -89,7 +92,7 @@ const Analytics: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [shortCode, timeRange, user]);
 
   const goBack = () => {
     navigate('/dashboard/links');

@@ -52,12 +52,14 @@ function App() {
               </AuthRedirect>
             } />
             <Route path="/analytics/:shortCode" element={
-              <div className="min-h-screen bg-gray-50">
-                <Header />
-                <main className="container mx-auto px-4 py-8">
-                  <Analytics />
-                </main>
-              </div>
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <Header />
+                  <main className="container mx-auto px-4 py-8">
+                    <Analytics />
+                  </main>
+                </div>
+              </AuthRedirect>
             } />
             <Route path="/qr-codes" element={
               <div className="min-h-screen bg-gray-50">
