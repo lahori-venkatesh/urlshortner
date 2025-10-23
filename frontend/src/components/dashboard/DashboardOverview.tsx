@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React from 'react';
 import { 
   Link, 
   QrCode, 
   Upload, 
   Eye, 
   TrendingUp, 
-  Globe, 
-  Smartphone,
+  Globe,
   Plus,
   ExternalLink,
   Copy,
@@ -18,8 +16,10 @@ import {
   MousePointer,
   MapPin
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { StatCardSkeleton, ChartSkeleton, ActivitySkeleton } from '../ui/Skeleton';
 import LiveActivityFeed from './LiveActivityFeed';
 import LocationWidget from './LocationWidget';
 import WorldMapWidget from './WorldMapWidget';
@@ -46,144 +46,8 @@ interface DashboardStats {
 
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) => {
-  const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-
-  const loadDashboardData = async (showRefreshIndicator = false) => {
-    if (!user?.id) {
-      console.log('No user ID available for dashboard data');
-      return;
-    }
-
-    try {
-      if (showRefreshIndicator) setRefreshing(true);
-      console.log('Loading dashboard data for user:', user.id);
-      
-      // Load user's URLs, QR codes, and files from backend
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const [urlsResponse, qrResponse, filesResponse] = await Promise.all([
-        fetch(`${apiUrl}/v1/urls/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-        fetch(`${apiUrl}/v1/qr/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-        fetch(`${apiUrl}/v1/files/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] }))
-      ]);
-
-      const links = urlsResponse.success ? urlsResponse.data : [];
-      const qrCodes = qrResponse.success ? qrResponse.data : [];
-      const files = filesResponse.success ? filesResponse.data : [];
-
-      console.log('Loaded data:', { links: links.length, qrCodes: qrCodes.length, files: files.length });
-      
-      // Separate short links from other types
-      const shortLinks = links.filter((link: any) => !link.isFileLink);
-      
-      const totalClicks = links.reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-      const totalQRScans = qrCodes.reduce((sum: number, qr: any) => sum + (qr.scans || 0), 0);
-      
-      // Calculate real time-based data
-      const today = new Date();
-      const todayStr = today.toDateString();
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
-      const clicksToday = links
-        .filter((link: any) => new Date(link.createdAt).toDateString() === todayStr)
-        .reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-      
-      const clicksThisWeek = links
-        .filter((link: any) => new Date(link.createdAt) >= weekAgo)
-        .reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-      
-      // Generate realistic time series data based on actual link creation dates
-      const clicksOverTime = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        const dateStr = date.toDateString();
-        
-        const dayLinks = links.filter((link: any) => 
-          new Date(link.createdAt).toDateString() === dateStr
-        );
-        
-        const dayClicks = dayLinks.reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-        
-        return {
-          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          clicks: dayClicks || 0,
-          links: dayLinks.length
-        };
-      });
-
-      // Create comprehensive recent activity from all sources
-      const allActivity = [
-        ...links.map((link: any) => ({
-          ...link,
-          action: 'created',
-          timestamp: link.createdAt,
-          type: link.isFileLink ? 'file' : 'url',
-          title: link.isFileLink ? link.originalFileName || 'File Link' : 'Short Link'
-        })),
-        ...qrCodes.map((qr: any) => ({
-          ...qr,
-          action: 'created',
-          timestamp: qr.createdAt,
-          type: 'qr',
-          title: 'QR Code'
-        })),
-        ...files.map((file: any) => ({
-          ...file,
-          action: 'uploaded',
-          timestamp: file.uploadedAt,
-          type: 'file',
-          title: file.originalFileName || 'File Upload',
-          shortUrl: file.fileUrl
-        }))
-      ];
-
-      const dashboardStats: DashboardStats = {
-        totalLinks: links.length + qrCodes.length + files.length, // Total of all link types
-        totalClicks: totalClicks + totalQRScans, // Include QR scans in total clicks
-        totalQRCodes: qrCodes.length,
-        totalFiles: files.length,
-        shortLinks: shortLinks.length, // Only URL shortening links
-        qrCodeCount: qrCodes.length,
-        fileLinksCount: files.length,
-        clicksToday,
-        clicksThisWeek,
-        topPerformingLink: links.length > 0 ? links.reduce((max: any, link: any) => 
-          (link.clicks || 0) > (max.clicks || 0) ? link : max
-        ) : null,
-        recentActivity: allActivity
-          .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .slice(0, 8), // Show more recent activity
-        clicksOverTime
-      };
-
-      setStats(dashboardStats);
-      if (showRefreshIndicator) {
-        toast.success('Dashboard refreshed!');
-      }
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      if (showRefreshIndicator) {
-        toast.error('Failed to refresh dashboard');
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDashboardData();
-    
-    // Set up auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      loadDashboardData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [user]);
+  // Use React Query hook for fast loading with caching
+  const { stats, isLoading, isRefreshing, hasData, error, refetch } = useDashboardData();
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -194,32 +58,89 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
     }
   };
 
-
-
   const handleRefresh = () => {
-    loadDashboardData(true);
+    refetch();
+    toast.success('Dashboard refreshed!');
   };
 
-  if (loading) {
+  // Handle error state
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <div className="text-red-600 mb-4">Failed to load dashboard data</div>
+        <button 
+          onClick={handleRefresh}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Show skeleton loading only when there's no cached data
+  if (isLoading && !hasData) {
     return (
       <div className="space-y-6">
-        {/* Loading skeleton */}
+        {/* Welcome Section Skeleton */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <div className="h-8 bg-white/20 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-white/20 rounded w-64"></div>
+            </div>
+            <div className="h-10 w-24 bg-white/20 rounded-lg"></div>
+          </div>
+        </div>
+
+        {/* Stats Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            </div>
+            <StatCardSkeleton key={i} />
           ))}
+        </div>
+
+        {/* Summary Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+
+        {/* Chart and Activity Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartSkeleton />
+          <ActivitySkeleton />
+        </div>
+
+        {/* Location Widgets Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
         </div>
       </div>
     );
   }
 
+  // If we have cached data, show it even while refreshing
+  if (!stats && !isLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">No dashboard data available</p>
+        <button 
+          onClick={handleRefresh}
+          className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Load Data
+        </button>
+      </div>
+    );
+  }
+
+  // Ensure stats is available before rendering
   if (!stats) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">Failed to load dashboard data</p>
+        <p className="text-gray-600">Loading dashboard data...</p>
       </div>
     );
   }
@@ -237,11 +158,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
           </div>
           <button
             onClick={handleRefresh}
-            disabled={refreshing}
-            className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2"
+            disabled={isRefreshing}
+            className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
         
@@ -575,7 +496,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
             className="text-gray-400 hover:text-gray-600 p-1 rounded"
             title="Refresh activity"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
         
