@@ -730,11 +730,11 @@ const LandingPage: React.FC = () => {
                 </div>
                 <span className="ml-2 text-xl font-bold">Pebly</span>
               </div>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-300 mb-6">
                 The smartest URL shortener for modern businesses and individuals. 
                 Create, manage, and track your links with powerful analytics.
               </p>
-              <div className="space-y-2 text-sm text-gray-400">
+              <div className="space-y-2 text-sm text-gray-300">
                 <p>📧 support@pebly.com</p>
                 <p>📞 +91 9876543210</p>
                 <p>📍 Bangalore, India</p>
@@ -742,35 +742,35 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-3">
-                <li><Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link to="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link></li>
-                <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
-                <li><a href="mailto:support@pebly.com" className="text-gray-400 hover:text-white transition-colors">Support</a></li>
+                <li><Link to="/pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact Us</Link></li>
+                <li><a href="mailto:support@pebly.com" className="text-gray-300 hover:text-white transition-colors">Support</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Legal & Policies</h3>
+              <h3 className="text-lg font-semibold mb-4 text-white">Legal & Policies</h3>
               <ul className="space-y-3">
-                <li><Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="text-gray-400 hover:text-white transition-colors">Terms & Conditions</Link></li>
-                <li><Link to="/cancellation-refund" className="text-gray-400 hover:text-white transition-colors">Refund Policy</Link></li>
-                <li><Link to="/shipping-policy" className="text-gray-400 hover:text-white transition-colors">Shipping Policy</Link></li>
+                <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="text-gray-300 hover:text-white transition-colors">Terms & Conditions</Link></li>
+                <li><Link to="/cancellation-refund" className="text-gray-300 hover:text-white transition-colors">Refund Policy</Link></li>
+                <li><Link to="/shipping-policy" className="text-gray-300 hover:text-white transition-colors">Shipping Policy</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-300 text-sm">
                 © 2025 Pebly. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
-                <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy</Link>
-                <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">Terms</Link>
-                <Link to="/contact" className="text-gray-400 hover:text-white text-sm transition-colors">Contact</Link>
+                <Link to="/privacy" className="text-gray-300 hover:text-white text-sm transition-colors">Privacy</Link>
+                <Link to="/terms" className="text-gray-300 hover:text-white text-sm transition-colors">Terms</Link>
+                <Link to="/contact" className="text-gray-300 hover:text-white text-sm transition-colors">Contact</Link>
               </div>
             </div>
           </div>
