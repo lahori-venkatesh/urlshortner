@@ -6,11 +6,15 @@ import com.urlshortener.repository.UploadedFileRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import java.io.IOException;
@@ -29,6 +33,8 @@ import javax.imageio.ImageIO;
 @Service
 public class FileUploadService {
     
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
+    
     @Autowired
     private UploadedFileRepository uploadedFileRepository;
     
@@ -37,6 +43,9 @@ public class FileUploadService {
     
     @Autowired
     private GridFsTemplate gridFsTemplate;
+    
+    @Autowired
+    private CacheService cacheService;
     
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
@@ -139,7 +148,11 @@ public class FileUploadService {
             // Update user statistics
             if (userId != null) {
                 updateUserStats(userId);
+                // Invalidate user files cache
+                cacheService.clearCache("userFiles", userId);
             }
+            
+            logger.info("Uploaded file: {} for user: {}", saved.getFileCode(), userId);
             
             return saved;
             
@@ -181,7 +194,9 @@ public class FileUploadService {
         return gridFsTemplate.getResource(gridFSFile);
     }
     
+    @Cacheable(value = "userFiles", key = "#userId")
     public List<UploadedFile> getUserFiles(String userId) {
+        logger.debug("Fetching files for user: {}", userId);
         return uploadedFileRepository.findByUserIdAndIsActiveTrue(userId);
     }
     
@@ -212,7 +227,14 @@ public class FileUploadService {
         
         existing.setUpdatedAt(LocalDateTime.now());
         
-        return uploadedFileRepository.save(existing);
+        UploadedFile updated = uploadedFileRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userFiles", userId);
+        
+        logger.info("Updated file: {} for user: {}", fileCode, userId);
+        
+        return updated;
     }
     
     public void deleteFile(String fileCode, String userId) {
@@ -237,6 +259,11 @@ public class FileUploadService {
         existing.setStatus("DELETED");
         existing.setUpdatedAt(LocalDateTime.now());
         uploadedFileRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userFiles", userId);
+        
+        logger.info("Deleted file: {} for user: {}", fileCode, userId);
     }
     
     private void validateFile(MultipartFile file) {
@@ -315,6 +342,11 @@ public class FileUploadService {
             file.getDownloadsByDay().merge(dayKey, 1, Integer::sum);
             
             uploadedFileRepository.save(file);
+            
+            // Invalidate user analytics cache
+            cacheService.invalidateUserAnalytics(file.getUserId());
+            
+            logger.debug("Recorded download for file: {}", fileCode);
         }
     }
     

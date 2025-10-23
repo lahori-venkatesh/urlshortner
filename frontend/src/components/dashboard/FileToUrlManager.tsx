@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { 
   File, 
   Image, 
@@ -12,12 +11,14 @@ import {
   Eye,
   Search,
   Plus,
-  Upload,
   RefreshCw,
   BarChart3,
-  Link as LinkIcon} from 'lucide-react';
+  Link as LinkIcon
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { fileService, FileInfo } from '../../services/fileService';
+import { useUserFiles } from '../../hooks/useDashboardData';
+import { TableSkeleton, StatCardSkeleton } from '../ui/Skeleton';
+import { fileService } from '../../services/fileService';
 
 interface FileLink {
   id: string;
@@ -41,71 +42,47 @@ interface FileToUrlManagerProps {
 }
 
 const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [fileLinks, setFileLinks] = useState<FileLink[]>([]);
+  
+  // Use React Query for fast loading with caching
+  const { data: rawFiles, isLoading, isFetching, error, refetch } = useUserFiles();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'image' | 'document' | 'video' | 'audio' | 'other'>('all');
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalFiles: 0,
-    totalSize: 0,
-    totalDownloads: 0,
-    fileTypeStats: {} as Record<string, number>
-  });
 
-  useEffect(() => {
-    loadFileLinks();
-    loadFileStats();
-  }, [user]);
+  // Format the raw data from API
+  const fileLinks: FileLink[] = rawFiles ? rawFiles.map((file: any) => ({
+    id: file.id,
+    fileName: file.originalFileName || file.fileName,
+    fileType: file.fileType || file.mimeType,
+    fileSize: file.fileSize || 0,
+    shortUrl: file.fileUrl || file.shortUrl,
+    originalUrl: file.fileUrl || file.shortUrl,
+    clicks: file.totalClicks || file.clicks || 0,
+    createdAt: file.uploadedAt || file.createdAt,
+    downloadCount: file.downloadCount || 0,
+    shortCode: file.shortCode || file.fileCode,
+    tags: file.tags || [],
+    type: 'file' as const,
+    isPasswordProtected: file.isPasswordProtected || false,
+    expiresAt: file.expiresAt
+  })) : [];
 
-  const loadFileLinks = async () => {
-    if (!user?.id) {
-      console.log('No user ID available for loading files');
-      setFileLinks([]);
-      setLoading(false);
-      return;
-    }
+  // Calculate stats from file data
+  const stats = {
+    totalFiles: fileLinks.length,
+    totalSize: fileLinks.reduce((sum, file) => sum + file.fileSize, 0),
+    totalDownloads: fileLinks.reduce((sum, file) => sum + file.downloadCount, 0),
+    fileTypeStats: fileLinks.reduce((acc, file) => {
+      const type = file.fileType.split('/')[0] || 'other';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  };
 
-    try {
-      setLoading(true);
-      console.log('Loading file links for user:', user.id);
-      
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/files/user/${user.id}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        const fileLinksData: FileLink[] = result.data.map((file: any) => ({
-          id: file.id,
-          fileName: file.originalFileName,
-          fileType: getFileTypeCategory(file.fileType),
-          fileSize: file.fileSize,
-          shortUrl: file.fileUrl,
-          originalUrl: file.fileUrl,
-          clicks: file.totalDownloads || 0,
-          createdAt: file.uploadedAt,
-          downloadCount: file.totalDownloads || 0,
-          shortCode: file.fileCode,
-          tags: file.tags || [],
-          type: 'file' as const,
-          isPasswordProtected: file.requiresPassword,
-          expiresAt: file.expiresAt
-        }));
-        
-        setFileLinks(fileLinksData);
-        console.log(`Loaded ${fileLinksData.length} file links`);
-      } else {
-        console.log('No file links found for user');
-        setFileLinks([]);
-      }
-    } catch (error) {
-      console.error('Failed to load file links:', error);
-      toast.error('Failed to load file links');
-      setFileLinks([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleRefresh = () => {
+    refetch();
+    toast.success('File links refreshed!');
   };
 
   const getFileTypeCategory = (fileType: string): string => {
@@ -116,19 +93,6 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     if (fileType.includes('pdf') || fileType.includes('document') || fileType.includes('text')) return 'document';
     return 'other';
   };
-
-  const loadFileStats = async () => {
-    try {
-      const response = await fileService.getFileStats();
-      if (response.success) {
-        setStats(response.data);
-      }
-    } catch (error) {
-      console.error('Failed to load file stats:', error);
-    }
-  };
-
-  // localStorage fallback removed - backend only
 
   const getFileType = (url: string): string => {
     const extension = url.split('.').pop()?.toLowerCase();
@@ -185,19 +149,16 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/files/${linkId}?userId=${user?.id}`, {
+      const response = await fetch(`${apiUrl}/v1/files/${linkId}`, {
         method: 'DELETE',
       });
 
       const result = await response.json();
 
       if (result.success) {
-        // Remove from local state
-        setFileLinks(prev => prev.filter(link => link.shortCode !== linkId));
+        // Refresh the data after successful deletion
+        refetch();
         toast.success('File deleted successfully');
-        
-        // Reload stats
-        loadFileStats();
       } else {
         toast.error(result.message || 'Failed to delete file');
       }
@@ -251,7 +212,7 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
       
       // Refresh the file list to update download counts
       setTimeout(() => {
-        loadFileLinks();
+        refetch();
       }, 1000);
     } catch (error) {
       console.error('Download failed:', error);
@@ -265,15 +226,32 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     }
   };
 
-  const updateFileTags = (linkId: string, newTags: string[]) => {
-    const updatedLinks = fileLinks.map(link => 
-      link.id === linkId ? { ...link, tags: newTags } : link
-    );
-    setFileLinks(updatedLinks);
-    
-    // TODO: Update tags via backend API instead of localStorage
-    
-    toast.success('Tags updated successfully');
+  const updateFileTags = async (linkId: string, newTags: string[]) => {
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/files/${linkId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tags: newTags
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh the data after successful update
+        refetch();
+        toast.success('Tags updated successfully');
+      } else {
+        toast.error(result.message || 'Failed to update tags');
+      }
+    } catch (error) {
+      console.error('Failed to update tags:', error);
+      toast.error('Failed to update tags');
+    }
   };
 
 
@@ -285,6 +263,53 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="text-red-600 mb-4">Failed to load file links</div>
+        <button 
+          onClick={handleRefresh}
+          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Show skeleton loading when no cached data
+  if (isLoading && !rawFiles) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="h-8 bg-white/20 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-white/20 rounded w-64"></div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-24 bg-white/20 rounded-lg"></div>
+              <div className="h-12 w-32 bg-white/20 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        
+        {/* Table Skeleton */}
+        <TableSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -302,12 +327,12 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
           </div>
           <div className="flex items-center space-x-3">
             <button
-              onClick={loadFileLinks}
-              disabled={loading}
-              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2"
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={handleCreateFileLink}
@@ -381,11 +406,8 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
         </div>
 
         {/* File Links List */}
-        {loading ? (
-          <div className="text-center py-12">
-            <RefreshCw className="w-12 h-12 text-gray-300 mx-auto mb-3 animate-spin" />
-            <p className="text-gray-500">Loading file links...</p>
-          </div>
+        {isLoading && !rawFiles ? (
+          <TableSkeleton />
         ) : filteredLinks.length === 0 ? (
           <div className="text-center py-12">
             {fileLinks.length === 0 ? (

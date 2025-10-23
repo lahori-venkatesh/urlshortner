@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { ChartSkeleton, StatCardSkeleton } from '../ui/Skeleton';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -11,7 +13,8 @@ import {
   Eye,
   Clock,
   MapPin,
-  Users
+  Users,
+  RefreshCw
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import LocationAnalytics from './LocationAnalytics';
@@ -19,162 +22,99 @@ import LocationAnalytics from './LocationAnalytics';
 const AnalyticsSection: React.FC = () => {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'location' | 'performance'>('overview');
+  
+  // Use React Query for fast loading with caching
+  const { stats, isLoading, isRefreshing, hasData, error, refetch } = useDashboardData();
 
-  useEffect(() => {
-    // Load analytics data for all users
-    const loadAnalytics = async () => {
-      if (!user?.id) {
-        console.log('No user ID available for analytics');
-        return;
-      }
-
-      try {
-        console.log('Loading analytics for user:', user.id);
-        
-        // Load user's data from backend
-        const [urlsResponse, qrResponse, filesResponse] = await Promise.all([
-          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/urls/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/qr/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] })),
-          fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/files/user/${user.id}`).then(r => r.json()).catch(() => ({ success: false, data: [] }))
-        ]);
-
-        const links = urlsResponse.success ? urlsResponse.data : [];
-        const qrCodes = qrResponse.success ? qrResponse.data : [];
-        const fileLinks = filesResponse.success ? filesResponse.data : [];
-        
-        const totalClicks = links.reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-        const totalScans = qrCodes.reduce((sum: number, qr: any) => sum + (qr.scans || 0), 0);
-        const totalFileClicks = fileLinks.reduce((sum: number, file: any) => sum + (file.clicks || 0), 0);
-        
-        // Generate realistic time series data based on actual data
-        const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
-        const clicksOverTime = Array.from({ length: days }, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (days - 1 - i));
-          const dateStr = date.toDateString();
-          
-          // Get actual clicks for this date
-          const dayLinks = links.filter((link: any) => 
-            new Date(link.createdAt).toDateString() === dateStr
-          );
-          const dayQRs = qrCodes.filter((qr: any) => 
-            new Date(qr.createdAt).toDateString() === dateStr
-          );
-          const dayFiles = fileLinks.filter((file: any) => 
-            new Date(file.createdAt).toDateString() === dateStr
-          );
-          
-          const dayClicks = dayLinks.reduce((sum: number, link: any) => sum + (link.clicks || 0), 0);
-          const dayScans = dayQRs.reduce((sum: number, qr: any) => sum + (qr.scans || 0), 0);
-          const dayFileClicks = dayFiles.reduce((sum: number, file: any) => sum + (file.clicks || 0), 0);
-          
-          return {
-            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            clicks: dayClicks + dayFileClicks,
-            scans: dayScans,
-            visitors: Math.floor((dayClicks + dayScans + dayFileClicks) * 0.75) // Estimate unique visitors
-          };
-        });
-
-        // Realistic device distribution based on actual total clicks
-        const totalAllClicks = totalClicks + totalScans + totalFileClicks;
-        const deviceData = [
-          { device: 'Mobile', count: Math.floor(totalAllClicks * 0.65), percentage: 65 },
-          { device: 'Desktop', count: Math.floor(totalAllClicks * 0.25), percentage: 25 },
-          { device: 'Tablet', count: Math.floor(totalAllClicks * 0.10), percentage: 10 }
-        ];
-
-        // Realistic location data
-        const locationData = [
-          { country: 'India', city: 'Mumbai', count: Math.floor(totalAllClicks * 0.35) },
-          { country: 'India', city: 'Delhi', count: Math.floor(totalAllClicks * 0.25) },
-          { country: 'India', city: 'Bangalore', count: Math.floor(totalAllClicks * 0.20) },
-          { country: 'USA', city: 'New York', count: Math.floor(totalAllClicks * 0.10) },
-          { country: 'UK', city: 'London', count: Math.floor(totalAllClicks * 0.05) },
-          { country: 'Others', city: 'Various', count: Math.floor(totalAllClicks * 0.05) }
-        ];
-
-        // Browser distribution
-        const browserData = [
-          { browser: 'Chrome', count: Math.floor(totalAllClicks * 0.60) },
-          { browser: 'Safari', count: Math.floor(totalAllClicks * 0.20) },
-          { browser: 'Firefox', count: Math.floor(totalAllClicks * 0.10) },
-          { browser: 'Edge', count: Math.floor(totalAllClicks * 0.07) },
-          { browser: 'Others', count: Math.floor(totalAllClicks * 0.03) }
-        ];
-
-        // Hourly distribution based on business hours
-        const hourlyData = Array.from({ length: 24 }, (_, hour) => {
-          const baseClicks = Math.floor(totalAllClicks / 24);
-          const businessHourMultiplier = (hour >= 9 && hour <= 21) ? 1.5 : 0.5;
-          return {
-            hour,
-            clicks: Math.floor(baseClicks * businessHourMultiplier)
-          };
-        });
-
-        // Referrer data
-        const referrerData = [
-          { source: 'Direct', count: Math.floor(totalAllClicks * 0.45), percentage: 45 },
-          { source: 'Google', count: Math.floor(totalAllClicks * 0.25), percentage: 25 },
-          { source: 'Social Media', count: Math.floor(totalAllClicks * 0.20), percentage: 20 },
-          { source: 'Email', count: Math.floor(totalAllClicks * 0.06), percentage: 6 },
-          { source: 'Others', count: Math.floor(totalAllClicks * 0.04), percentage: 4 }
-        ];
-
-        // Top performing links
-        const topLinks = links
-          .sort((a: any, b: any) => (b.clicks || 0) - (a.clicks || 0))
-          .slice(0, 5)
-          .map((link: any) => ({
-            url: link.originalUrl,
-            shortUrl: link.shortUrl,
-            clicks: link.clicks || 0,
-            createdAt: link.createdAt
-          }));
-
-        setAnalyticsData({
-          totalLinks: links.length,
-          totalClicks: totalAllClicks,
-          totalQRCodes: qrCodes.length,
-          totalScans,
-          totalFileLinks: fileLinks.length,
-          uniqueVisitors: Math.floor(totalAllClicks * 0.75),
-          avgClicksPerDay: Math.floor(totalAllClicks / Math.max(days, 1)),
-          conversionRate: totalAllClicks > 0 ? ((totalAllClicks * 0.12) / totalAllClicks * 100).toFixed(1) : 0,
-          clicksOverTime,
-          deviceData,
-          locationData,
-          browserData,
-          hourlyData,
-          referrerData,
-          topLinks
-        });
-      } catch (error) {
-        console.error('Error loading analytics:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAnalytics();
-  }, [timeRange, user]);
+  // Process analytics data from React Query stats
+  const analyticsData = stats ? {
+    totalLinks: stats.totalLinks,
+    totalClicks: stats.totalClicks,
+    totalQRCodes: stats.totalQRCodes,
+    totalScans: stats.totalClicks, // Using totalClicks as it includes scans
+    totalFileLinks: stats.totalFiles,
+    uniqueVisitors: Math.floor(stats.totalClicks * 0.75),
+    avgClicksPerDay: Math.floor(stats.totalClicks / 30), // Assuming 30 days
+    conversionRate: stats.totalClicks > 0 ? ((stats.totalClicks * 0.12) / stats.totalClicks * 100).toFixed(1) : 0,
+    clicksOverTime: stats.clicksOverTime,
+    deviceData: [
+      { device: 'Mobile', count: Math.floor(stats.totalClicks * 0.65), percentage: 65 },
+      { device: 'Desktop', count: Math.floor(stats.totalClicks * 0.25), percentage: 25 },
+      { device: 'Tablet', count: Math.floor(stats.totalClicks * 0.10), percentage: 10 }
+    ],
+    locationData: [
+      { country: 'India', city: 'Mumbai', count: Math.floor(stats.totalClicks * 0.35) },
+      { country: 'India', city: 'Delhi', count: Math.floor(stats.totalClicks * 0.25) },
+      { country: 'India', city: 'Bangalore', count: Math.floor(stats.totalClicks * 0.20) },
+      { country: 'USA', city: 'New York', count: Math.floor(stats.totalClicks * 0.10) },
+      { country: 'UK', city: 'London', count: Math.floor(stats.totalClicks * 0.05) },
+      { country: 'Others', city: 'Various', count: Math.floor(stats.totalClicks * 0.05) }
+    ],
+    browserData: [
+      { browser: 'Chrome', count: Math.floor(stats.totalClicks * 0.60) },
+      { browser: 'Safari', count: Math.floor(stats.totalClicks * 0.20) },
+      { browser: 'Firefox', count: Math.floor(stats.totalClicks * 0.10) },
+      { browser: 'Edge', count: Math.floor(stats.totalClicks * 0.07) },
+      { browser: 'Others', count: Math.floor(stats.totalClicks * 0.03) }
+    ],
+    topLinks: stats.topPerformingLink ? [stats.topPerformingLink] : []
+  } : null;
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-  if (loading) {
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="text-red-600 mb-4">Failed to load analytics data</div>
+        <button 
+          onClick={handleRefresh}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Show skeleton loading when no cached data
+  if (isLoading && !hasData) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+          </div>
+          <div className="h-10 w-32 bg-gray-200 rounded-lg"></div>
+        </div>
+
+        {/* Navigation Tabs Skeleton */}
+        <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200">
+          <div className="flex space-x-1">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex-1 h-12 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-            </div>
+            <StatCardSkeleton key={i} />
           ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartSkeleton />
+          <ChartSkeleton />
         </div>
       </div>
     );
@@ -186,18 +126,31 @@ const AnalyticsSection: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-          <p className="text-gray-600">Comprehensive insights into your link performance</p>
+          <p className="text-gray-600">
+            Comprehensive insights into your link performance
+            {isRefreshing && <span className="text-blue-600 ml-2">(Refreshing...)</span>}
+          </p>
         </div>
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value as any)}
-          className="px-4 py-2 border border-gray-300 rounded-lg"
-        >
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="1y">Last year</option>
-        </select>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+          <select
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value as any)}
+            className="px-4 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+            <option value="1y">Last year</option>
+          </select>
+        </div>
       </div>
 
       {/* Navigation Tabs */}

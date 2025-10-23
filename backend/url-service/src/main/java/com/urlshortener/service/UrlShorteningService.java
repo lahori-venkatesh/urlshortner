@@ -6,7 +6,12 @@ import com.urlshortener.repository.ShortenedUrlRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -15,11 +20,16 @@ import java.util.List;
 @Service
 public class UrlShorteningService {
     
+    private static final Logger logger = LoggerFactory.getLogger(UrlShorteningService.class);
+    
     @Autowired
     private ShortenedUrlRepository shortenedUrlRepository;
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CacheService cacheService;
     
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
@@ -82,7 +92,11 @@ public class UrlShorteningService {
         // Update user statistics
         if (userId != null) {
             updateUserStats(userId);
+            // Invalidate user URLs cache
+            cacheService.clearCache("userUrls", userId);
         }
+        
+        logger.info("Created short URL: {} for user: {}", shortCode, userId);
         
         return saved;
     }
@@ -91,7 +105,9 @@ public class UrlShorteningService {
         return shortenedUrlRepository.findByShortCode(shortCode);
     }
     
+    @Cacheable(value = "userUrls", key = "#userId")
     public List<ShortenedUrl> getUserUrls(String userId) {
+        logger.debug("Fetching URLs for user: {}", userId);
         return shortenedUrlRepository.findByUserIdAndIsActiveTrue(userId);
     }
     
@@ -123,9 +139,18 @@ public class UrlShorteningService {
         
         existing.setUpdatedAt(LocalDateTime.now());
         
-        return shortenedUrlRepository.save(existing);
+        ShortenedUrl updated = shortenedUrlRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userUrls", userId);
+        cacheService.invalidateUrlAnalytics(shortCode, userId);
+        
+        logger.info("Updated URL: {} for user: {}", shortCode, userId);
+        
+        return updated;
     }
     
+    @CacheEvict(value = {"clickCounts", "urlAnalytics", "userAnalytics"}, key = "#shortCode")
     public void incrementClicks(String shortCode) {
         Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
         if (urlOpt.isPresent()) {
@@ -133,6 +158,11 @@ public class UrlShorteningService {
             url.setTotalClicks(url.getTotalClicks() + 1);
             url.setLastClickedAt(LocalDateTime.now());
             shortenedUrlRepository.save(url);
+            
+            // Invalidate user analytics cache
+            cacheService.invalidateUserAnalytics(url.getUserId());
+            
+            logger.debug("Incremented clicks for URL: {}", shortCode);
         }
     }
     
@@ -154,6 +184,12 @@ public class UrlShorteningService {
         existing.setActive(false);
         existing.setUpdatedAt(LocalDateTime.now());
         shortenedUrlRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userUrls", userId);
+        cacheService.invalidateUrlAnalytics(shortCode, userId);
+        
+        logger.info("Deleted URL: {} for user: {}", shortCode, userId);
     }
     
     private String generateUniqueShortCode() {

@@ -161,13 +161,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,caches,env
       base-path: /actuator
   endpoint:
     health:
       show-details: when-authorized
       show-components: always
     metrics:
+      enabled: true
+    caches:
       enabled: true
   metrics:
     export:
@@ -176,10 +178,17 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+        cache.gets: true
+        cache.puts: true
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
+        cache.gets: 0.5, 0.95, 0.99
       sla:
         http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
+        cache.gets: 1ms, 5ms, 10ms, 50ms
+    tags:
+      application: pebly-url-service
+      environment: ${ENVIRONMENT:development}
 
 # Connection pool monitoring
 spring.jpa.properties.hibernate.generate_statistics: true

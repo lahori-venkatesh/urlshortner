@@ -5,7 +5,12 @@ import com.urlshortener.model.ShortenedUrl;
 import com.urlshortener.repository.ClickAnalyticsRepository;
 import com.urlshortener.repository.ShortenedUrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -14,12 +19,19 @@ import java.util.stream.Collectors;
 @Service
 public class AnalyticsService {
     
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsService.class);
+    
     @Autowired
     private ClickAnalyticsRepository clickAnalyticsRepository;
     
     @Autowired
     private ShortenedUrlRepository shortenedUrlRepository;
     
+    @Autowired
+    private CacheService cacheService;
+    
+    @CacheEvict(value = {"urlAnalytics", "userAnalytics", "clickCounts", "realtimeAnalytics"}, 
+                key = "#shortCode", beforeInvocation = false)
     public ClickAnalytics recordClick(String shortCode, String ipAddress, String userAgent,
                                     String referrer, String country, String city, 
                                     String deviceType, String browser, String os) {
@@ -74,9 +86,15 @@ public class AnalyticsService {
         // Update URL statistics
         updateUrlStatistics(shortenedUrl, analytics);
         
+        // Invalidate relevant caches
+        cacheService.invalidateUrlAnalytics(shortCode, shortenedUrl.getUserId());
+        
+        logger.debug("Recorded click for URL: {} from IP: {}", shortCode, ipAddress);
+        
         return saved;
     }
     
+    @Cacheable(value = "urlAnalytics", key = "#shortCode + ':' + #userId")
     public Map<String, Object> getUrlAnalytics(String shortCode, String userId) {
         // Verify ownership
         Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
@@ -127,9 +145,12 @@ public class AnalyticsService {
         
         analytics.put("last7DaysClicks", dailyClicks);
         
+        logger.debug("Retrieved analytics for URL: {} (user: {})", shortCode, userId);
+        
         return analytics;
     }
     
+    @Cacheable(value = "userAnalytics", key = "#userId")
     public Map<String, Object> getUserAnalytics(String userId) {
         // Get user's URLs
         List<ShortenedUrl> userUrls = shortenedUrlRepository.findByUserId(userId);
@@ -193,9 +214,12 @@ public class AnalyticsService {
         
         analytics.put("last30DaysActivity", dailyActivity);
         
+        logger.debug("Retrieved user analytics for user: {}", userId);
+        
         return analytics;
     }
     
+    @Cacheable(value = "realtimeAnalytics", key = "#userId")
     public Map<String, Object> getRealtimeAnalytics(String userId) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
@@ -238,6 +262,8 @@ public class AnalyticsService {
         
         realtime.put("recentActivity", recentActivity);
         realtime.put("timestamp", now);
+        
+        logger.debug("Retrieved realtime analytics for user: {}", userId);
         
         return realtime;
     }

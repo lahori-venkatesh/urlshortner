@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUserQRCodes } from '../../hooks/useDashboardData';
+import { StatCardSkeleton, TableSkeleton } from '../ui/Skeleton';
 
 interface QRCodeData {
   id: string;
@@ -58,10 +60,12 @@ interface QRManageSectionProps {
 }
 
 const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [qrCodes, setQrCodes] = useState<QRCodeData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  
+  // Use React Query for fast loading with caching
+  const { data: rawQRCodes, isLoading, isFetching, error, refetch } = useUserQRCodes();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'date' | 'scans' | 'name'>('date');
@@ -69,67 +73,38 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  useEffect(() => {
-    loadQRCodes();
-  }, []);
+  // Format the raw data from API
+  const qrCodes: QRCodeData[] = rawQRCodes ? rawQRCodes.map((qr: any) => ({
+    id: qr.qrCode, // Use qrCode as the ID for navigation
+    title: qr.title || 'QR Code',
+    url: qr.content || qr.originalUrl,
+    shortUrl: qr.shortUrl,
+    scans: qr.totalScans || 0,
+    createdAt: qr.createdAt,
+    updatedAt: qr.updatedAt,
+    customization: {
+      foregroundColor: qr.foregroundColor || '#000000',
+      backgroundColor: qr.backgroundColor || '#ffffff',
+      logoUrl: qr.logoUrl,
+      style: qr.style || 'square',
+      size: qr.size || 256,
+      errorCorrection: qr.errorCorrectionLevel || 'M'
+    },
+    isPremium: false,
+    trackingEnabled: true,
+    isDynamic: false,
+    isHidden: false,
+    isFavorite: false,
+    category: 'General',
+    description: qr.description,
+    tags: [],
+    qrCodeImage: qr.qrImagePath || qr.qrImageUrl,
+    type: qr.contentType?.toLowerCase() || 'url'
+  })) : [];
 
-  const loadQRCodes = async () => {
-    if (!user?.id) {
-      console.log('No user ID available for loading QR codes');
-      setQrCodes([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log('Loading QR codes from backend for user:', user.id);
-      
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/qr/user/${user.id}`);
-      const result = await response.json();
-      
-      if (result.success && result.data) {
-        const qrCodesData: QRCodeData[] = result.data.map((qr: any) => ({
-          id: qr.qrCode, // Use qrCode as the ID for navigation
-          title: qr.title || 'QR Code',
-          url: qr.content || qr.originalUrl,
-          shortUrl: qr.shortUrl,
-          scans: qr.totalScans || 0,
-          createdAt: qr.createdAt,
-          updatedAt: qr.updatedAt,
-          customization: {
-            foregroundColor: qr.foregroundColor || '#000000',
-            backgroundColor: qr.backgroundColor || '#ffffff',
-            style: qr.style || 'square',
-            size: qr.size || 256,
-            errorCorrection: qr.errorCorrectionLevel || 'M'
-          },
-          isPremium: false,
-          trackingEnabled: true,
-          isDynamic: false,
-          isHidden: false,
-          isFavorite: false,
-          category: 'General',
-          tags: [],
-          qrCodeImage: qr.qrImagePath || qr.qrImageUrl,
-          type: qr.contentType?.toLowerCase() || 'url'
-        }));
-        
-        setQrCodes(qrCodesData);
-        console.log(`Loaded ${qrCodesData.length} QR codes from backend`);
-        toast.success(`Loaded ${qrCodesData.length} QR codes`);
-      } else {
-        console.log('No QR codes found for user');
-        setQrCodes([]);
-      }
-    } catch (error) {
-      console.error('Failed to load QR codes from backend:', error);
-      toast.error('Failed to load QR codes');
-      setQrCodes([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleRefresh = () => {
+    refetch();
+    toast.success('QR codes refreshed!');
   };
 
   // Close dropdown when clicking outside
@@ -146,9 +121,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   }, [activeDropdown]);
 
   const updateQRCodes = async (updatedQRs: QRCodeData[]) => {
-    setQrCodes(updatedQRs);
-    // TODO: Update via backend API instead of localStorage
-    // localStorage.setItem('bitlyQRCodes', JSON.stringify(updatedQRs));
+    // Refresh the data after updates
+    refetch();
   };
 
   const copyQRUrl = async (url: string) => {
@@ -179,10 +153,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       const result = await response.json();
 
       if (result.success && result.data) {
-        const updatedQRs = qrCodes.map(q => 
-          q.id === qr.id ? { ...q, shortUrl: result.data.shortUrl } : q
-        );
-        setQrCodes(updatedQRs);
+        // Refresh the data after successful creation
+        refetch();
         toast.success('Short link created successfully!');
       } else {
         toast.error(result.message || 'Failed to create short link');
@@ -244,9 +216,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       const result = await response.json();
 
       if (result.success) {
-        // Remove from local state
-        const updatedQRs = qrCodes.filter(qr => qr.id !== qrId);
-        setQrCodes(updatedQRs);
+        // Refresh the data after successful deletion
+        refetch();
         toast.success('QR Code deleted successfully');
       } else {
         toast.error(result.message || 'Failed to delete QR code');
@@ -361,12 +332,51 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     </div>
   );
 
-  if (loading) {
+  // Handle error state
+  if (error) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="text-red-600 mb-4">Failed to load QR codes</div>
+        <button 
+          onClick={handleRefresh}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // Show skeleton loading when no cached data
+  if (isLoading && !rawQRCodes) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="h-8 bg-white/20 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-white/20 rounded w-64"></div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-24 bg-white/20 rounded-lg"></div>
+              <div className="h-12 w-32 bg-white/20 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        
+        {/* QR Codes Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <StatCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );
@@ -385,12 +395,12 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
           </div>
           <div className="flex items-center space-x-3">
             <button
-              onClick={loadQRCodes}
-              disabled={loading}
-              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2"
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2 disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={onCreateClick}

@@ -2,6 +2,7 @@ package com.urlshortener.controller;
 
 import com.urlshortener.model.QrCode;
 import com.urlshortener.service.QrCodeService;
+import com.urlshortener.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,9 @@ public class QrCodeController {
     
     @Autowired
     private QrCodeService qrCodeService;
+    
+    @Autowired
+    private DashboardService dashboardService;
     
     @PostMapping
     public ResponseEntity<Map<String, Object>> createQrCode(@RequestBody Map<String, Object> request) {
@@ -139,7 +143,8 @@ public class QrCodeController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<QrCode> qrCodes = qrCodeService.getUserQrCodes(userId);
+            // Use cached dashboard service for better performance
+            List<QrCode> qrCodes = dashboardService.getUserQRCodes(userId);
             
             List<Map<String, Object>> qrCodesData = qrCodes.stream().map(qr -> {
                 Map<String, Object> qrData = new HashMap<>();

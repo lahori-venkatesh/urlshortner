@@ -159,6 +159,12 @@
             <artifactId>spring-context</artifactId>
         </dependency>
         
+        <!-- AOP for performance monitoring -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        
         <!-- Connection pooling -->
         <dependency>
             <groupId>org.apache.commons</groupId>

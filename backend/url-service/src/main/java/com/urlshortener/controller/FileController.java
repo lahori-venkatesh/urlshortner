@@ -2,6 +2,7 @@ package com.urlshortener.controller;
 
 import com.urlshortener.model.UploadedFile;
 import com.urlshortener.service.FileUploadService;
+import com.urlshortener.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +22,9 @@ public class FileController {
     
     @Autowired
     private FileUploadService fileUploadService;
+    
+    @Autowired
+    private DashboardService dashboardService;
     
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFile(
@@ -157,7 +161,8 @@ public class FileController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<UploadedFile> files = fileUploadService.getUserFiles(userId);
+            // Use cached dashboard service for better performance
+            List<UploadedFile> files = dashboardService.getUserFiles(userId);
             
             List<Map<String, Object>> filesData = files.stream().map(file -> {
                 Map<String, Object> fileData = new HashMap<>();

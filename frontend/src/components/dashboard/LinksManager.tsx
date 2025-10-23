@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from 'react';
 import { 
   Link, 
-  Copy, 
   ExternalLink, 
   Edit, 
   Trash2, 
@@ -12,9 +10,13 @@ import {
   Calendar,
   BarChart3,
   Download,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import { useUserUrls } from '../../hooks/useDashboardData';
+import { TableSkeleton } from '../ui/Skeleton';
 import LinkActions from '../LinkActions';
 
 interface ShortenedLink {
@@ -36,52 +38,26 @@ interface LinksManagerProps {
 
 const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
   const { user } = useAuth();
-  const [links, setLinks] = useState<ShortenedLink[]>([]);
+  
+  // Use React Query for fast loading with caching
+  const { data: rawLinks, isLoading, isFetching, error, refetch } = useUserUrls();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'clicks' | 'url'>('date');
   const [filterBy, setFilterBy] = useState<'all' | 'url' | 'qr' | 'file'>('all');
 
-  useEffect(() => {
-    // Load links from backend API only - no localStorage
-    loadLinksFromBackend();
-  }, [user]);
-
-  const loadLinksFromBackend = async () => {
-    if (!user?.id) {
-      console.log('No user ID available for loading links');
-      setLinks([]);
-      return;
-    }
-
-    try {
-      console.log('Loading links from backend for user:', user.id);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/urls/user/${user.id}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        const formattedLinks = result.data.map((link: any) => ({
-          id: link.id,
-          shortUrl: link.shortUrl,
-          originalUrl: link.originalUrl,
-          shortCode: link.shortCode,
-          clicks: link.totalClicks || 0,
-          createdAt: link.createdAt,
-          title: link.title,
-          tags: link.tags || [],
-          type: 'url'
-        }));
-        setLinks(formattedLinks);
-        console.log(`Loaded ${formattedLinks.length} links from backend`);
-      } else {
-        console.error('Failed to load links:', result.message);
-        setLinks([]);
-      }
-    } catch (error) {
-      console.error('Failed to load links from backend:', error);
-      setLinks([]);
-    }
-  };
+  // Format the raw data from API
+  const links: ShortenedLink[] = rawLinks ? rawLinks.map((link: any) => ({
+    id: link.id,
+    shortUrl: link.shortUrl,
+    originalUrl: link.originalUrl,
+    shortCode: link.shortCode,
+    clicks: link.totalClicks || 0,
+    createdAt: link.createdAt,
+    title: link.title,
+    tags: link.tags || [],
+    type: 'url' as const
+  })) : [];
 
   const filteredLinks = links
     .filter(link => {
@@ -103,12 +79,18 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       }
     });
 
+  const handleRefresh = () => {
+    refetch();
+    toast.success('Links refreshed!');
+  };
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       toast.success('Link copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy:', err);
+      toast.error('Failed to copy link');
     }
   };
 
@@ -118,9 +100,6 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
     }
 
     try {
-      console.log('Deleting link from backend:', linkId);
-      
-      // Find the link to get its shortCode
       const linkToDelete = links.find(link => link.id === linkId);
       if (!linkToDelete) {
         toast.error('Link not found');
@@ -128,16 +107,15 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       }
 
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/urls/${linkToDelete.shortCode}?userId=${user?.id}`, {
+      const response = await fetch(`${apiUrl}/v1/urls/${linkToDelete.shortCode}`, {
         method: 'DELETE',
       });
 
       const result = await response.json();
       
       if (result.success) {
-        // Remove from local state only after successful backend deletion
-        const updatedLinks = links.filter(link => link.id !== linkId);
-        setLinks(updatedLinks);
+        // Refresh the data after successful deletion
+        refetch();
         toast.success('Link deleted successfully');
       } else {
         toast.error(result.message || 'Failed to delete link');
@@ -183,11 +161,8 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       const result = await response.json();
       
       if (result.success) {
-        // Update local state
-        const updatedLinks = links.map(link => 
-          link.id === linkId ? { ...link, title: newTitle } : link
-        );
-        setLinks(updatedLinks);
+        // Refresh the data after successful update
+        refetch();
         toast.success('Link updated successfully');
       } else {
         toast.error(result.message || 'Failed to update link');
@@ -222,11 +197,8 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       const result = await response.json();
       
       if (result.success) {
-        // Update local state
-        const updatedLinks = links.map(link => 
-          link.id === linkId ? { ...link, tags: newTags } : link
-        );
-        setLinks(updatedLinks);
+        // Refresh the data after successful update
+        refetch();
         toast.success('Tags updated successfully');
       } else {
         toast.error(result.message || 'Failed to update tags');
@@ -237,20 +209,85 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
     }
   };
 
-  if (links.length === 0) {
+  // Handle error state
+  if (error) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
-        <Link className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">No Links Yet</h3>
-        <p className="text-gray-600 mb-6">
-          Create your first short link to start tracking clicks and managing your URLs.
-        </p>
+        <div className="text-red-600 mb-4">Failed to load links</div>
         <button 
-          onClick={onCreateClick}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={handleRefresh}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          Create Your First Link
+          Try Again
         </button>
+      </div>
+    );
+  }
+
+  // Show skeleton loading when no cached data
+  if (isLoading && !rawLinks) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="h-8 bg-white/20 rounded w-48 mb-2"></div>
+              <div className="h-4 bg-white/20 rounded w-64"></div>
+            </div>
+            <div className="h-12 w-32 bg-white/20 rounded-lg"></div>
+          </div>
+        </div>
+        
+        {/* Table Skeleton */}
+        <TableSkeleton />
+      </div>
+    );
+  }
+
+  // Show empty state only when we have data but no links
+  if (rawLinks && links.length === 0 && !searchTerm && filterBy === 'all') {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Links Manager</h2>
+              <p className="text-blue-100">Manage and track your short links</p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50 mr-4"
+            >
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+            <button
+              onClick={onCreateClick}
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Link</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Empty State */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+          <Link className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Links Yet</h3>
+          <p className="text-gray-600 mb-6">
+            Create your first short link to start tracking clicks and managing your URLs.
+          </p>
+          <button 
+            onClick={onCreateClick}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Create Your First Link
+          </button>
+        </div>
       </div>
     );
   }
@@ -263,16 +300,26 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
           <div>
             <h2 className="text-2xl font-bold mb-2">Links Manager</h2>
             <p className="text-blue-100">
-              Manage and track your short links
+              Manage and track your short links ({filteredLinks.length} links)
             </p>
           </div>
-          <button
-            onClick={onCreateClick}
-            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Create Link</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleRefresh}
+              disabled={isFetching}
+              className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+            <button
+              onClick={onCreateClick}
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Link</span>
+            </button>
+          </div>
         </div>
       </div>
 

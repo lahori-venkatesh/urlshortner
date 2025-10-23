@@ -6,7 +6,11 @@ import com.urlshortener.repository.QrCodeRepository;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
@@ -21,11 +25,16 @@ import java.util.Base64;
 @Service
 public class QrCodeService {
     
+    private static final Logger logger = LoggerFactory.getLogger(QrCodeService.class);
+    
     @Autowired
     private QrCodeRepository qrCodeRepository;
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CacheService cacheService;
     
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
@@ -75,7 +84,11 @@ public class QrCodeService {
         // Update user statistics
         if (userId != null) {
             updateUserStats(userId);
+            // Invalidate user QR codes cache
+            cacheService.clearCache("userQRCodes", userId);
         }
+        
+        logger.info("Created QR code: {} for user: {}", saved.getQrCode(), userId);
         
         return saved;
     }
@@ -88,7 +101,9 @@ public class QrCodeService {
         return qrCodeRepository.findById(id);
     }
     
+    @Cacheable(value = "userQRCodes", key = "#userId")
     public List<QrCode> getUserQrCodes(String userId) {
+        logger.debug("Fetching QR codes for user: {}", userId);
         return qrCodeRepository.findByUserIdAndIsActiveTrue(userId);
     }
     
@@ -125,7 +140,14 @@ public class QrCodeService {
         
         existing.setUpdatedAt(LocalDateTime.now());
         
-        return qrCodeRepository.save(existing);
+        QrCode updated = qrCodeRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userQRCodes", userId);
+        
+        logger.info("Updated QR code: {} for user: {}", qrCodeId, userId);
+        
+        return updated;
     }
     
     public void deleteQrCode(String qrCodeId, String userId) {
@@ -150,6 +172,11 @@ public class QrCodeService {
         existing.setActive(false);
         existing.setUpdatedAt(LocalDateTime.now());
         qrCodeRepository.save(existing);
+        
+        // Invalidate relevant caches
+        cacheService.clearCache("userQRCodes", userId);
+        
+        logger.info("Deleted QR code: {} for user: {}", qrCodeId, userId);
     }
     
     public void recordScan(String qrCodeId, String ipAddress, String userAgent, 
@@ -185,6 +212,11 @@ public class QrCodeService {
             qrCode.getScansByDay().merge(dayKey, 1, Integer::sum);
             
             qrCodeRepository.save(qrCode);
+            
+            // Invalidate user analytics cache
+            cacheService.invalidateUserAnalytics(qrCode.getUserId());
+            
+            logger.debug("Recorded scan for QR code: {}", qrCodeId);
         }
     }
     

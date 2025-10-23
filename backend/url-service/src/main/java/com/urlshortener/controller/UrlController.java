@@ -3,6 +3,7 @@ package com.urlshortener.controller;
 import com.urlshortener.model.ShortenedUrl;
 import com.urlshortener.service.UrlShorteningService;
 import com.urlshortener.service.AnalyticsService;
+import com.urlshortener.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,9 @@ public class UrlController {
     
     @Autowired
     private AnalyticsService analyticsService;
+    
+    @Autowired
+    private DashboardService dashboardService;
     
     @PostMapping("/fix-urls")
     public ResponseEntity<Map<String, Object>> fixExistingUrls() {
@@ -200,7 +204,8 @@ public class UrlController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<ShortenedUrl> urls = urlShorteningService.getUserUrls(userId);
+            // Use cached dashboard service for better performance
+            List<ShortenedUrl> urls = dashboardService.getUserUrls(userId);
             
             List<Map<String, Object>> urlsData = urls.stream().map(url -> {
                 Map<String, Object> urlData = new HashMap<>();
