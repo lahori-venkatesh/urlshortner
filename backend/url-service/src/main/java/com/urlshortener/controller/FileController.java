@@ -122,11 +122,23 @@ public class FileController {
             fileData.put("title", file.getTitle());
             fileData.put("description", file.getDescription());
             fileData.put("totalDownloads", file.getTotalDownloads());
+            fileData.put("uniqueDownloads", file.getUniqueDownloads());
+            fileData.put("todayDownloads", file.getTodayDownloads());
+            fileData.put("thisWeekDownloads", file.getThisWeekDownloads());
+            fileData.put("thisMonthDownloads", file.getThisMonthDownloads());
+            fileData.put("downloadsByCountry", file.getDownloadsByCountry());
+            fileData.put("downloadsByCity", file.getDownloadsByCity());
+            fileData.put("downloadsByDevice", file.getDownloadsByDevice());
+            fileData.put("downloadsByBrowser", file.getDownloadsByBrowser());
+            fileData.put("downloadsByOS", file.getDownloadsByOS());
+            fileData.put("downloadsByHour", file.getDownloadsByHour());
+            fileData.put("downloadsByDay", file.getDownloadsByDay());
             fileData.put("uploadedAt", file.getUploadedAt());
             fileData.put("lastAccessedAt", file.getLastAccessedAt());
             fileData.put("isPublic", file.isPublic());
             fileData.put("requiresPassword", file.isRequiresPassword());
             fileData.put("hasQrCode", file.isHasQrCode());
+            fileData.put("fileUrl", file.getFileUrl());
             
             response.put("success", true);
             response.put("data", fileData);
@@ -238,6 +250,32 @@ public class FileController {
         }
     }
     
+    @PostMapping("/{fileCode}/download")
+    public ResponseEntity<Map<String, Object>> recordDownload(@PathVariable String fileCode,
+                                                             @RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String ipAddress = request.get("ipAddress");
+            String userAgent = request.get("userAgent");
+            String country = request.get("country");
+            String city = request.get("city");
+            String deviceType = request.get("deviceType");
+            
+            fileUploadService.recordDownload(fileCode, ipAddress, userAgent, country, city, deviceType);
+            
+            response.put("success", true);
+            response.put("message", "Download recorded successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @PostMapping("/{fileCode}/redirect")
     public ResponseEntity<Map<String, Object>> handleFileRedirect(
             @PathVariable String fileCode,
@@ -282,8 +320,16 @@ public class FileController {
                 }
             }
             
-            // Record download analytics (if enabled)
-            // You can add analytics recording here
+            // Record download analytics
+            if (request != null) {
+                String ipAddress = (String) request.get("ipAddress");
+                String userAgent = (String) request.get("userAgent");
+                String country = (String) request.get("country");
+                String city = (String) request.get("city");
+                String deviceType = (String) request.get("deviceType");
+                
+                fileUploadService.recordDownload(fileCode, ipAddress, userAgent, country, city, deviceType);
+            }
             
             // Return the download URL (full backend URL for actual file download)
             String backendUrl = System.getenv("BACKEND_URL");

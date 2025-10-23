@@ -18,6 +18,7 @@ import UnifiedDashboard from './components/UnifiedDashboard';
 import FileViewer from './pages/FileViewer';
 import QRAnalyticsPage from './pages/QRAnalyticsPage';
 import QREditPage from './pages/QREditPage';
+import FileAnalyticsPage from './pages/FileAnalyticsPage';
 import './App.css';
 
 function App() {
@@ -118,9 +119,9 @@ function App() {
               </AuthRedirect>
             } />
             
-            <Route path="/dashboard/file-links/analytics/:shortCode" element={
+            <Route path="/dashboard/file-links/analytics/:fileCode" element={
               <AuthRedirect requireAuth={true}>
-                <Analytics />
+                <FileAnalyticsPage />
               </AuthRedirect>
             } />
             

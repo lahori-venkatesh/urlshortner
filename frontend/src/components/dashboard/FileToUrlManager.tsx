@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   File, 
@@ -41,6 +42,7 @@ interface FileToUrlManagerProps {
 
 const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [fileLinks, setFileLinks] = useState<FileLink[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'image' | 'document' | 'video' | 'audio' | 'other'>('all');
@@ -177,32 +179,80 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
   };
 
   const deleteFileLink = async (linkId: string) => {
-    if (window.confirm('Are you sure you want to delete this file link? This action cannot be undone.')) {
-      try {
-        const response = await fileService.deleteFile(linkId);
-        if (response.success) {
-          setFileLinks(prev => prev.filter(link => link.id !== linkId));
-          toast.success('File link deleted successfully');
-          
-          // Reload stats
-          loadFileStats();
-        }
-      } catch (error) {
-        console.error('Failed to delete file link:', error);
-        toast.error('Failed to delete file link');
+    if (!window.confirm('Are you sure you want to delete this file link? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/files/${linkId}?userId=${user?.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove from local state
+        setFileLinks(prev => prev.filter(link => link.shortCode !== linkId));
+        toast.success('File deleted successfully');
         
-        // Remove from local state only
-        const updatedLinks = fileLinks.filter(link => link.id !== linkId);
-        setFileLinks(updatedLinks);
-        toast.success('File link removed from display');
+        // Reload stats
+        loadFileStats();
+      } else {
+        toast.error(result.message || 'Failed to delete file');
       }
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+      toast.error('Failed to delete file');
     }
   };
 
-  const downloadFile = async (fileId: string, fileName: string) => {
+  const downloadFile = async (fileCode: string, fileName: string) => {
     try {
-      await fileService.downloadFile(fileId, fileName);
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      
+      // Record download analytics
+      try {
+        await fetch(`${apiUrl}/v1/files/${fileCode}/download`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ipAddress: 'unknown',
+            userAgent: navigator.userAgent,
+            country: 'unknown',
+            city: 'unknown',
+            deviceType: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'mobile' : 'desktop'
+          }),
+        });
+      } catch (analyticsError) {
+        console.warn('Failed to record download analytics:', analyticsError);
+      }
+      
+      // Download the file
+      const response = await fetch(`${apiUrl}/v1/files/${fileCode}`);
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
       toast.success('Download started');
+      
+      // Refresh the file list to update download counts
+      setTimeout(() => {
+        loadFileLinks();
+      }, 1000);
     } catch (error) {
       console.error('Download failed:', error);
       toast.error('Failed to download file');
@@ -420,8 +470,7 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                   <div className="flex items-center space-x-2 ml-4">
                     <button
                       onClick={() => {
-                        const shortCode = fileLink.shortCode || fileLink.shortUrl.split('/').pop();
-                        window.open(`/dashboard/file-links/analytics/${shortCode}`, '_blank');
+                        navigate(`/dashboard/file-links/analytics/${fileLink.shortCode}`);
                       }}
                       className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded transition-colors"
                       title="View Analytics"
@@ -429,14 +478,14 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                       <BarChart3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => downloadFile(fileLink.id, fileLink.fileName)}
+                      onClick={() => downloadFile(fileLink.shortCode, fileLink.fileName)}
                       className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded transition-colors"
                       title="Download file"
                     >
                       <Download className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => deleteFileLink(fileLink.id)}
+                      onClick={() => deleteFileLink(fileLink.shortCode)}
                       className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded transition-colors"
                       title="Delete file link"
                     >

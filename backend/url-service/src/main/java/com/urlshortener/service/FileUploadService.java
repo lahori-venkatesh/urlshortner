@@ -14,9 +14,17 @@ import org.springframework.web.multipart.MultipartFile;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 @Service
 public class FileUploadService {
@@ -85,15 +93,45 @@ public class FileUploadService {
         }
         
         try {
+            // Compress file if it's large (> 5MB) to optimize database storage
+            byte[] fileData;
+            boolean isCompressed = false;
+            
+            if (file.getSize() > 5 * 1024 * 1024) { // 5MB threshold
+                try {
+                    byte[] compressedData = compressFile(file);
+                    if (compressedData.length < file.getSize()) {
+                        fileData = compressedData;
+                        isCompressed = true;
+                        uploadedFile.setFileSize(compressedData.length); // Update with compressed size
+                    } else {
+                        fileData = file.getBytes();
+                    }
+                } catch (Exception e) {
+                    // If compression fails, use original file
+                    fileData = file.getBytes();
+                }
+            } else {
+                fileData = file.getBytes();
+            }
+            
             // Store file in GridFS
             org.bson.types.ObjectId fileId = gridFsTemplate.store(
-                file.getInputStream(),
+                new ByteArrayInputStream(fileData),
                 uploadedFile.getFileCode(),
                 file.getContentType()
             );
             
             uploadedFile.setGridFsFileId(fileId.toString());
             uploadedFile.setStoredFileName(uploadedFile.getFileCode());
+            
+            // Add compression metadata
+            if (isCompressed) {
+                uploadedFile.setDescription(
+                    (uploadedFile.getDescription() != null ? uploadedFile.getDescription() + " " : "") + 
+                    "[Compressed for storage optimization]"
+                );
+            }
             
             // Save metadata to database
             UploadedFile saved = uploadedFileRepository.save(uploadedFile);
@@ -242,5 +280,130 @@ public class FileUploadService {
         file.setTotalDownloads(file.getTotalDownloads() + 1);
         file.setLastAccessedAt(LocalDateTime.now());
         uploadedFileRepository.save(file);
+    }
+    
+    public void recordDownload(String fileCode, String ipAddress, String userAgent, 
+                              String country, String city, String deviceType) {
+        Optional<UploadedFile> fileOpt = uploadedFileRepository.findByFileCode(fileCode);
+        
+        if (fileOpt.isPresent()) {
+            UploadedFile file = fileOpt.get();
+            
+            // Update download statistics
+            file.setTotalDownloads(file.getTotalDownloads() + 1);
+            file.setLastAccessedAt(LocalDateTime.now());
+            
+            // Update geographic data
+            if (country != null) {
+                file.getDownloadsByCountry().merge(country, 1, Integer::sum);
+            }
+            if (city != null) {
+                file.getDownloadsByCity().merge(city, 1, Integer::sum);
+            }
+            
+            // Update device data
+            if (deviceType != null) {
+                file.getDownloadsByDevice().merge(deviceType, 1, Integer::sum);
+            }
+            
+            // Update time-based data
+            LocalDateTime now = LocalDateTime.now();
+            String hourKey = String.valueOf(now.getHour());
+            String dayKey = now.getDayOfWeek().toString();
+            
+            file.getDownloadsByHour().merge(hourKey, 1, Integer::sum);
+            file.getDownloadsByDay().merge(dayKey, 1, Integer::sum);
+            
+            uploadedFileRepository.save(file);
+        }
+    }
+    
+    private byte[] compressFile(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        
+        // Compress images
+        if (contentType != null && contentType.startsWith("image/")) {
+            return compressImage(file);
+        }
+        
+        // Compress other files using GZIP
+        return compressWithGzip(file.getBytes());
+    }
+    
+    private byte[] compressImage(MultipartFile file) throws IOException {
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        
+        if (originalImage == null) {
+            // If we can't read as image, fall back to GZIP compression
+            return compressWithGzip(file.getBytes());
+        }
+        
+        // Calculate new dimensions (max 1920x1080 for large images)
+        int originalWidth = originalImage.getWidth();
+        int originalHeight = originalImage.getHeight();
+        int maxWidth = 1920;
+        int maxHeight = 1080;
+        
+        int newWidth = originalWidth;
+        int newHeight = originalHeight;
+        
+        // Only compress if image is larger than max dimensions
+        if (originalWidth > maxWidth || originalHeight > maxHeight) {
+            double widthRatio = (double) maxWidth / originalWidth;
+            double heightRatio = (double) maxHeight / originalHeight;
+            double ratio = Math.min(widthRatio, heightRatio);
+            
+            newWidth = (int) (originalWidth * ratio);
+            newHeight = (int) (originalHeight * ratio);
+        }
+        
+        // Create compressed image
+        BufferedImage compressedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = compressedImage.createGraphics();
+        
+        // Set high quality rendering hints
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        g2d.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+        
+        // Convert to byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        String formatName = getImageFormat(file.getContentType());
+        ImageIO.write(compressedImage, formatName, baos);
+        
+        byte[] compressedBytes = baos.toByteArray();
+        
+        // Only return compressed version if it's actually smaller
+        return compressedBytes.length < file.getSize() ? compressedBytes : file.getBytes();
+    }
+    
+    private byte[] compressWithGzip(byte[] data) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            gzipOut.write(data);
+        }
+        
+        byte[] compressedData = baos.toByteArray();
+        
+        // Only return compressed version if it's actually smaller (some files don't compress well)
+        return compressedData.length < data.length ? compressedData : data;
+    }
+    
+    private String getImageFormat(String contentType) {
+        if (contentType == null) return "jpg";
+        
+        switch (contentType.toLowerCase()) {
+            case "image/png":
+                return "png";
+            case "image/gif":
+                return "gif";
+            case "image/webp":
+                return "webp";
+            default:
+                return "jpg";
+        }
     }
 }
