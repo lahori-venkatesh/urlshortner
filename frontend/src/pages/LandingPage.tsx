@@ -722,7 +722,7 @@ const LandingPage: React.FC = () => {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -730,48 +730,30 @@ const LandingPage: React.FC = () => {
                 </div>
                 <span className="ml-2 text-xl font-bold">Pebly</span>
               </div>
-              <p className="text-gray-400 mb-4">
-                The smartest URL shortener for modern businesses and individuals.
+              <p className="text-gray-400 mb-6">
+                The smartest URL shortener for modern businesses and individuals. 
+                Create, manage, and track your links with powerful analytics.
               </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  <span className="sr-only">LinkedIn</span>
-                  <div className="w-6 h-6 bg-gray-600 rounded"></div>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  <span className="sr-only">Twitter</span>
-                  <div className="w-6 h-6 bg-gray-600 rounded"></div>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                  <span className="sr-only">Instagram</span>
-                  <div className="w-6 h-6 bg-gray-600 rounded"></div>
-                </a>
+              <div className="space-y-2 text-sm text-gray-400">
+                <p>📧 support@pebly.com</p>
+                <p>📞 +91 9876543210</p>
+                <p>📍 Bangalore, India</p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Product</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">API Docs</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Integrations</a></li>
+              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-3">
+                <li><Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/dashboard" className="text-gray-400 hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
+                <li><a href="mailto:support@pebly.com" className="text-gray-400 hover:text-white transition-colors">Support</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-                <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
+              <h3 className="text-lg font-semibold mb-4">Legal & Policies</h3>
+              <ul className="space-y-3">
                 <li><Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/terms" className="text-gray-400 hover:text-white transition-colors">Terms & Conditions</Link></li>
                 <li><Link to="/cancellation-refund" className="text-gray-400 hover:text-white transition-colors">Refund Policy</Link></li>
@@ -780,10 +762,17 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-            <p className="text-gray-400">
-              © 2024 Pebly. All rights reserved. Made with ❤️ for the modern web.
-            </p>
+          <div className="border-t border-gray-800 mt-8 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-400 text-sm">
+                © 2025 Pebly. All rights reserved.
+              </p>
+              <div className="flex space-x-6 mt-4 md:mt-0">
+                <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy</Link>
+                <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">Terms</Link>
+                <Link to="/contact" className="text-gray-400 hover:text-white text-sm transition-colors">Contact</Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
