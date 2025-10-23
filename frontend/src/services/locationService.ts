@@ -20,7 +20,7 @@ interface ClickEvent {
 }
 
 class LocationService {
-  private baseUrl = 'http://localhost:8080/api/v1';
+  private baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '/api/v1') || 'https://urlshortner-mrrl.onrender.com/api/v1';
 
   // Get user's current location using IP geolocation
   async getCurrentLocation(): Promise<LocationInfo | null> {

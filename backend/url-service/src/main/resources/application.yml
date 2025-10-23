@@ -106,7 +106,7 @@ google:
 # Razorpay Payment Configuration
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID:}
+    id: ${RAZORPAY_KEY_ID:rzp_live_RWtmHyTZfva7rb}
     secret: ${RAZORPAY_KEY_SECRET:}
 
 # Application Configuration

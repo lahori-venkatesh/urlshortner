@@ -1,6 +1,6 @@
 // API utility functions for consistent URL handling
 export const getApiUrl = () => {
-  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+  return process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
 };
 
 export const buildApiUrl = (endpoint: string) => {

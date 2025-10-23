@@ -1,7 +1,7 @@
 // File Service for MongoDB Integration
 // This service handles file uploads and management with the MongoDB backend
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api/v1';
 
 export interface FileUploadRequest {
   file: File;

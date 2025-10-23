@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Infinity, Star } from 'lucide-react';
+import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Infinity, Star, Tag, Percent } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from '../components/AuthModal';
 import PaymentModal from '../components/PaymentModal';
@@ -22,6 +22,15 @@ const Pricing: React.FC = () => {
   } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    type: 'percentage' | 'fixed';
+  } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [showCouponInput, setShowCouponInput] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -47,20 +56,175 @@ const Pricing: React.FC = () => {
   };
 
   const handlePlanSelect = (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, price: number) => {
-    if (!isAuthenticated) {
-      setAuthMode('signup');
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    setSelectedPlan({ type: planType, name: planName, price });
-    setIsPaymentModalOpen(true);
+    handleRazorpayPayment(planType, planName, price);
   };
 
   const handlePaymentSuccess = () => {
     toast.success('Welcome to Pebly Premium! 🎉');
     loadSubscriptionStatus();
     navigate('/dashboard');
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
+
+    try {
+      setCouponError('');
+      
+      // Check for the special 90% discount coupon
+      if (couponCode.toLowerCase() === 'venakt90') {
+        setAppliedCoupon({
+          code: 'VENAKT90',
+          discount: 90,
+          type: 'percentage'
+        });
+        toast.success('🎉 Amazing! 90% discount applied!');
+        return;
+      }
+
+      // You can add more coupon validation logic here
+      // For now, we'll just handle the special coupon
+      setCouponError('Invalid coupon code');
+    } catch (error) {
+      setCouponError('Failed to apply coupon');
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+    toast.success('Coupon removed');
+  };
+
+  const calculateDiscountedPrice = (originalPrice: number) => {
+    if (!appliedCoupon) return originalPrice;
+    
+    if (appliedCoupon.type === 'percentage') {
+      return Math.round(originalPrice * (1 - appliedCoupon.discount / 100));
+    } else {
+      return Math.max(0, originalPrice - appliedCoupon.discount);
+    }
+  };
+
+  const initializeRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleRazorpayPayment = async (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, originalPrice: number) => {
+    if (!isAuthenticated) {
+      setAuthMode('signup');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    
+    try {
+      const res = await initializeRazorpay();
+      if (!res) {
+        toast.error('Razorpay SDK failed to load');
+        return;
+      }
+
+      const finalPrice = calculateDiscountedPrice(originalPrice);
+      
+      // Create order on backend
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
+      const orderResponse = await fetch(`${apiUrl}/v1/payments/create-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: finalPrice * 100, // Razorpay expects amount in paise
+          currency: 'INR',
+          planType,
+          planName,
+          couponCode: appliedCoupon?.code || null,
+          userId: 'user-id' // Replace with actual user ID from auth context
+        }),
+      });
+
+      const orderData = await orderResponse.json();
+      
+      if (!orderData.success) {
+        throw new Error(orderData.message || 'Failed to create order');
+      }
+
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_live_RWtmHyTZfva7rb',
+        amount: finalPrice * 100,
+        currency: 'INR',
+        name: 'Pebly',
+        description: `${planName} Subscription`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          try {
+            // Verify payment on backend
+            const verifyResponse = await fetch(`${apiUrl}/v1/payments/verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                planType,
+                userId: 'user-id' // Replace with actual user ID
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+            
+            if (verifyData.success) {
+              handlePaymentSuccess();
+            } else {
+              toast.error('Payment verification failed');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            toast.error('Payment verification failed');
+          }
+        },
+        prefill: {
+          name: 'User Name', // Replace with actual user name
+          email: 'user@example.com', // Replace with actual user email
+          contact: '9999999999', // Replace with actual user phone
+        },
+        notes: {
+          planType,
+          couponCode: appliedCoupon?.code || '',
+        },
+        theme: {
+          color: '#2563eb',
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessingPayment(false);
+          }
+        }
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const toggleFAQ = (index: number) => {
@@ -177,6 +341,97 @@ const Pricing: React.FC = () => {
             </div>
           </motion.div>
 
+          {/* Coupon Section */}
+          <motion.div 
+            className="max-w-md mx-auto mb-8"
+            initial="initial"
+            animate="animate"
+            variants={fadeInUp}
+          >
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
+              <div className="flex items-center justify-center mb-4">
+                <Tag className="w-5 h-5 text-green-600 mr-2" />
+                <h3 className="text-lg font-semibold text-gray-900">Have a Coupon Code?</h3>
+              </div>
+              
+              {!appliedCoupon ? (
+                <div className="space-y-3">
+                  {!showCouponInput ? (
+                    <button
+                      onClick={() => setShowCouponInput(true)}
+                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Percent className="w-4 h-4" />
+                      <span>Apply Coupon Code</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value.toUpperCase());
+                            setCouponError('');
+                          }}
+                          placeholder="Enter coupon code (e.g., VENAKT90)"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                        <button
+                          onClick={applyCoupon}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-red-600 text-sm">{couponError}</p>
+                      )}
+                      <button
+                        onClick={() => {
+                          setShowCouponInput(false);
+                          setCouponCode('');
+                          setCouponError('');
+                        }}
+                        className="text-gray-600 text-sm hover:text-gray-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-green-100 rounded-lg p-4 border border-green-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-800">Coupon Applied!</p>
+                        <p className="text-sm text-green-700">
+                          {appliedCoupon.code} - {appliedCoupon.discount}% OFF
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={removeCoupon}
+                      className="text-green-600 hover:text-green-800 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                  💡 Try code <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENAKT90</span> for 90% off!
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
           <motion.div 
             className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
             initial="initial"
@@ -246,13 +501,29 @@ const Pricing: React.FC = () => {
                   <Crown className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Premium</h3>
-                <div className="text-3xl font-bold text-white mb-1">
-                  ₹{billingCycle === 'monthly' ? '299' : '2,499'}
+                <div className="space-y-1">
+                  {appliedCoupon ? (
+                    <>
+                      <div className="text-lg text-blue-200 line-through">
+                        ₹{billingCycle === 'monthly' ? '299' : '2,499'}
+                      </div>
+                      <div className="text-3xl font-bold text-white">
+                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 299 : 2499)}
+                      </div>
+                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold inline-block">
+                        {appliedCoupon.discount}% OFF
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-3xl font-bold text-white mb-1">
+                      ₹{billingCycle === 'monthly' ? '299' : '2,499'}
+                    </div>
+                  )}
                 </div>
                 <p className="text-blue-100 text-sm">
                   per {billingCycle === 'monthly' ? 'month' : 'year'}
                 </p>
-                {billingCycle === 'yearly' && (
+                {billingCycle === 'yearly' && !appliedCoupon && (
                   <p className="text-yellow-300 font-medium mt-1 text-sm">
                     Save ₹1,089 annually
                   </p>
@@ -284,10 +555,10 @@ const Pricing: React.FC = () => {
                   `Premium ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`, 
                   billingCycle === 'monthly' ? 299 : 2499
                 )}
-                className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                disabled={subscriptionStatus?.hasActiveSubscription}
+                className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                disabled={subscriptionStatus?.hasActiveSubscription || isProcessingPayment}
               >
-                {subscriptionStatus?.hasActiveSubscription ? 'Current Plan' : `Choose ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`}
+                {isProcessingPayment ? 'Processing...' : subscriptionStatus?.hasActiveSubscription ? 'Current Plan' : `Choose ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`}
               </button>
             </motion.div>
 
@@ -307,9 +578,25 @@ const Pricing: React.FC = () => {
                   <Infinity className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Lifetime Access</h3>
-                <div className="text-3xl font-bold text-white mb-1">₹9,999</div>
+                <div className="space-y-1">
+                  {appliedCoupon ? (
+                    <>
+                      <div className="text-lg text-purple-200 line-through">₹9,999</div>
+                      <div className="text-3xl font-bold text-white">
+                        ₹{calculateDiscountedPrice(9999)}
+                      </div>
+                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold inline-block">
+                        {appliedCoupon.discount}% OFF
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-3xl font-bold text-white mb-1">₹9,999</div>
+                  )}
+                </div>
                 <p className="text-purple-100 text-sm">one-time payment</p>
-                <p className="text-yellow-300 font-medium mt-1 text-sm">Never pay again!</p>
+                {!appliedCoupon && (
+                  <p className="text-yellow-300 font-medium mt-1 text-sm">Never pay again!</p>
+                )}
               </div>
               
               <ul className="space-y-3 mb-6">
@@ -333,10 +620,10 @@ const Pricing: React.FC = () => {
               
               <button 
                 onClick={() => handlePlanSelect('LIFETIME', 'Lifetime Access', 9999)}
-                className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                disabled={subscriptionStatus?.hasActiveSubscription}
+                className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                disabled={subscriptionStatus?.hasActiveSubscription || isProcessingPayment}
               >
-                {subscriptionStatus?.hasActiveSubscription ? 'Ultimate Upgrade' : 'Get Lifetime Access'}
+                {isProcessingPayment ? 'Processing...' : subscriptionStatus?.hasActiveSubscription ? 'Ultimate Upgrade' : 'Get Lifetime Access'}
               </button>
             </motion.div>
           </motion.div>

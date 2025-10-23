@@ -146,6 +146,13 @@
             <version>3.5.2</version>
         </dependency>
         
+        <!-- Razorpay Payment Gateway -->
+        <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+        
         <!-- Async processing -->
         <dependency>
             <groupId>org.springframework</groupId>

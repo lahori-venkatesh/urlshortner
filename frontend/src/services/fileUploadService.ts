@@ -8,7 +8,7 @@ class FileUploadService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    this.apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com';
   }
 
   async uploadFile(file: File): Promise<FileUploadResponse> {
