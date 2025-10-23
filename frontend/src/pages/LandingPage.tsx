@@ -730,11 +730,11 @@ const LandingPage: React.FC = () => {
                 </div>
                 <span className="ml-2 text-xl font-bold">Pebly</span>
               </div>
-              <p className="text-gray-300 mb-6">
+              <p className="text-white mb-6">
                 The smartest URL shortener for modern businesses and individuals. 
                 Create, manage, and track your links with powerful analytics.
               </p>
-              <div className="space-y-2 text-sm text-gray-300">
+              <div className="space-y-2 text-sm text-white">
                 <p>📧 support@pebly.com</p>
                 <p>📞 +91 9876543210</p>
                 <p>📍 Bangalore, India</p>
@@ -744,10 +744,10 @@ const LandingPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-3">
-                <li><Link to="/pricing" className="text-gray-200 hover:text-blue-400 transition-colors">Pricing</Link></li>
-                <li><Link to="/dashboard" className="text-gray-200 hover:text-blue-400 transition-colors">Dashboard</Link></li>
-                <li><Link to="/contact" className="text-gray-200 hover:text-blue-400 transition-colors">Contact Us</Link></li>
-                <li><a href="mailto:support@pebly.com" className="text-gray-200 hover:text-blue-400 transition-colors">Support</a></li>
+                <li><Link to="/pricing" className="text-white hover:text-blue-400 transition-colors font-medium">Pricing</Link></li>
+                <li><Link to="/dashboard" className="text-white hover:text-blue-400 transition-colors font-medium">Dashboard</Link></li>
+                <li><Link to="/contact" className="text-white hover:text-blue-400 transition-colors font-medium">Contact Us</Link></li>
+                <li><a href="mailto:support@pebly.com" className="text-white hover:text-blue-400 transition-colors font-medium">Support</a></li>
               </ul>
             </div>
 
@@ -764,7 +764,7 @@ const LandingPage: React.FC = () => {
 
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-300 text-sm">
+              <p className="text-white text-sm">
                 © 2025 Pebly. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
