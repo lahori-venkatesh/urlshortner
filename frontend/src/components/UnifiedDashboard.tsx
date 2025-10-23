@@ -204,21 +204,6 @@ const UnifiedDashboard: React.FC = () => {
             </button>
           </div>
 
-          {/* Desktop Collapse Toggle - Positioned at top right */}
-          <div className="hidden lg:block absolute top-4 right-4 z-10">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 group"
-              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              ) : (
-                <PanelLeftClose className="w-4 h-4 group-hover:scale-110 transition-transform" />
-              )}
-            </button>
-          </div>
-
           {/* Navigation */}
           <nav className="flex-1 p-4 pt-16 lg:pt-4 space-y-1 overflow-y-auto">
             {sidebarItems.map((item) => (
@@ -315,7 +300,26 @@ const UnifiedDashboard: React.FC = () => {
             ))}
           </nav>
 
-
+          {/* Desktop Collapse Toggle - Better positioned at bottom */}
+          <div className="hidden lg:block p-4 border-t border-gray-200">
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className={`
+                w-full flex items-center justify-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group
+                ${sidebarCollapsed ? '' : 'space-x-2'}
+              `}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              ) : (
+                <>
+                  <PanelLeftClose className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">Collapse</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Upgrade Banner for Free Users */}
           {!isPremium && (
