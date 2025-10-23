@@ -719,58 +719,110 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Link className="w-5 h-5 text-white" />
+      {/* Professional Footer */}
+      <footer className="bg-slate-900 text-white py-16">
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Main Footer Content */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            
+            {/* Company Info */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
+                  <Link className="w-6 h-6 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold">Pebly</span>
+                <span className="text-2xl font-bold text-white">Pebly</span>
               </div>
-              <p className="text-white mb-6">
-                The smartest URL shortener for modern businesses and individuals. 
-                Create, manage, and track your links with powerful analytics.
+              <p className="text-gray-300 text-lg mb-6 leading-relaxed">
+                The smartest URL shortener for modern businesses. Create, manage, and track your links with powerful analytics.
               </p>
-              <div className="space-y-2 text-sm text-white">
-                <p>📧 support@pebly.com</p>
-                <p>📞 +91 9876543210</p>
-                <p>📍 Bangalore, India</p>
+              <div className="space-y-3">
+                <div className="flex items-center text-gray-300">
+                  <span className="text-blue-400 mr-3">✉</span>
+                  <span className="text-white font-medium">support@pebly.com</span>
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <span className="text-blue-400 mr-3">📞</span>
+                  <span className="text-white font-medium">+91 9876543210</span>
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <span className="text-blue-400 mr-3">📍</span>
+                  <span className="text-white font-medium">Bangalore, India</span>
+                </div>
               </div>
             </div>
 
+            {/* Quick Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
-              <ul className="space-y-3">
-                <li><Link to="/pricing" className="text-white hover:text-blue-400 transition-colors font-medium">Pricing</Link></li>
-                <li><Link to="/dashboard" className="text-white hover:text-blue-400 transition-colors font-medium">Dashboard</Link></li>
-                <li><Link to="/contact" className="text-white hover:text-blue-400 transition-colors font-medium">Contact Us</Link></li>
-                <li><a href="mailto:support@pebly.com" className="text-white hover:text-blue-400 transition-colors font-medium">Support</a></li>
+              <h3 className="text-xl font-bold text-white mb-6">Quick Links</h3>
+              <ul className="space-y-4">
+                <li>
+                  <Link to="/pricing" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:support@pebly.com" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Support
+                  </a>
+                </li>
               </ul>
             </div>
 
+            {/* Legal & Policies */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Legal & Policies</h3>
-              <ul className="space-y-3">
-                <li><Link to="/privacy" className="text-white hover:text-blue-400 transition-colors font-medium">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="text-white hover:text-blue-400 transition-colors font-medium">Terms & Conditions</Link></li>
-                <li><Link to="/cancellation-refund" className="text-white hover:text-blue-400 transition-colors font-medium">Refund Policy</Link></li>
-                <li><Link to="/shipping-policy" className="text-white hover:text-blue-400 transition-colors font-medium">Shipping Policy</Link></li>
+              <h3 className="text-xl font-bold text-white mb-6">Legal & Policies</h3>
+              <ul className="space-y-4">
+                <li>
+                  <Link to="/privacy" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/cancellation-refund" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Refund Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shipping-policy" className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium">
+                    Shipping Policy
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8">
+          {/* Bottom Section */}
+          <div className="border-t border-gray-700 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-white text-sm">
-                © 2025 Pebly. All rights reserved.
+              <p className="text-gray-300 text-lg mb-4 md:mb-0">
+                © 2025 <span className="text-white font-semibold">Pebly</span>. All rights reserved.
               </p>
-              <div className="flex space-x-6 mt-4 md:mt-0">
-                <Link to="/privacy" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Privacy</Link>
-                <Link to="/terms" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Terms</Link>
-                <Link to="/contact" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Contact</Link>
+              <div className="flex space-x-8">
+                <Link to="/privacy" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg">
+                  Privacy
+                </Link>
+                <Link to="/terms" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg">
+                  Terms
+                </Link>
+                <Link to="/contact" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg">
+                  Contact
+                </Link>
               </div>
             </div>
           </div>
