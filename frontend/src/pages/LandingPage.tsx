@@ -744,20 +744,20 @@ const LandingPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-3">
-                <li><Link to="/pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">Dashboard</Link></li>
-                <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact Us</Link></li>
-                <li><a href="mailto:support@pebly.com" className="text-gray-300 hover:text-white transition-colors">Support</a></li>
+                <li><Link to="/pricing" className="text-gray-200 hover:text-blue-400 transition-colors">Pricing</Link></li>
+                <li><Link to="/dashboard" className="text-gray-200 hover:text-blue-400 transition-colors">Dashboard</Link></li>
+                <li><Link to="/contact" className="text-gray-200 hover:text-blue-400 transition-colors">Contact Us</Link></li>
+                <li><a href="mailto:support@pebly.com" className="text-gray-200 hover:text-blue-400 transition-colors">Support</a></li>
               </ul>
             </div>
 
             <div>
               <h3 className="text-lg font-semibold mb-4 text-white">Legal & Policies</h3>
               <ul className="space-y-3">
-                <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="text-gray-300 hover:text-white transition-colors">Terms & Conditions</Link></li>
-                <li><Link to="/cancellation-refund" className="text-gray-300 hover:text-white transition-colors">Refund Policy</Link></li>
-                <li><Link to="/shipping-policy" className="text-gray-300 hover:text-white transition-colors">Shipping Policy</Link></li>
+                <li><Link to="/privacy" className="text-white hover:text-blue-400 transition-colors font-medium">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="text-white hover:text-blue-400 transition-colors font-medium">Terms & Conditions</Link></li>
+                <li><Link to="/cancellation-refund" className="text-white hover:text-blue-400 transition-colors font-medium">Refund Policy</Link></li>
+                <li><Link to="/shipping-policy" className="text-white hover:text-blue-400 transition-colors font-medium">Shipping Policy</Link></li>
               </ul>
             </div>
           </div>
@@ -768,9 +768,9 @@ const LandingPage: React.FC = () => {
                 © 2025 Pebly. All rights reserved.
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0">
-                <Link to="/privacy" className="text-gray-300 hover:text-white text-sm transition-colors">Privacy</Link>
-                <Link to="/terms" className="text-gray-300 hover:text-white text-sm transition-colors">Terms</Link>
-                <Link to="/contact" className="text-gray-300 hover:text-white text-sm transition-colors">Contact</Link>
+                <Link to="/privacy" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Privacy</Link>
+                <Link to="/terms" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Terms</Link>
+                <Link to="/contact" className="text-white hover:text-blue-400 text-sm transition-colors font-medium">Contact</Link>
               </div>
             </div>
           </div>
