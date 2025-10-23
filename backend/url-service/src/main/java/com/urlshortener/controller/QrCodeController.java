@@ -78,7 +78,11 @@ public class QrCodeController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // Try to find by QR code first, then by ID
             Optional<QrCode> qrCodeOpt = qrCodeService.getByQrCode(qrCodeId);
+            if (qrCodeOpt.isEmpty()) {
+                qrCodeOpt = qrCodeService.getById(qrCodeId);
+            }
             
             if (qrCodeOpt.isEmpty()) {
                 response.put("success", false);
@@ -97,8 +101,25 @@ public class QrCodeController {
             qrData.put("contentType", qrCode.getContentType());
             qrData.put("title", qrCode.getTitle());
             qrData.put("description", qrCode.getDescription());
+            qrData.put("style", qrCode.getStyle());
+            qrData.put("foregroundColor", qrCode.getForegroundColor());
+            qrData.put("backgroundColor", qrCode.getBackgroundColor());
+            qrData.put("size", qrCode.getSize());
+            qrData.put("format", qrCode.getFormat());
             qrData.put("totalScans", qrCode.getTotalScans());
+            qrData.put("uniqueScans", qrCode.getUniqueScans());
+            qrData.put("todayScans", qrCode.getTodayScans());
+            qrData.put("thisWeekScans", qrCode.getThisWeekScans());
+            qrData.put("thisMonthScans", qrCode.getThisMonthScans());
+            qrData.put("scansByCountry", qrCode.getScansByCountry());
+            qrData.put("scansByCity", qrCode.getScansByCity());
+            qrData.put("scansByDevice", qrCode.getScansByDevice());
+            qrData.put("scansByBrowser", qrCode.getScansByBrowser());
+            qrData.put("scansByOS", qrCode.getScansByOS());
+            qrData.put("scansByHour", qrCode.getScansByHour());
+            qrData.put("scansByDay", qrCode.getScansByDay());
             qrData.put("createdAt", qrCode.getCreatedAt());
+            qrData.put("updatedAt", qrCode.getUpdatedAt());
             qrData.put("lastScannedAt", qrCode.getLastScannedAt());
             
             response.put("success", true);
@@ -125,13 +146,20 @@ public class QrCodeController {
                 qrData.put("id", qr.getId());
                 qrData.put("qrCode", qr.getQrCode());
                 qrData.put("qrImageUrl", qr.getQrImageUrl());
+                qrData.put("qrImagePath", qr.getQrImagePath());
                 qrData.put("content", qr.getContent());
                 qrData.put("contentType", qr.getContentType());
                 qrData.put("title", qr.getTitle());
                 qrData.put("description", qr.getDescription());
+                qrData.put("style", qr.getStyle());
+                qrData.put("foregroundColor", qr.getForegroundColor());
+                qrData.put("backgroundColor", qr.getBackgroundColor());
+                qrData.put("size", qr.getSize());
+                qrData.put("format", qr.getFormat());
                 qrData.put("totalScans", qr.getTotalScans());
                 qrData.put("uniqueScans", qr.getUniqueScans());
                 qrData.put("createdAt", qr.getCreatedAt());
+                qrData.put("updatedAt", qr.getUpdatedAt());
                 qrData.put("lastScannedAt", qr.getLastScannedAt());
                 return qrData;
             }).toList();
@@ -166,17 +194,33 @@ public class QrCodeController {
             QrCode updates = new QrCode();
             if (request.containsKey("title")) updates.setTitle((String) request.get("title"));
             if (request.containsKey("description")) updates.setDescription((String) request.get("description"));
+            if (request.containsKey("content")) updates.setContent((String) request.get("content"));
+            if (request.containsKey("contentType")) updates.setContentType((String) request.get("contentType"));
+            if (request.containsKey("style")) updates.setStyle((String) request.get("style"));
+            if (request.containsKey("foregroundColor")) updates.setForegroundColor((String) request.get("foregroundColor"));
+            if (request.containsKey("backgroundColor")) updates.setBackgroundColor((String) request.get("backgroundColor"));
+            if (request.containsKey("size")) updates.setSize((Integer) request.get("size"));
+            if (request.containsKey("format")) updates.setFormat((String) request.get("format"));
             
             QrCode updated = qrCodeService.updateQrCode(qrCodeId, userId, updates);
             
+            Map<String, Object> qrData = new HashMap<>();
+            qrData.put("id", updated.getId());
+            qrData.put("qrCode", updated.getQrCode());
+            qrData.put("title", updated.getTitle());
+            qrData.put("description", updated.getDescription());
+            qrData.put("content", updated.getContent());
+            qrData.put("contentType", updated.getContentType());
+            qrData.put("style", updated.getStyle());
+            qrData.put("foregroundColor", updated.getForegroundColor());
+            qrData.put("backgroundColor", updated.getBackgroundColor());
+            qrData.put("size", updated.getSize());
+            qrData.put("format", updated.getFormat());
+            qrData.put("updatedAt", updated.getUpdatedAt());
+            
             response.put("success", true);
             response.put("message", "QR Code updated successfully");
-            response.put("data", Map.of(
-                "qrCode", updated.getQrCode(),
-                "title", updated.getTitle(),
-                "description", updated.getDescription(),
-                "updatedAt", updated.getUpdatedAt()
-            ));
+            response.put("data", qrData);
             
             return ResponseEntity.ok(response);
             

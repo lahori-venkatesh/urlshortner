@@ -84,12 +84,20 @@ public class QrCodeService {
         return qrCodeRepository.findByQrCode(qrCodeId);
     }
     
+    public Optional<QrCode> getById(String id) {
+        return qrCodeRepository.findById(id);
+    }
+    
     public List<QrCode> getUserQrCodes(String userId) {
         return qrCodeRepository.findByUserIdAndIsActiveTrue(userId);
     }
     
     public QrCode updateQrCode(String qrCodeId, String userId, QrCode updates) {
+        // Try to find by QR code first, then by ID
         Optional<QrCode> existingOpt = qrCodeRepository.findByQrCode(qrCodeId);
+        if (existingOpt.isEmpty()) {
+            existingOpt = qrCodeRepository.findById(qrCodeId);
+        }
         
         if (existingOpt.isEmpty()) {
             throw new RuntimeException("QR Code not found");
@@ -105,6 +113,13 @@ public class QrCodeService {
         // Update fields
         if (updates.getTitle() != null) existing.setTitle(updates.getTitle());
         if (updates.getDescription() != null) existing.setDescription(updates.getDescription());
+        if (updates.getContent() != null) existing.setContent(updates.getContent());
+        if (updates.getContentType() != null) existing.setContentType(updates.getContentType());
+        if (updates.getStyle() != null) existing.setStyle(updates.getStyle());
+        if (updates.getForegroundColor() != null) existing.setForegroundColor(updates.getForegroundColor());
+        if (updates.getBackgroundColor() != null) existing.setBackgroundColor(updates.getBackgroundColor());
+        if (updates.getSize() > 0) existing.setSize(updates.getSize());
+        if (updates.getFormat() != null) existing.setFormat(updates.getFormat());
         if (updates.getTags() != null) existing.setTags(updates.getTags());
         if (updates.getCategory() != null) existing.setCategory(updates.getCategory());
         
@@ -114,7 +129,11 @@ public class QrCodeService {
     }
     
     public void deleteQrCode(String qrCodeId, String userId) {
+        // Try to find by QR code first, then by ID
         Optional<QrCode> existingOpt = qrCodeRepository.findByQrCode(qrCodeId);
+        if (existingOpt.isEmpty()) {
+            existingOpt = qrCodeRepository.findById(qrCodeId);
+        }
         
         if (existingOpt.isEmpty()) {
             throw new RuntimeException("QR Code not found");

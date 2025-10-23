@@ -16,6 +16,8 @@ import AdvancedQRGenerator from './components/AdvancedQRGenerator';
 import CustomDomainManager from './components/CustomDomainManager';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import FileViewer from './pages/FileViewer';
+import QRAnalyticsPage from './pages/QRAnalyticsPage';
+import QREditPage from './pages/QREditPage';
 import './App.css';
 
 function App() {
@@ -104,9 +106,15 @@ function App() {
               </AuthRedirect>
             } />
             
-            <Route path="/dashboard/qr-codes/analytics/:shortCode" element={
+            <Route path="/dashboard/qr-codes/analytics/:qrCode" element={
               <AuthRedirect requireAuth={true}>
-                <Analytics />
+                <QRAnalyticsPage />
+              </AuthRedirect>
+            } />
+            
+            <Route path="/dashboard/qr-codes/edit/:qrCode" element={
+              <AuthRedirect requireAuth={true}>
+                <QREditPage />
               </AuthRedirect>
             } />
             

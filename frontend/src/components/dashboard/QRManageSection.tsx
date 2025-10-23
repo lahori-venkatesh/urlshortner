@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   QrCode, 
@@ -58,6 +59,7 @@ interface QRManageSectionProps {
 
 const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [qrCodes, setQrCodes] = useState<QRCodeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -89,17 +91,17 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       
       if (result.success && result.data) {
         const qrCodesData: QRCodeData[] = result.data.map((qr: any) => ({
-          id: qr.id,
+          id: qr.qrCode, // Use qrCode as the ID for navigation
           title: qr.title || 'QR Code',
           url: qr.content || qr.originalUrl,
           shortUrl: qr.shortUrl,
-          scans: qr.scans || 0,
+          scans: qr.totalScans || 0,
           createdAt: qr.createdAt,
           updatedAt: qr.updatedAt,
-          customization: qr.customization || {
+          customization: {
             foregroundColor: qr.foregroundColor || '#000000',
             backgroundColor: qr.backgroundColor || '#ffffff',
-            style: 'square',
+            style: qr.style || 'square',
             size: qr.size || 256,
             errorCorrection: qr.errorCorrectionLevel || 'M'
           },
@@ -110,8 +112,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
           isFavorite: false,
           category: 'General',
           tags: [],
-          qrCodeImage: qr.qrCodeImage,
-          type: qr.type || 'url'
+          qrCodeImage: qr.qrImagePath || qr.qrImageUrl,
+          type: qr.contentType?.toLowerCase() || 'url'
         }));
         
         setQrCodes(qrCodesData);
@@ -158,13 +160,37 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     }
   };
 
-  const createShortLink = (qr: QRCodeData) => {
-    const shortUrl = `https://pebly.vercel.app/${Math.random().toString(36).substring(2, 10)}`;
-    const updatedQRs = qrCodes.map(q => 
-      q.id === qr.id ? { ...q, shortUrl } : q
-    );
-    updateQRCodes(updatedQRs);
-    toast.success('Short link created!');
+  const createShortLink = async (qr: QRCodeData) => {
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/urls`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalUrl: qr.url,
+          userId: user?.id,
+          title: `${qr.title} - Short Link`,
+          description: `Short link for QR code: ${qr.title}`
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        const updatedQRs = qrCodes.map(q => 
+          q.id === qr.id ? { ...q, shortUrl: result.data.shortUrl } : q
+        );
+        setQrCodes(updatedQRs);
+        toast.success('Short link created successfully!');
+      } else {
+        toast.error(result.message || 'Failed to create short link');
+      }
+    } catch (error) {
+      console.error('Failed to create short link:', error);
+      toast.error('Failed to create short link');
+    }
     setActiveDropdown(null);
   };
 
@@ -203,11 +229,31 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     setActiveDropdown(null);
   };
 
-  const deleteQR = (qrId: string) => {
-    if (window.confirm('Are you sure you want to delete this QR code?')) {
-      const updatedQRs = qrCodes.filter(qr => qr.id !== qrId);
-      updateQRCodes(updatedQRs);
-      toast.success('QR Code deleted');
+  const deleteQR = async (qrId: string) => {
+    if (!window.confirm('Are you sure you want to delete this QR code?')) {
+      setActiveDropdown(null);
+      return;
+    }
+
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/qr/${qrId}?userId=${user?.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove from local state
+        const updatedQRs = qrCodes.filter(qr => qr.id !== qrId);
+        setQrCodes(updatedQRs);
+        toast.success('QR Code deleted successfully');
+      } else {
+        toast.error(result.message || 'Failed to delete QR code');
+      }
+    } catch (error) {
+      console.error('Failed to delete QR code:', error);
+      toast.error('Failed to delete QR code');
     }
     setActiveDropdown(null);
   };
@@ -271,43 +317,19 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     });
 
   const editQR = (qr: QRCodeData) => {
-    // Simple edit functionality - in a real app, this would open a modal
-    const newTitle = window.prompt('Enter new title for this QR code:', qr.title);
-    if (newTitle !== null && newTitle.trim() !== '') {
-      const updatedQRs = qrCodes.map(q => 
-        q.id === qr.id ? { ...q, title: newTitle.trim() } : q
-      );
-      setQrCodes(updatedQRs);
-      toast.success('QR code title updated successfully');
-    }
+    // Navigate to edit page
+    navigate(`/dashboard/qr-codes/edit/${qr.id}`);
     setActiveDropdown(null);
   };
 
   const viewQRAnalytics = (qr: QRCodeData) => {
-    if (qr.shortUrl) {
-      const shortCode = qr.shortUrl.split('/').pop();
-      window.open(`/dashboard/qr-codes/analytics/${shortCode}`, '_blank');
-    } else {
-      toast.success('Analytics available for QR codes with short URLs');
-    }
+    // Navigate to analytics page using the QR code ID
+    navigate(`/dashboard/qr-codes/analytics/${qr.id}`);
   };
 
   const customizeQR = (qr: QRCodeData) => {
-    // Simple customization - in a real app, this would open a customization modal
-    const newColor = window.prompt('Enter new foreground color (hex):', qr.customization.foregroundColor);
-    if (newColor !== null && newColor.trim() !== '') {
-      const updatedQRs = qrCodes.map(q => 
-        q.id === qr.id ? { 
-          ...q, 
-          customization: { 
-            ...q.customization, 
-            foregroundColor: newColor.trim() 
-          } 
-        } : q
-      );
-      setQrCodes(updatedQRs);
-      toast.success('QR code customization updated successfully');
-    }
+    // Navigate to edit page with QR code data pre-filled
+    navigate(`/dashboard/qr-codes/edit/${qr.id}`);
     setActiveDropdown(null);
   };
 
