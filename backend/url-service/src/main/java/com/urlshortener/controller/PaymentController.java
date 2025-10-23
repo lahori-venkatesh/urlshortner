@@ -33,9 +33,16 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // Apply coupon discount if provided
+            // Note: Frontend already calculates discounted price, so we don't apply discount here
+            // The amount received is already the final discounted amount
+            // We just validate the coupon code if provided
             if (couponCode != null && !couponCode.trim().isEmpty()) {
-                amount = paymentService.applyCouponDiscount(amount, couponCode);
+                // Validate coupon exists but don't apply discount again
+                if (!"VENKAT99".equalsIgnoreCase(couponCode) && !"VENAKT90".equalsIgnoreCase(couponCode)) {
+                    response.put("success", false);
+                    response.put("message", "Invalid coupon code");
+                    return ResponseEntity.badRequest().body(response);
+                }
             }
             
             String orderId = paymentService.createRazorpayOrder(amount, currency, planType, planName, userId);

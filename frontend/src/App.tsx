@@ -19,6 +19,11 @@ import FileViewer from './pages/FileViewer';
 import QRAnalyticsPage from './pages/QRAnalyticsPage';
 import QREditPage from './pages/QREditPage';
 import FileAnalyticsPage from './pages/FileAnalyticsPage';
+import ContactUs from './pages/ContactUs';
+import ShippingPolicy from './pages/ShippingPolicy';
+import TermsAndConditions from './pages/TermsAndConditions';
+import CancellationRefund from './pages/CancellationRefund';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import './App.css';
 
 function App() {
@@ -166,6 +171,14 @@ function App() {
               </AuthRedirect>
             } />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            
+            {/* Policy Pages */}
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/shipping-policy" element={<ShippingPolicy />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/cancellation-refund" element={<CancellationRefund />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            
             <Route path="/file/:fileId" element={<FileViewer />} />
             <Route path="/:shortCode" element={<RedirectPage />} />
           </Routes>

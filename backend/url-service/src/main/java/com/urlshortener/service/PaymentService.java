@@ -138,26 +138,39 @@ public class PaymentService {
     }
     
     public Integer applyCouponDiscount(Integer originalAmount, String couponCode) {
+        // Handle the special 99% discount coupon
+        if ("VENKAT99".equalsIgnoreCase(couponCode)) {
+            return Math.max(100, Math.round(originalAmount * 0.01f)); // 99% discount = pay only 1%, minimum ₹1
+        }
+        
         // Handle the special 90% discount coupon
         if ("VENAKT90".equalsIgnoreCase(couponCode)) {
-            return Math.round(originalAmount * 0.1f); // 90% discount = pay only 10%
+            return Math.max(100, Math.round(originalAmount * 0.1f)); // 90% discount = pay only 10%, minimum ₹1
         }
         
         // Add more coupon logic here as needed
-        // For now, we only support the VENAKT90 coupon
         throw new RuntimeException("Invalid coupon code");
     }
     
     public Map<String, Object> validateCoupon(String couponCode, Integer amount) {
         Map<String, Object> couponInfo = new HashMap<>();
         
-        if ("VENAKT90".equalsIgnoreCase(couponCode)) {
+        if ("VENKAT99".equalsIgnoreCase(couponCode)) {
+            int discountedAmount = Math.max(100, Math.round(amount * 0.01f));
+            couponInfo.put("valid", true);
+            couponInfo.put("code", "VENKAT99");
+            couponInfo.put("discount", 99);
+            couponInfo.put("type", "percentage");
+            couponInfo.put("discountedAmount", discountedAmount);
+            couponInfo.put("savings", amount - discountedAmount);
+        } else if ("VENAKT90".equalsIgnoreCase(couponCode)) {
+            int discountedAmount = Math.max(100, Math.round(amount * 0.1f));
             couponInfo.put("valid", true);
             couponInfo.put("code", "VENAKT90");
             couponInfo.put("discount", 90);
             couponInfo.put("type", "percentage");
-            couponInfo.put("discountedAmount", Math.round(amount * 0.1f));
-            couponInfo.put("savings", Math.round(amount * 0.9f));
+            couponInfo.put("discountedAmount", discountedAmount);
+            couponInfo.put("savings", amount - discountedAmount);
         } else {
             throw new RuntimeException("Invalid coupon code");
         }

@@ -221,10 +221,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             )}
           </button>
 
-          <p className="text-xs text-gray-500 text-center">
-            By proceeding, you agree to our Terms of Service and Privacy Policy.
-            You can cancel anytime from your account settings.
-          </p>
+          {/* Policy Links for Razorpay Compliance */}
+          <div className="text-xs text-gray-500 text-center space-y-2">
+            <p>
+              By proceeding, you agree to our{' '}
+              <a href="/terms" target="_blank" className="text-blue-600 hover:underline">Terms & Conditions</a>,{' '}
+              <a href="/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</a>,{' '}
+              <a href="/cancellation-refund" target="_blank" className="text-blue-600 hover:underline">Refund Policy</a>, and{' '}
+              <a href="/shipping-policy" target="_blank" className="text-blue-600 hover:underline">Shipping Policy</a>.
+            </p>
+            <p>
+              You can cancel anytime from your account settings. For support, visit our{' '}
+              <a href="/contact" target="_blank" className="text-blue-600 hover:underline">Contact Page</a>.
+            </p>
+          </div>
         </form>
       </div>
     </div>

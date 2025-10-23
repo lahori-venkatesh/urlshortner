@@ -74,6 +74,17 @@ const Pricing: React.FC = () => {
     try {
       setCouponError('');
       
+      // Check for the special 99% discount coupon
+      if (couponCode.toLowerCase() === 'venkat99') {
+        setAppliedCoupon({
+          code: 'VENKAT99',
+          discount: 99,
+          type: 'percentage'
+        });
+        toast.success('🎉 Incredible! 99% discount applied!');
+        return;
+      }
+
       // Check for the special 90% discount coupon
       if (couponCode.toLowerCase() === 'venakt90') {
         setAppliedCoupon({
@@ -86,7 +97,7 @@ const Pricing: React.FC = () => {
       }
 
       // You can add more coupon validation logic here
-      // For now, we'll just handle the special coupon
+      // For now, we'll just handle the special coupons
       setCouponError('Invalid coupon code');
     } catch (error) {
       setCouponError('Failed to apply coupon');
@@ -104,9 +115,11 @@ const Pricing: React.FC = () => {
     if (!appliedCoupon) return originalPrice;
     
     if (appliedCoupon.type === 'percentage') {
-      return Math.round(originalPrice * (1 - appliedCoupon.discount / 100));
+      const discountedPrice = originalPrice * (1 - appliedCoupon.discount / 100);
+      // Ensure minimum price of ₹1 and round to nearest rupee
+      return Math.max(1, Math.round(discountedPrice));
     } else {
-      return Math.max(0, originalPrice - appliedCoupon.discount);
+      return Math.max(1, originalPrice - appliedCoupon.discount);
     }
   };
 
@@ -138,6 +151,13 @@ const Pricing: React.FC = () => {
 
       const finalPrice = calculateDiscountedPrice(originalPrice);
       
+      console.log('Payment Details:', {
+        originalPrice,
+        finalPrice,
+        couponCode: appliedCoupon?.code,
+        discount: appliedCoupon?.discount
+      });
+      
       // Create order on backend
       const apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
       const orderResponse = await fetch(`${apiUrl}/v1/payments/create-order`, {
@@ -151,6 +171,8 @@ const Pricing: React.FC = () => {
           planType,
           planName,
           couponCode: appliedCoupon?.code || null,
+          originalAmount: originalPrice * 100,
+          discountedAmount: finalPrice * 100,
           userId: 'user-id' // Replace with actual user ID from auth context
         }),
       });
@@ -163,10 +185,10 @@ const Pricing: React.FC = () => {
 
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_live_RWtmHyTZfva7rb',
-        amount: finalPrice * 100,
+        amount: finalPrice * 100, // Use the calculated final price
         currency: 'INR',
         name: 'Pebly',
-        description: `${planName} Subscription`,
+        description: `${planName} Subscription${appliedCoupon ? ` (${appliedCoupon.discount}% off)` : ''}`,
         order_id: orderData.orderId,
         handler: async function (response: any) {
           try {
@@ -374,7 +396,7 @@ const Pricing: React.FC = () => {
                             setCouponCode(e.target.value.toUpperCase());
                             setCouponError('');
                           }}
-                          placeholder="Enter coupon code (e.g., VENAKT90)"
+                          placeholder="Enter coupon code (e.g., VENKAT99, VENAKT90)"
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />
                         <button
@@ -426,7 +448,7 @@ const Pricing: React.FC = () => {
               
               <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
-                  💡 Try code <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENAKT90</span> for 90% off!
+                  💡 Try codes <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENKAT99</span> for 99% off or <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENAKT90</span> for 90% off!
                 </p>
               </div>
             </div>
@@ -758,6 +780,31 @@ const Pricing: React.FC = () => {
                 Contact Support
               </button>
             </motion.div>
+          </motion.div>
+
+          {/* Policy Links for Razorpay Compliance */}
+          <motion.div 
+            className="mt-12 text-center"
+            initial="initial"
+            animate="animate"
+            variants={fadeInUp}
+          >
+            <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
+              <p className="text-gray-600 mb-4">
+                By proceeding with payment, you agree to our policies:
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <a href="/terms" className="text-blue-600 hover:text-blue-800 underline">Terms & Conditions</a>
+                <span className="text-gray-400">•</span>
+                <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>
+                <span className="text-gray-400">•</span>
+                <a href="/cancellation-refund" className="text-blue-600 hover:text-blue-800 underline">Refund Policy</a>
+                <span className="text-gray-400">•</span>
+                <a href="/shipping-policy" className="text-blue-600 hover:text-blue-800 underline">Shipping Policy</a>
+                <span className="text-gray-400">•</span>
+                <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">Contact Us</a>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
