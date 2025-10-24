@@ -2,7 +2,6 @@ package com.urlshortener;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import java.util.HashMap;
 @SpringBootApplication(exclude = {
     org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class
 })
-@EnableMongoRepositories(basePackages = "com.urlshortener.repository")
 @RestController
 @CrossOrigin(origins = "*")
 public class UrlShortenerSimpleApplication {

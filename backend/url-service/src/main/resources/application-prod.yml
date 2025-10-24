@@ -8,8 +8,8 @@ spring:
   # MongoDB Configuration for Production
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
-      database: ${MONGODB_DATABASE:pebly-database}
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE}
       auto-index-creation: false
 
   # CORS Configuration for Production
