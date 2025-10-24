@@ -3,12 +3,34 @@ import { X, Download, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
+interface QRCustomization {
+  foregroundColor?: string;
+  backgroundColor?: string;
+  size?: number;
+  errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
+  margin?: number;
+  frameStyle?: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'branded' | 'modern' | 'classic' | 'rounded';
+  gradientType?: 'none' | 'linear' | 'radial';
+  gradientDirection?: 'to-right' | 'to-bottom' | 'to-top-right' | 'to-bottom-right';
+  gradientStartColor?: string;
+  gradientEndColor?: string;
+  logo?: string;
+  logoSize?: number;
+  centerText?: string;
+  centerTextSize?: number;
+  centerTextFontFamily?: string;
+  centerTextColor?: string;
+  centerTextBackgroundColor?: string;
+  centerTextBold?: boolean;
+}
+
 interface QRSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   qrCanvas: HTMLCanvasElement | null;
   shortUrl: string;
   originalUrl: string;
+  qrCustomization?: QRCustomization;
   onCustomize?: () => void;
   onCreateAnother?: () => void;
 }
@@ -19,6 +41,7 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
   qrCanvas,
   shortUrl,
   originalUrl,
+  qrCustomization,
   onCustomize,
   onCreateAnother
 }) => {
@@ -36,7 +59,7 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
     if (!canvasRef.current || !originalUrl) return;
     
     try {
-      // Try to copy existing canvas first
+      // Try to copy existing canvas first (if it has the right customizations)
       if (qrCanvas && qrCanvas.width > 0) {
         const ctx = canvasRef.current.getContext('2d');
         if (ctx) {
@@ -47,17 +70,211 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
         }
       }
       
-      // Generate new QR code
+      // Generate new QR code with customizations
       const QRCode = await import('qrcode');
-      await QRCode.toCanvas(canvasRef.current, originalUrl, {
-        width: 300,
-        margin: 4,
-        color: { dark: '#000000', light: '#FFFFFF' },
-        errorCorrectionLevel: 'M'
-      });
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Use customization settings or defaults
+      const settings = {
+        width: qrCustomization?.size || 300,
+        margin: qrCustomization?.margin || 4,
+        color: {
+          dark: qrCustomization?.foregroundColor || '#000000',
+          light: qrCustomization?.backgroundColor || '#FFFFFF'
+        },
+        errorCorrectionLevel: qrCustomization?.errorCorrectionLevel || 'M'
+      };
+
+      await QRCode.toCanvas(canvas, originalUrl, settings);
+
+      // Apply customizations
+      if (qrCustomization) {
+        await applyCustomizations(ctx, canvas, qrCustomization);
+      }
     } catch (error) {
       console.error('QR generation failed:', error);
     }
+  };
+
+  const applyCustomizations = async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: QRCustomization) => {
+    // Apply gradient if specified
+    if (customization.gradientType !== 'none') {
+      let gradient: CanvasGradient;
+      
+      if (customization.gradientType === 'linear') {
+        switch (customization.gradientDirection) {
+          case 'to-right':
+            gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            break;
+          case 'to-bottom':
+            gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            break;
+          case 'to-top-right':
+            gradient = ctx.createLinearGradient(0, canvas.height, canvas.width, 0);
+            break;
+          case 'to-bottom-right':
+          default:
+            gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            break;
+        }
+      } else {
+        gradient = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) / 2
+        );
+      }
+
+      gradient.addColorStop(0, customization.foregroundColor || '#000000');
+      gradient.addColorStop(1, customization.gradientStartColor || customization.foregroundColor || '#000000');
+
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // Apply frame style
+    if (customization.frameStyle && customization.frameStyle !== 'none') {
+      applyFrameStyle(ctx, canvas, customization);
+    }
+
+    // Add logo if specified
+    if (customization.logo && customization.logo.trim()) {
+      await addLogo(ctx, canvas, customization);
+    }
+
+    // Add center text if specified
+    if (customization.centerText && customization.centerText.trim()) {
+      addCenterText(ctx, canvas, customization);
+    }
+  };
+
+  const applyFrameStyle = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: QRCustomization) => {
+    const frameStyle = customization.frameStyle;
+    const foregroundColor = customization.foregroundColor || '#000000';
+    const backgroundColor = customization.backgroundColor || '#FFFFFF';
+    
+    switch (frameStyle) {
+      case 'simple':
+        ctx.strokeStyle = foregroundColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+        break;
+      case 'scan-me':
+        ctx.fillStyle = foregroundColor;
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 8);
+        break;
+      case 'scan-me-black':
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, canvas.height - 25, canvas.width, 25);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 8);
+        break;
+      case 'branded':
+        ctx.strokeStyle = foregroundColor;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, 30);
+        ctx.fillStyle = foregroundColor;
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('QR CODE', canvas.width / 2, 20);
+        break;
+      case 'modern':
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, foregroundColor);
+        gradient.addColorStop(1, backgroundColor);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+        break;
+      case 'classic':
+        ctx.strokeStyle = foregroundColor;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+        const cornerSize = 15;
+        ctx.fillStyle = foregroundColor;
+        // Corner decorations
+        ctx.fillRect(0, 0, cornerSize, 3);
+        ctx.fillRect(0, 0, 3, cornerSize);
+        ctx.fillRect(canvas.width - cornerSize, 0, cornerSize, 3);
+        ctx.fillRect(canvas.width - 3, 0, 3, cornerSize);
+        ctx.fillRect(0, canvas.height - 3, cornerSize, 3);
+        ctx.fillRect(0, canvas.height - cornerSize, 3, cornerSize);
+        ctx.fillRect(canvas.width - cornerSize, canvas.height - 3, cornerSize, 3);
+        ctx.fillRect(canvas.width - 3, canvas.height - cornerSize, 3, cornerSize);
+        break;
+      case 'rounded':
+        ctx.strokeStyle = foregroundColor;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(5, 5, canvas.width - 10, canvas.height - 10, 15);
+        } else {
+          ctx.rect(5, 5, canvas.width - 10, canvas.height - 10);
+        }
+        ctx.stroke();
+        break;
+    }
+  };
+
+  const addLogo = async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: QRCustomization) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      return new Promise<void>((resolve) => {
+        img.onload = () => {
+          const logoSizePercent = (customization.logoSize || 20) / 100;
+          const logoSize = Math.min(canvas.width, canvas.height) * logoSizePercent;
+          const x = (canvas.width - logoSize) / 2;
+          const y = (canvas.height - logoSize) / 2;
+          
+          // Add white background for logo
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+          
+          ctx.drawImage(img, x, y, logoSize, logoSize);
+          resolve();
+        };
+        
+        img.onerror = () => resolve();
+        img.src = customization.logo!;
+      });
+    } catch (error) {
+      console.error('Error adding logo:', error);
+    }
+  };
+
+  const addCenterText = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: QRCustomization) => {
+    const fontSize = customization.centerTextSize || 16;
+    const fontWeight = customization.centerTextBold ? 'bold' : 'normal';
+    
+    ctx.font = `${fontWeight} ${fontSize}px ${customization.centerTextFontFamily || 'Arial'}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const textMetrics = ctx.measureText(customization.centerText!);
+    const textWidth = textMetrics.width;
+    const textHeight = fontSize;
+    
+    const x = canvas.width / 2;
+    const y = canvas.height / 2;
+    
+    // Add background for text
+    ctx.fillStyle = customization.centerTextBackgroundColor || '#FFFFFF';
+    ctx.fillRect(x - textWidth / 2 - 5, y - textHeight / 2 - 2, textWidth + 10, textHeight + 4);
+    
+    // Add text
+    ctx.fillStyle = customization.centerTextColor || '#000000';
+    ctx.fillText(customization.centerText!, x, y);
   };
 
   const copyToClipboard = async () => {

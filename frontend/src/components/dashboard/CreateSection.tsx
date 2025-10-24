@@ -14,7 +14,7 @@ import {
   Sparkles, 
   Shield,
   Palette,
-  Crown,
+
   Download,
   Save
 } from 'lucide-react';
@@ -121,7 +121,6 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const isPremium = user?.plan === 'premium';
 
   // Handle edit mode when component loads with edit data
   useEffect(() => {
@@ -1287,26 +1286,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       )}
                     </div>
 
-                    {/* Pattern Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Data Pattern</label>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="p-3 border-2 border-blue-500 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium flex items-center space-x-2">
-                          <span className="text-lg">⬛</span>
-                          <span>Square (Default)</span>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Corner Style */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Corner Style</label>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="p-3 border-2 border-blue-500 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
-                          Square (Default)
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Right Column - Frames & Advanced */}
@@ -1875,6 +1855,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         qrCanvas={canvasRef.current}
         shortUrl={result?.shortUrl || ''}
         originalUrl={result?.originalUrl || ''}
+        qrCustomization={qrCustomization}
         onCustomize={() => {
           setShowQRSuccessModal(false);
           // Keep the form open for customization
