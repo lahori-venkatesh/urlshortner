@@ -202,7 +202,7 @@ const Header: React.FC = () => {
                       </button>
                       
                       <button 
-                        onClick={() => handleNavigation('/dashboard', { activeSection: 'links' })}
+                        onClick={() => handleNavigation('/dashboard/links')}
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <LinkIcon className="w-4 h-4 mr-3" />
@@ -210,18 +210,26 @@ const Header: React.FC = () => {
                       </button>
                       
                       <button 
-                        onClick={() => handleNavigation('/dashboard', { activeSection: 'qr-codes' })}
+                        onClick={() => handleNavigation('/dashboard/qr-codes')}
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
                         <QrCode className="w-4 h-4 mr-3" />
                         My QR Codes
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleNavigation('/dashboard/file-links')}
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <Upload className="w-4 h-4 mr-3" />
+                        File Links
                       </button>
                     </div>
 
                     {/* Analytics - Lower Priority */}
                     <div className="py-2 border-b border-gray-100">
                       <button 
-                        onClick={() => handleNavigation('/dashboard', { activeSection: 'analytics' })}
+                        onClick={() => handleNavigation('/dashboard/analytics')}
                         className="w-full flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                       >
                         <BarChart3 className="w-4 h-4 mr-3" />

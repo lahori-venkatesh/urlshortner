@@ -312,47 +312,46 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2 flex items-center space-x-2">
-              <LinkIcon className="w-8 h-8" />
+      <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-1 sm:mb-2 flex items-center space-x-2">
+              <LinkIcon className="w-6 h-6 sm:w-8 sm:h-8" />
               <span>File Links Manager</span>
             </h2>
-            <p className="text-orange-100">
-              Manage your file-to-link conversions and shareable file links
+            <p className="text-orange-100 text-sm sm:text-base">
+              Manage your file-to-link conversions ({fileLinks.length} files)
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={handleRefresh}
               disabled={isFetching}
-              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="bg-white bg-opacity-20 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-1 sm:space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+              <span className="hidden sm:inline text-sm">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={handleCreateFileLink}
-              className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+              className="bg-white text-orange-600 px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
             >
-              <Plus className="w-5 h-5" />
-              <span>Create File Link</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden xs:inline">Create File Link</span>
+              <span className="xs:hidden">Create</span>
             </button>
           </div>
         </div>
       </div>
 
-
-
       {/* File Links Management */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Your File Links ({fileLinks.length})</h3>
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Your File Links ({fileLinks.length})</h3>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -360,14 +359,14 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                 placeholder="Search files..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-auto"
               />
             </div>
             
             <select
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-full sm:w-auto"
             >
               <option value="all">All Files</option>
               <option value="image">Images</option>

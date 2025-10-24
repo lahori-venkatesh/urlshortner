@@ -447,44 +447,45 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">QR Code Manager</h2>
-            <p className="text-purple-100">
-              Manage and track your QR codes from MongoDB database
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">QR Code Manager</h2>
+            <p className="text-purple-100 text-sm sm:text-base">
+              Manage and track your QR codes ({filteredQRCodes.length} codes)
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={handleRefresh}
               disabled={isFetching}
-              className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="bg-white bg-opacity-20 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-1 sm:space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+              <span className="hidden sm:inline text-sm">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={onCreateClick}
-              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+              className="bg-white text-purple-600 px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
             >
-              <Plus className="w-5 h-5" />
-              <span>Create QR Code</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden xs:inline">Create QR Code</span>
+              <span className="xs:hidden">Create</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
             Your QR Codes ({filteredQRCodes.length})
           </h3>
           
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -493,7 +494,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                 placeholder="Search QR codes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent w-64"
+                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
               />
             </div>
 

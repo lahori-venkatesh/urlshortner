@@ -293,57 +293,58 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Links Manager</h2>
-            <p className="text-blue-100">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Links Manager</h2>
+            <p className="text-blue-100 text-sm sm:text-base">
               Manage and track your short links ({filteredLinks.length} links)
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={handleRefresh}
               disabled={isFetching}
-              className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="bg-white/10 text-white px-2 sm:px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-1 sm:space-x-2 disabled:opacity-50"
             >
               <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
+              <span className="hidden sm:inline text-sm">{isFetching ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={onCreateClick}
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+              className="bg-white text-blue-600 px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
             >
-              <Plus className="w-5 h-5" />
-              <span>Create Link</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden xs:inline">Create Link</span>
+              <span className="xs:hidden">Create</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Header & Controls */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <input
               type="text"
               placeholder="Search links..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
 
           {/* Filters */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="px-2 sm:px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm"
             >
               <option value="date">Sort by Date</option>
               <option value="clicks">Sort by Clicks</option>
