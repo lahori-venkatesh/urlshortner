@@ -3,7 +3,7 @@ services:
     name: pebly-backend
     env: java
     buildCommand: cd url-service && mvn clean package -DskipTests
-    startCommand: cd url-service && java -jar target/url-service-1.0.0.jar
+    startCommand: cd url-service && java -Dspring.profiles.active=prod -jar target/url-service-1.0.0.jar
     plan: starter
     healthCheckPath: /actuator/health
     envVars:
@@ -27,5 +27,7 @@ services:
         sync: false
       - key: SPRING_PROFILES_ACTIVE
         value: prod
+      - key: JAVA_OPTS
+        value: -Dspring.profiles.active=prod
       - key: CACHE_TYPE
         value: simple

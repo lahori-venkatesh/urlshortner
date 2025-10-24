@@ -3,42 +3,35 @@ server:
 
 spring:
   application:
-    name: pebly-backend
-  
-  # MongoDB Configuration - Disabled for simple mode
-  data:
-    mongodb:
-      uri: # Disabled
-  
-  # Disable Redis for now to avoid connection issues
+    name: pebly-url-service
+
+  # No MongoDB configuration for simple profile
   cache:
     type: simple
-  
-  # Security - disable for now
-  security:
-    enabled: false
-    
-  # CORS
-  web:
-    cors:
-      allowed-origins: 
-        - ${FRONTEND_URL:http://localhost:3000}
-        - "https://pebly.vercel.app"
-        - "https://*.vercel.app"
-      allowed-methods: "*"
-      allowed-headers: "*"
-      allow-credentials: true
 
-# Disable auto-configurations for simple mode
-spring.autoconfigure.exclude: 
-  - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-  - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
-  - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
-  - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
-  - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+# Application Configuration
+app:
+  frontend:
+    url: ${FRONTEND_URL:https://pebly.vercel.app}
+  shorturl:
+    domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
 
+# Logging Configuration
 logging:
   level:
-    com.urlshortener: DEBUG
-    org.springframework: INFO
-    org.mongodb: INFO
+    com.urlshortener: INFO
+    org.springframework.security: WARN
+    root: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
