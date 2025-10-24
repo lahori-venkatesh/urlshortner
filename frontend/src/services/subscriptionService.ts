@@ -8,6 +8,7 @@ export interface UserPlanInfo {
   subscriptionExpiry: string | null;
   remainingDailyUrls: number;
   remainingDailyQrCodes: number;
+  remainingDailyFiles: number;
   maxFileSizeMB: number;
   canUseCustomAlias: boolean;
   canUsePasswordProtection: boolean;

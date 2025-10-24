@@ -34,6 +34,7 @@ public class SubscriptionController {
             planData.put("subscriptionExpiry", planInfo.getSubscriptionExpiry());
             planData.put("remainingDailyUrls", planInfo.getRemainingDailyUrls());
             planData.put("remainingDailyQrCodes", planInfo.getRemainingDailyQrCodes());
+            planData.put("remainingDailyFiles", planInfo.getRemainingDailyFiles());
             planData.put("maxFileSizeMB", planInfo.getMaxFileSizeMB());
             
             // Feature access
@@ -81,6 +82,14 @@ public class SubscriptionController {
                     if (!hasAccess) {
                         int remaining = subscriptionService.getRemainingDailyQrCodes(userId);
                         message = "Daily limit reached. You have " + remaining + " QR codes remaining today.";
+                    }
+                    break;
+                    
+                case "upload-file":
+                    hasAccess = subscriptionService.canUploadFile(userId);
+                    if (!hasAccess) {
+                        int remaining = subscriptionService.getRemainingDailyFiles(userId);
+                        message = "Daily limit reached. You have " + remaining + " file uploads remaining today.";
                     }
                     break;
                     
@@ -249,8 +258,9 @@ public class SubscriptionController {
             freePlan.put("currency", "INR");
             freePlan.put("period", "forever");
             freePlan.put("features", new String[]{
-                "10 URLs per day",
-                "10 QR codes per day",
+                "5 URLs per day",
+                "3 QR codes per day", 
+                "1 file upload per day",
                 "Basic QR codes (B&W)",
                 "5MB file uploads",
                 "Basic analytics",
@@ -264,8 +274,9 @@ public class SubscriptionController {
             monthlyPlan.put("currency", "INR");
             monthlyPlan.put("period", "month");
             monthlyPlan.put("features", new String[]{
-                "Unlimited URLs",
-                "Unlimited QR codes",
+                "100 URLs per day",
+                "60 QR codes per day",
+                "10 file uploads per day",
                 "Custom QR codes with logos",
                 "500MB file uploads",
                 "Detailed analytics",

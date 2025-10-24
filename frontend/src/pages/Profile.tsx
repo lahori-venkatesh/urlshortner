@@ -119,15 +119,15 @@ const SubscriptionSection: React.FC = () => {
       </div>
 
       {/* Usage Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 border border-gray-200 rounded-lg">
           <h4 className="text-sm font-medium text-gray-900 mb-2">Daily URLs</h4>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-blue-600">
-              {planInfo.hasPremiumAccess ? '∞' : planInfo.remainingDailyUrls}
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? '∞' : planInfo.remainingDailyUrls}
             </span>
             <span className="text-sm text-gray-500">
-              {planInfo.hasPremiumAccess ? 'Unlimited' : 'remaining today'}
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? 'Unlimited' : 'remaining today'}
             </span>
           </div>
         </div>
@@ -136,10 +136,22 @@ const SubscriptionSection: React.FC = () => {
           <h4 className="text-sm font-medium text-gray-900 mb-2">Daily QR Codes</h4>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-purple-600">
-              {planInfo.hasPremiumAccess ? '∞' : planInfo.remainingDailyQrCodes}
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? '∞' : planInfo.remainingDailyQrCodes}
             </span>
             <span className="text-sm text-gray-500">
-              {planInfo.hasPremiumAccess ? 'Unlimited' : 'remaining today'}
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? 'Unlimited' : 'remaining today'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">Daily Files</h4>
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-green-600">
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? '∞' : planInfo.remainingDailyFiles}
+            </span>
+            <span className="text-sm text-gray-500">
+              {planInfo.hasPremiumAccess && (planInfo.plan === 'LIFETIME' || planInfo.plan === 'PREMIUM_YEARLY') ? 'Unlimited' : 'remaining today'}
             </span>
           </div>
         </div>

@@ -47,6 +47,9 @@ public class FileUploadService {
     @Autowired
     private CacheService cacheService;
     
+    @Autowired
+    private SubscriptionService subscriptionService;
+    
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
     
@@ -155,6 +158,7 @@ public class FileUploadService {
             // Update user statistics
             if (userId != null) {
                 updateUserStats(userId);
+                subscriptionService.incrementFileUsage(userId);
                 // Invalidate user files cache
                 cacheService.clearCache("userFiles", userId);
             }

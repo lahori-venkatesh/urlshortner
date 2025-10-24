@@ -40,6 +40,7 @@ public class User {
     // Daily usage tracking (resets every 24 hours)
     private int dailyUrlsCreated = 0;
     private int dailyQrCodesCreated = 0;
+    private int dailyFilesUploaded = 0;
     private LocalDateTime lastUsageReset = LocalDateTime.now();
     
     // Engagement tracking
@@ -148,6 +149,9 @@ public class User {
     
     public int getDailyQrCodesCreated() { return dailyQrCodesCreated; }
     public void setDailyQrCodesCreated(int dailyQrCodesCreated) { this.dailyQrCodesCreated = dailyQrCodesCreated; }
+    
+    public int getDailyFilesUploaded() { return dailyFilesUploaded; }
+    public void setDailyFilesUploaded(int dailyFilesUploaded) { this.dailyFilesUploaded = dailyFilesUploaded; }
     
     public LocalDateTime getLastUsageReset() { return lastUsageReset; }
     public void setLastUsageReset(LocalDateTime lastUsageReset) { this.lastUsageReset = lastUsageReset; }
