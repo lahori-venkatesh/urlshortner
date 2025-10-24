@@ -2,45 +2,30 @@ services:
   - type: web
     name: pebly-backend
     env: java
-    buildCommand: ./mvnw clean package -DskipTests
-    startCommand: java -jar target/url-service-1.0.0.jar
+    buildCommand: cd url-service && mvn clean package -DskipTests
+    startCommand: cd url-service && java -jar target/url-service-1.0.0.jar
     plan: starter
     healthCheckPath: /actuator/health
     envVars:
       - key: PORT
         value: 8080
       - key: MONGODB_URI
-        fromDatabase:
-          name: pebly-mongodb
-          property: connectionString
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: pebly-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: pebly-redis
-          property: port
+        value: mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: MONGODB_DATABASE
+        value: pebly-database
       - key: FRONTEND_URL
-        value: https://your-frontend-domain.vercel.app
+        value: https://pebly.vercel.app
+      - key: SHORT_URL_DOMAIN
+        value: https://pebly.vercel.app
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: RAZORPAY_KEY_ID
-        sync: false
+        value: rzp_live_RWtmHyTZfva7rb
       - key: RAZORPAY_KEY_SECRET
         sync: false
-
-databases:
-  - name: pebly-mongodb
-    databaseName: pebly-database
-    user: pebly-user
-
-services:
-  - type: redis
-    name: pebly-redis
-    plan: starter
-    maxmemoryPolicy: allkeys-lru
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CACHE_TYPE
+        value: simple
