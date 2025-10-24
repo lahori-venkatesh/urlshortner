@@ -361,4 +361,28 @@ public class SubscriptionService {
         public long getMaxFileSizeMB() { return maxFileSizeMB; }
         public void setMaxFileSizeMB(long maxFileSizeMB) { this.maxFileSizeMB = maxFileSizeMB; }
     }
+    
+    /**
+     * Cancel user subscription
+     */
+    public boolean cancelSubscription(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return false;
+        
+        User user = userOpt.get();
+        String currentPlan = user.getSubscriptionPlan();
+        
+        // Check if user has an active subscription to cancel
+        if (FREE_PLAN.equals(currentPlan) || LIFETIME.equals(currentPlan)) {
+            return false; // Nothing to cancel
+        }
+        
+        // Mark subscription as cancelled but keep access until expiry
+        user.setSubscriptionCancelled(true);
+        user.setUpdatedAt(LocalDateTime.now());
+        
+        userRepository.save(user);
+        logger.info("Cancelled subscription for user: {}", userId);
+        return true;
+    }
 }

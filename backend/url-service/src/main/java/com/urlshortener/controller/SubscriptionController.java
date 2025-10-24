@@ -206,6 +206,33 @@ public class SubscriptionController {
     }
     
     /**
+     * Cancel user subscription
+     */
+    @PostMapping("/cancel/{userId}")
+    public ResponseEntity<Map<String, Object>> cancelSubscription(@PathVariable String userId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            boolean cancelled = subscriptionService.cancelSubscription(userId);
+            
+            if (cancelled) {
+                response.put("success", true);
+                response.put("message", "Subscription cancelled successfully. You will retain access until the end of your billing period.");
+            } else {
+                response.put("success", false);
+                response.put("message", "No active subscription found to cancel.");
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to cancel subscription: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    /**
      * Get pricing information
      */
     @GetMapping("/pricing")

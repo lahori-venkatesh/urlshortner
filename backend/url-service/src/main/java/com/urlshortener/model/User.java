@@ -25,6 +25,7 @@ public class User {
     // Account details
     private String subscriptionPlan = "FREE"; // FREE, PREMIUM_MONTHLY, PREMIUM_YEARLY, LIFETIME
     private LocalDateTime subscriptionExpiry;
+    private boolean subscriptionCancelled = false; // Whether subscription is cancelled but still active
     private boolean isActive = true;
     private boolean emailVerified = false;
     private String subscriptionId; // Razorpay subscription ID
@@ -93,6 +94,9 @@ public class User {
     
     public LocalDateTime getSubscriptionExpiry() { return subscriptionExpiry; }
     public void setSubscriptionExpiry(LocalDateTime subscriptionExpiry) { this.subscriptionExpiry = subscriptionExpiry; }
+    
+    public boolean isSubscriptionCancelled() { return subscriptionCancelled; }
+    public void setSubscriptionCancelled(boolean subscriptionCancelled) { this.subscriptionCancelled = subscriptionCancelled; }
     
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }

@@ -88,80 +88,39 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
               onClick={onClose}
             />
 
-            {/* Modal */}
+            {/* Simplified Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl rounded-2xl mx-4"
+              className="relative w-full max-w-md bg-white shadow-2xl rounded-2xl mx-4"
             >
-              <div className="p-4 sm:p-6 lg:p-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+              <div className="p-6">
+                {/* Simple Header */}
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white flex-shrink-0">
-                      {getFeatureIcon(feature || 'upgrade')}
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white">
+                      <Crown className="w-5 h-5" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Upgrade to Premium</h3>
-                      <p className="text-sm sm:text-base text-gray-600">Unlock powerful features and unlimited access</p>
-                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Upgrade Required</h3>
                   </div>
                   <button
                     onClick={onClose}
-                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0 self-start sm:self-center"
+                    className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Feature message */}
-                {message && (
-                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm sm:text-base text-blue-800 font-medium">{message}</p>
-                  </div>
-                )}
-
-                {/* Plan selector */}
-                <div className="mb-6">
-                  <div className="flex justify-center mb-4">
-                    <div className="bg-gray-100 p-1 rounded-lg flex flex-wrap sm:flex-nowrap gap-1 w-full sm:w-auto">
-                      <button
-                        onClick={() => setSelectedPlan('monthly')}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
-                          selectedPlan === 'monthly'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Monthly
-                      </button>
-                      <button
-                        onClick={() => setSelectedPlan('yearly')}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all relative ${
-                          selectedPlan === 'yearly'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Yearly
-                        <span className="absolute -top-2 -right-1 sm:-right-2 bg-green-500 text-white text-xs px-1 sm:px-2 py-1 rounded-full">
-                          Save ₹1,089
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => setSelectedPlan('lifetime')}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
-                          selectedPlan === 'lifetime'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Lifetime
-                      </button>
-                    </div>
-                  </div>
+                {/* Simple message */}
+                <div className="mb-6 text-center">
+                  <p className="text-gray-600 mb-4">
+                    {message || 'This feature requires a Premium subscription.'}
+                  </p>
                 </div>
+
+                {/* Simple Plan Options */}
+                <div className="space-y-3 mb-6">
 
                 {/* Pricing cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">

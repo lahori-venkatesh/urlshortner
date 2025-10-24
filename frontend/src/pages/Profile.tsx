@@ -14,11 +14,203 @@ import {
   Shield,
   Bell,
   Eye,
-  EyeOff
+  EyeOff,
+  Crown,
+  CreditCard,
+  AlertTriangle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import { subscriptionService } from '../services/subscriptionService';
 import Header from '../components/Header';
+import toast from 'react-hot-toast';
+
+// Subscription Section Component
+const SubscriptionSection: React.FC = () => {
+  const { user } = useAuth();
+  const { planInfo, refreshPlanInfo } = useSubscription();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    if (!user?.id) return;
+    
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.'
+    );
+    
+    if (!confirmed) return;
+
+    setIsLoading(true);
+    try {
+      // Add cancel subscription API call here
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/subscription/cancel/${user.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('Subscription cancelled successfully');
+        await refreshPlanInfo();
+      } else {
+        toast.error(result.message || 'Failed to cancel subscription');
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getPlanBadge = (plan: string) => {
+    switch (plan) {
+      case 'FREE':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">🆓 Free Plan</span>;
+      case 'PREMIUM_MONTHLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Crown className="w-3 h-3 mr-1" />Premium Monthly</span>;
+      case 'PREMIUM_YEARLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"><Crown className="w-3 h-3 mr-1" />Premium Yearly</span>;
+      case 'LIFETIME':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white"><Crown className="w-3 h-3 mr-1" />Lifetime</span>;
+      default:
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Unknown</span>;
+    }
+  };
+
+  if (!planInfo) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Current Plan */}
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div>
+          <h4 className="text-sm font-medium text-gray-900 mb-1">Current Plan</h4>
+          {getPlanBadge(planInfo.plan)}
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-600">
+            {planInfo.subscriptionExpiry ? `Expires: ${formatDate(planInfo.subscriptionExpiry)}` : 'No expiry'}
+          </p>
+          {planInfo.inTrial && (
+            <p className="text-xs text-orange-600 font-medium">Trial Active</p>
+          )}
+        </div>
+      </div>
+
+      {/* Usage Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">Daily URLs</h4>
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-blue-600">
+              {planInfo.hasPremiumAccess ? '∞' : planInfo.remainingDailyUrls}
+            </span>
+            <span className="text-sm text-gray-500">
+              {planInfo.hasPremiumAccess ? 'Unlimited' : 'remaining today'}
+            </span>
+          </div>
+        </div>
+        
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-900 mb-2">Daily QR Codes</h4>
+          <div className="flex items-center justify-between">
+            <span className="text-2xl font-bold text-purple-600">
+              {planInfo.hasPremiumAccess ? '∞' : planInfo.remainingDailyQrCodes}
+            </span>
+            <span className="text-sm text-gray-500">
+              {planInfo.hasPremiumAccess ? 'Unlimited' : 'remaining today'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-900">Available Features</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+          <div className={`flex items-center ${planInfo.canUseCustomAlias ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{planInfo.canUseCustomAlias ? '✓' : '✗'}</span>
+            Custom Aliases
+          </div>
+          <div className={`flex items-center ${planInfo.canUsePasswordProtection ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{planInfo.canUsePasswordProtection ? '✓' : '✗'}</span>
+            Password Protection
+          </div>
+          <div className={`flex items-center ${planInfo.canSetExpiration ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{planInfo.canSetExpiration ? '✓' : '✗'}</span>
+            Link Expiration
+          </div>
+          <div className={`flex items-center ${planInfo.canCustomizeQrCodes ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{planInfo.canCustomizeQrCodes ? '✓' : '✗'}</span>
+            Custom QR Codes
+          </div>
+          <div className={`flex items-center ${planInfo.canAccessDetailedAnalytics ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{planInfo.canAccessDetailedAnalytics ? '✓' : '✗'}</span>
+            Detailed Analytics
+          </div>
+          <div className="flex items-center text-green-600">
+            <span className="mr-2">✓</span>
+            {planInfo.maxFileSizeMB}MB File Uploads
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+        {planInfo.plan === 'FREE' ? (
+          <button
+            onClick={() => window.location.href = '/pricing'}
+            className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+          >
+            <Crown className="w-4 h-4 mr-2" />
+            Upgrade to Premium
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => window.location.href = '/pricing'}
+              className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Manage Billing
+            </button>
+            {planInfo.plan !== 'LIFETIME' && (
+              <button
+                onClick={handleCancelSubscription}
+                disabled={isLoading}
+                className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                <AlertTriangle className="w-4 h-4 mr-2" />
+                {isLoading ? 'Cancelling...' : 'Cancel Subscription'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -480,6 +672,21 @@ const Profile: React.FC = () => {
                   </label>
                 </div>
               </div>
+            </motion.div>
+
+            {/* Subscription & Billing */}
+            <motion.div 
+              className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Shield className="w-5 h-5 mr-2" />
+                Subscription & Billing
+              </h3>
+              
+              <SubscriptionSection />
             </motion.div>
           </div>
         </div>
