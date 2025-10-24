@@ -40,15 +40,16 @@ interface QRCustomization {
   errorCorrectionLevel: 'L' | 'M' | 'Q' | 'H';
   margin: number;
   logo?: string;
+  logoSize?: number;
   centerText?: string;
   centerTextFontSize: number;
   centerTextFontFamily: string;
   centerTextColor: string;
   centerTextBackgroundColor: string;
   centerTextBold: boolean;
-  pattern: 'square' | 'circle' | 'rounded' | 'diamond';
-  cornerStyle: 'square' | 'rounded' | 'circle' | 'extra-rounded';
-  frameStyle: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'arrow' | 'gradient' | 'social' | 'minimal';
+  pattern: 'square';
+  cornerStyle: 'square';
+  frameStyle: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'branded' | 'modern' | 'classic' | 'rounded';
   gradientType: 'none' | 'linear' | 'radial';
   gradientDirection: 'to-right' | 'to-bottom' | 'to-top-right' | 'to-bottom-right';
   secondaryColor: string;
@@ -98,6 +99,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     size: 300,
     errorCorrectionLevel: 'M',
     margin: 4,
+    logoSize: 20,
     pattern: 'square',
     cornerStyle: 'square',
     frameStyle: 'none',
@@ -954,6 +956,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                               gradientStartColor: qrCustomization.foregroundColor,
                               gradientEndColor: qrCustomization.secondaryColor,
                               logo: qrCustomization.logo,
+                              logoSize: qrCustomization.logoSize,
                               centerText: qrCustomization.centerText,
                               centerTextSize: qrCustomization.centerTextFontSize,
                               centerTextFontFamily: qrCustomization.centerTextFontFamily,
@@ -1287,57 +1290,21 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     {/* Pattern Selection */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">Data Pattern</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          { id: 'square', name: 'Square', icon: '⬛' },
-                          { id: 'circle', name: 'Circle', icon: '⚫' },
-                          { id: 'rounded', name: 'Rounded', icon: '⬜' },
-                          { id: 'diamond', name: 'Diamond', icon: '◆' }
-                        ].map((pattern) => (
-                          <button
-                            key={pattern.id}
-                            onClick={() => setQrCustomization(prev => ({
-                              ...prev,
-                              pattern: pattern.id as any
-                            }))}
-                            className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
-                              qrCustomization.pattern === pattern.id
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            <span className="text-lg">{pattern.icon}</span>
-                            <span>{pattern.name}</span>
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 border-2 border-blue-500 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium flex items-center space-x-2">
+                          <span className="text-lg">⬛</span>
+                          <span>Square (Default)</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Corner Style */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">Corner Style</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          { id: 'square', name: 'Square' },
-                          { id: 'rounded', name: 'Rounded' },
-                          { id: 'circle', name: 'Circle' },
-                          { id: 'extra-rounded', name: 'Extra Rounded' }
-                        ].map((corner) => (
-                          <button
-                            key={corner.id}
-                            onClick={() => setQrCustomization(prev => ({
-                              ...prev,
-                              cornerStyle: corner.id as any
-                            }))}
-                            className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors ${
-                              qrCustomization.cornerStyle === corner.id
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            {corner.name}
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="p-3 border-2 border-blue-500 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
+                          Square (Default)
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1349,14 +1316,14 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       <label className="block text-sm font-medium text-gray-700 mb-3">Select Frame</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                         {[
-                          { id: 'none', name: 'No Frame', preview: '⬜' },
-                          { id: 'simple', name: 'Simple Border', preview: '⬛' },
-                          { id: 'scan-me', name: 'Scan Me', preview: '📱' },
-                          { id: 'scan-me-black', name: 'Scan Me (Black)', preview: '📲' },
-                          { id: 'arrow', name: 'Arrow', preview: '➡️' },
-                          { id: 'gradient', name: 'Gradient', preview: '🌈' },
-                          { id: 'social', name: 'Social', preview: '💬' },
-                          { id: 'minimal', name: 'Minimal', preview: '⚪' }
+                          { id: 'none', name: 'No Frame', preview: '⬜', description: 'Clean QR code' },
+                          { id: 'simple', name: 'Simple Border', preview: '⬛', description: 'Basic frame' },
+                          { id: 'scan-me', name: 'Scan Me', preview: '📱', description: 'With scan text' },
+                          { id: 'scan-me-black', name: 'Scan Me Black', preview: '📲', description: 'Black banner' },
+                          { id: 'branded', name: 'Branded', preview: '🏷️', description: 'Company frame' },
+                          { id: 'modern', name: 'Modern', preview: '✨', description: 'Sleek design' },
+                          { id: 'classic', name: 'Classic', preview: '📋', description: 'Traditional' },
+                          { id: 'rounded', name: 'Rounded', preview: '🔘', description: 'Soft corners' }
                         ].map((frame) => (
                           <button
                             key={frame.id}
@@ -1369,6 +1336,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                                 ? 'border-blue-500 bg-blue-50 text-blue-700'
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
+                            title={frame.description}
                           >
                             <span className="text-lg">{frame.preview}</span>
                             <span className="text-xs text-center">{frame.name}</span>
@@ -1442,41 +1410,55 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Add Logo (Optional)
-                        {!isPremium && <Crown className="w-4 h-4 text-yellow-500 ml-1 inline" />}
                       </label>
-                      {!isPremium && (
-                        <p className="text-sm text-gray-500 mb-3">
-                          Upgrade to Premium to add custom logos
-                        </p>
-                      )}
                       <div className="space-y-3">
                         <button
                           onClick={() => logoInputRef.current?.click()}
-                          disabled={!isPremium}
-                          className={`w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors ${
-                            isPremium 
-                              ? 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700' 
-                              : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-                          }`}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700 rounded-lg transition-colors"
                         >
                           <Upload className="w-5 h-5" />
                           <span>Upload Logo</span>
                         </button>
                         {qrCustomization.logo && (
-                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                            <img 
-                              src={qrCustomization.logo} 
-                              alt="Logo preview" 
-                              className="w-12 h-12 object-cover rounded border"
-                            />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-gray-700 block">Logo added</span>
-                              <button
-                                onClick={() => setQrCustomization(prev => ({ ...prev, logo: undefined }))}
-                                className="text-xs text-red-600 hover:text-red-800"
-                              >
-                                Remove logo
-                              </button>
+                          <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <img 
+                                src={qrCustomization.logo} 
+                                alt="Logo preview" 
+                                className="w-12 h-12 object-cover rounded border"
+                              />
+                              <div className="flex-1">
+                                <span className="text-sm font-medium text-gray-700 block">Logo added</span>
+                                <button
+                                  onClick={() => setQrCustomization(prev => ({ ...prev, logo: undefined, logoSize: 20 }))}
+                                  className="text-xs text-red-600 hover:text-red-800"
+                                >
+                                  Remove logo
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Logo Size Adjustment */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-2">
+                                Logo Size: {qrCustomization.logoSize || 20}%
+                              </label>
+                              <input
+                                type="range"
+                                min="10"
+                                max="40"
+                                step="2"
+                                value={qrCustomization.logoSize || 20}
+                                onChange={(e) => setQrCustomization(prev => ({
+                                  ...prev,
+                                  logoSize: parseInt(e.target.value)
+                                }))}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
+                              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Small (10%)</span>
+                                <span>Large (40%)</span>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -1493,24 +1475,51 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     {/* Center Text */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Center Text (Optional)
+                        Center Text (Branding)
                       </label>
                       
                       {/* Text Input */}
                       <div className="relative mb-4">
                         <input
                           type="text"
-                          placeholder="BRAND"
+                          placeholder="YOUR BRAND"
                           value={qrCustomization.centerText || ''}
                           onChange={(e) => setQrCustomization(prev => ({
                             ...prev,
                             centerText: e.target.value.toUpperCase()
                           }))}
-                          maxLength={12}
-                          className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          maxLength={10}
+                          className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-bold"
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
-                          {(qrCustomization.centerText || '').length}/12
+                          {(qrCustomization.centerText || '').length}/10
+                        </div>
+                      </div>
+
+                      {/* Background Shape Presets */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-600 mb-2">Background Shape</label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[
+                            { id: 'rectangle', name: 'Rectangle', icon: '▭', colors: { bg: '#FFFFFF', text: '#000000' } },
+                            { id: 'rounded', name: 'Rounded', icon: '▢', colors: { bg: '#F3F4F6', text: '#1F2937' } },
+                            { id: 'badge', name: 'Badge', icon: '🏷️', colors: { bg: '#3B82F6', text: '#FFFFFF' } },
+                            { id: 'banner', name: 'Banner', icon: '📋', colors: { bg: '#1F2937', text: '#FFFFFF' } }
+                          ].map((shape) => (
+                            <button
+                              key={shape.id}
+                              onClick={() => setQrCustomization(prev => ({
+                                ...prev,
+                                centerTextBackgroundColor: shape.colors.bg,
+                                centerTextColor: shape.colors.text
+                              }))}
+                              className="p-2 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors flex flex-col items-center space-y-1 text-xs"
+                              title={shape.name}
+                            >
+                              <span className="text-lg">{shape.icon}</span>
+                              <span className="text-xs">{shape.name}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
 

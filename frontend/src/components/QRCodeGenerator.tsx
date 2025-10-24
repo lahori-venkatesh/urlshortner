@@ -9,12 +9,13 @@ interface QRCustomization {
   margin?: number;
   pattern?: 'square' | 'circle' | 'rounded' | 'diamond';
   cornerStyle?: 'square' | 'rounded' | 'circle' | 'extra-rounded';
-  frameStyle?: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'arrow' | 'gradient' | 'social' | 'minimal';
+  frameStyle?: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'branded' | 'modern' | 'classic' | 'rounded';
   gradientType?: 'none' | 'linear' | 'radial';
   gradientDirection?: 'to-right' | 'to-bottom' | 'to-top-right' | 'to-bottom-right';
   gradientStartColor?: string;
   gradientEndColor?: string;
   logo?: string;
+  logoSize?: number;
   centerText?: string;
   centerTextSize?: number;
   centerTextFontFamily?: string;
@@ -53,6 +54,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     gradientStartColor: '#000000',
     gradientEndColor: '#333333',
     logo: '',
+    logoSize: 20,
     centerText: '',
     centerTextSize: 16,
     centerTextFontFamily: 'Arial',
@@ -266,24 +268,77 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     switch (config.frameStyle) {
       case 'simple':
         ctx.strokeStyle = config.foregroundColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
         break;
       case 'scan-me':
         ctx.fillStyle = config.foregroundColor;
-        ctx.font = '12px Arial';
+        ctx.font = 'bold 14px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 5);
+        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 8);
         break;
       case 'scan-me-black':
         ctx.fillStyle = '#000000';
-        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+        ctx.fillRect(0, canvas.height - 25, canvas.width, 25);
         ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 8);
+        break;
+      case 'branded':
+        // Company frame with border and branding area
+        ctx.strokeStyle = config.foregroundColor;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+        ctx.fillStyle = config.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, 30);
+        ctx.fillStyle = config.foregroundColor;
         ctx.font = 'bold 12px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 6);
+        ctx.fillText('QR CODE', canvas.width / 2, 20);
         break;
-      // Add more frame styles as needed
+      case 'modern':
+        // Sleek modern design with gradient border
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, config.foregroundColor);
+        gradient.addColorStop(1, config.backgroundColor);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+        break;
+      case 'classic':
+        // Traditional frame with corner decorations
+        ctx.strokeStyle = config.foregroundColor;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+        // Corner decorations
+        const cornerSize = 15;
+        ctx.fillStyle = config.foregroundColor;
+        // Top-left corner
+        ctx.fillRect(0, 0, cornerSize, 3);
+        ctx.fillRect(0, 0, 3, cornerSize);
+        // Top-right corner
+        ctx.fillRect(canvas.width - cornerSize, 0, cornerSize, 3);
+        ctx.fillRect(canvas.width - 3, 0, 3, cornerSize);
+        // Bottom-left corner
+        ctx.fillRect(0, canvas.height - 3, cornerSize, 3);
+        ctx.fillRect(0, canvas.height - cornerSize, 3, cornerSize);
+        // Bottom-right corner
+        ctx.fillRect(canvas.width - cornerSize, canvas.height - 3, cornerSize, 3);
+        ctx.fillRect(canvas.width - 3, canvas.height - cornerSize, 3, cornerSize);
+        break;
+      case 'rounded':
+        // Soft rounded frame
+        ctx.strokeStyle = config.foregroundColor;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(5, 5, canvas.width - 10, canvas.height - 10, 15);
+        } else {
+          ctx.rect(5, 5, canvas.width - 10, canvas.height - 10);
+        }
+        ctx.stroke();
+        break;
     }
   };
 
@@ -294,7 +349,8 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       
       return new Promise<void>((resolve) => {
         img.onload = () => {
-          const logoSize = Math.min(canvas.width, canvas.height) * 0.2;
+          const logoSizePercent = (config.logoSize || 20) / 100;
+          const logoSize = Math.min(canvas.width, canvas.height) * logoSizePercent;
           const x = (canvas.width - logoSize) / 2;
           const y = (canvas.height - logoSize) / 2;
           
