@@ -968,43 +968,46 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             </button>
           </div>
           
-          {/* Progress bars */}
-          <div className="mt-4 space-y-2">
-            <div>
+          {/* Compact Progress bars */}
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="bg-white/50 rounded-lg p-2">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
                 <span>Daily URLs</span>
                 <span>{5 - planInfo.remainingDailyUrls}/5</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all"
                   style={{ width: `${((5 - planInfo.remainingDailyUrls) / 5) * 100}%` }}
                 />
               </div>
+              <div className="text-xs text-gray-500 mt-1">Monthly: {100 - planInfo.remainingMonthlyUrls}/100</div>
             </div>
-            <div>
+            <div className="bg-white/50 rounded-lg p-2">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
                 <span>Daily QR Codes</span>
                 <span>{3 - planInfo.remainingDailyQrCodes}/3</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all"
                   style={{ width: `${((3 - planInfo.remainingDailyQrCodes) / 3) * 100}%` }}
                 />
               </div>
+              <div className="text-xs text-gray-500 mt-1">Monthly: {50 - planInfo.remainingMonthlyQrCodes}/50</div>
             </div>
-            <div>
+            <div className="bg-white/50 rounded-lg p-2">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
                 <span>Daily Files</span>
                 <span>{1 - planInfo.remainingDailyFiles}/1</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-orange-500 to-red-500 h-1.5 rounded-full transition-all"
                   style={{ width: `${((1 - planInfo.remainingDailyFiles) / 1) * 100}%` }}
                 />
               </div>
+              <div className="text-xs text-gray-500 mt-1">Monthly: {15 - planInfo.remainingMonthlyFiles}/15</div>
             </div>
           </div>
 
