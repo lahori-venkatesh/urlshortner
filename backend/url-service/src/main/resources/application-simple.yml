@@ -5,7 +5,13 @@ spring:
   application:
     name: pebly-url-service
 
-  # No MongoDB configuration for simple profile
+  # MongoDB Configuration (fallback)
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
+      database: ${MONGODB_DATABASE:pebly-database}
+      auto-index-creation: false
+      
   cache:
     type: simple
 

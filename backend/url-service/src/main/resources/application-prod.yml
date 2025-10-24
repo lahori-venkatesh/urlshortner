@@ -20,6 +20,8 @@ spring:
         - "https://pebly.vercel.app"
         - "https://*.vercel.app"
         - "https://urlshortner-mrrl.onrender.com"
+        - "http://localhost:3000"
+        - "*"
       allowed-methods:
         - GET
         - POST
@@ -29,7 +31,12 @@ spring:
         - PATCH
       allowed-headers:
         - "*"
+        - "Authorization"
+        - "Content-Type"
+        - "X-Requested-With"
       allow-credentials: true
+      exposed-headers:
+        - "Authorization"
 
   cache:
     type: ${CACHE_TYPE:simple}
