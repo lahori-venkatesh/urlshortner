@@ -617,163 +617,121 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
             )}
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredQRCodes.map((qr) => (
               <motion.div
                 key={qr.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200"
+                className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-all duration-200"
               >
-                <div className="flex items-center gap-4">
-                  {/* QR Code Preview - Left Side */}
-                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 relative">
-                    {qr.qrCodeImage ? (
-                      <img src={qr.qrCodeImage} alt={qr.title} className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                      <div 
-                        className="w-full h-full flex items-center justify-center rounded-lg"
-                        style={{ backgroundColor: qr.customization.backgroundColor }}
-                      >
-                        <QrCode 
-                          className="w-12 h-12" 
-                          style={{ color: qr.customization.foregroundColor }}
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Status Indicators */}
-                    <div className="absolute -top-1 -right-1 flex space-x-1">
+                {/* Mobile-First QR Card Layout */}
+                <div className="flex flex-col space-y-3">
+                  {/* Header Row - Title and Status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate" title={qr.title}>
+                        {qr.title}
+                      </h3>
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                        {qr.type.charAt(0).toUpperCase() + qr.type.slice(1)}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1">
                       {qr.isFavorite && (
-                        <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
-                          <Star className="w-2 h-2 text-white fill-current" />
-                        </div>
+                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
                       )}
-                      {qr.isHidden && (
-                        <div className="w-4 h-4 bg-gray-500 rounded-full flex items-center justify-center">
-                          <EyeOff className="w-2 h-2 text-white" />
-                        </div>
-                      )}
-                      {qr.isDynamic && (
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                          <RefreshCw className="w-2 h-2 text-white" />
-                        </div>
-                      )}
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <Eye className="w-3 h-3" />
+                        <span>{qr.scans}</span>
+                      </div>
                     </div>
                   </div>
-
-                  {/* QR Information - Middle Section */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate" title={qr.title}>
-                          {qr.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-1">
-                          {qr.type.charAt(0).toUpperCase() + qr.type.slice(1)}
-                        </p>
-                      </div>
+                  
+                  {/* QR Preview and URL Row */}
+                  <div className="flex items-center space-x-3">
+                    {/* QR Code Preview */}
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 relative">
+                      {qr.qrCodeImage ? (
+                        <img src={qr.qrCodeImage} alt={qr.title} className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <div 
+                          className="w-full h-full flex items-center justify-center rounded-lg"
+                          style={{ backgroundColor: qr.customization.backgroundColor }}
+                        >
+                          <QrCode 
+                            className="w-8 h-8 sm:w-12 sm:h-12" 
+                            style={{ color: qr.customization.foregroundColor }}
+                          />
+                        </div>
+                      )}
                     </div>
-
-                    {/* URL Display */}
-                    <div className="mb-3">
+                    
+                    {/* URL Information */}
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <Link className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <Link className="w-3 h-3 mr-1 flex-shrink-0" />
                         <span className="truncate" title={qr.url}>{qr.url}</span>
                       </div>
                       
                       {qr.shortUrl && (
-                        <div className="flex items-center text-sm text-purple-600 bg-purple-50 px-2 py-1 rounded-md">
-                          <span className="truncate font-mono" title={qr.shortUrl}>{qr.shortUrl}</span>
+                        <div className="flex items-center justify-between text-sm text-purple-600 bg-purple-50 px-2 py-1 rounded-md">
+                          <span className="truncate font-mono text-xs" title={qr.shortUrl}>{qr.shortUrl}</span>
                           <button
                             onClick={() => copyQRUrl(qr.shortUrl!)}
-                            className="ml-2 text-purple-500 hover:text-purple-700 flex-shrink-0"
-                            title="Copy short link"
+                            className="ml-2 text-purple-500 hover:text-purple-700 flex-shrink-0 touch-manipulation"
+                            title="Copy"
                           >
                             <Copy className="w-3 h-3" />
                           </button>
                         </div>
                       )}
                     </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <BarChart3 className="w-4 h-4 mr-1" />
-                        <span>Scan data</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        <span>{new Date(qr.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}</span>
-                      </div>
-                    </div>
                   </div>
-
-                  {/* Action Buttons - Right Side */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* View Analytics */}
-                    <button
-                      onClick={() => viewQRAnalytics(qr)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="View Analytics"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                    </button>
+                  
+                  {/* Bottom Row - Date and Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3" />
+                      <span>{new Date(qr.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}</span>
+                    </div>
                     
-                    {/* Edit */}
-                    <button
-                      onClick={() => editQR(qr)}
-                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                      title="Edit QR Code"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    
-                    {/* Download */}
-                    <button
-                      onClick={() => downloadQR(qr)}
-                      className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                      title="Download QR Code"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    
-                    {/* Delete */}
-                    <button
-                      onClick={() => deleteQR(qr.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete QR Code"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    
-                    {/* Three Dots Menu */}
-                    <div className="relative" ref={el => dropdownRefs.current[qr.id] = el}>
+                    {/* Touch-Friendly Action Buttons */}
+                    <div className="flex items-center space-x-1">
                       <button
-                        onClick={() => setActiveDropdown(activeDropdown === qr.id ? null : qr.id)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="More options"
+                        onClick={() => viewQRAnalytics(qr)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
+                        title="Analytics"
                       >
-                        <MoreVertical className="w-4 h-4" />
+                        <BarChart3 className="w-4 h-4" />
                       </button>
                       
-                      {/* Dropdown Menu */}
-                      {activeDropdown === qr.id && (
-                        <AnimatePresence>
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            transition={{ duration: 0.1 }}
-                          >
-                            <QRDropdownMenu qr={qr} />
-                          </motion.div>
-                        </AnimatePresence>
-                      )}
+                      <button
+                        onClick={() => editQR(qr)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors touch-manipulation"
+                        title="Edit"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => downloadQR(qr)}
+                        className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors touch-manipulation"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => deleteQR(qr.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>

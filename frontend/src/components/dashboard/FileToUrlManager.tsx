@@ -430,88 +430,119 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredLinks.map((fileLink) => (
-              <div key={fileLink.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1 min-w-0">
-                    {getFileIcon(fileLink.fileType)}
-                    
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">{fileLink.fileName}</h4>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <code className="text-blue-600 font-mono text-sm">{fileLink.shortUrl}</code>
-                        <button
-                          onClick={() => copyToClipboard(fileLink.shortUrl)}
-                          className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded"
-                          title="Copy link"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => window.open(fileLink.shortUrl, '_blank')}
-                          className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded"
-                          title="Open link"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                        <span>{formatFileSize(fileLink.fileSize)}</span>
-                        <span className="flex items-center space-x-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{fileLink.clicks} views</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <Download className="w-3 h-3" />
-                          <span>{fileLink.downloadCount} downloads</span>
-                        </span>
-                        <span>{new Date(fileLink.createdAt).toLocaleDateString()}</span>
-                        {fileLink.isPasswordProtected && (
-                          <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">🔒 Protected</span>
-                        )}
-                        {fileLink.expiresAt && (
-                          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">⏰ Expires</span>
-                        )}
-                      </div>
-                      
-                      {fileLink.tags && fileLink.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {fileLink.tags.map(tag => (
-                            <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                              {tag}
-                            </span>
-                          ))}
+              <div key={fileLink.id} className="border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow bg-white">
+                {/* Mobile-First File Card Layout */}
+                <div className="flex flex-col space-y-3">
+                  {/* Header Row - File Icon, Name and Size */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {getFileIcon(fileLink.fileType)}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 truncate text-sm sm:text-base">{fileLink.fileName}</h4>
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <span>{formatFileSize(fileLink.fileSize)}</span>
+                          {fileLink.isPasswordProtected && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">🔒</span>
+                          )}
+                          {fileLink.expiresAt && (
+                            <span className="bg-red-100 text-red-800 px-2 py-1 rounded">⏰</span>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <Eye className="w-3 h-3" />
+                      <span>{fileLink.clicks}</span>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
-                    <button
-                      onClick={() => {
-                        navigate(`/dashboard/file-links/analytics/${fileLink.shortCode}`);
-                      }}
-                      className="text-gray-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded transition-colors"
-                      title="View Analytics"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => downloadFile(fileLink.shortCode, fileLink.fileName)}
-                      className="text-gray-400 hover:text-green-600 p-2 hover:bg-green-50 rounded transition-colors"
-                      title="Download file"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteFileLink(fileLink.shortCode)}
-                      className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded transition-colors"
-                      title="Delete file link"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  
+                  {/* Short URL Row */}
+                  <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+                    <code className="text-blue-600 font-mono text-xs sm:text-sm flex-1 truncate">
+                      {fileLink.shortUrl}
+                    </code>
+                    <div className="flex items-center space-x-1 ml-2">
+                      <button
+                        onClick={() => copyToClipboard(fileLink.shortUrl)}
+                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors touch-manipulation"
+                        title="Copy"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => window.open(fileLink.shortUrl, '_blank')}
+                        className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors touch-manipulation"
+                        title="Open"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center space-x-3">
+                      <span className="flex items-center space-x-1">
+                        <Download className="w-3 h-3" />
+                        <span>{fileLink.downloadCount}</span>
+                      </span>
+                      <span>{new Date(fileLink.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Tags */}
+                  {fileLink.tags && fileLink.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {fileLink.tags.slice(0, 3).map(tag => (
+                        <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                      {fileLink.tags.length > 3 && (
+                        <span className="text-xs text-gray-500">+{fileLink.tags.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Bottom Row - Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="text-xs text-gray-500">
+                      File Link
+                    </div>
+                    
+                    {/* Touch-Friendly Action Buttons */}
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => {
+                          navigate(`/dashboard/file-links/analytics/${fileLink.shortCode}`);
+                        }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
+                        title="Analytics"
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => downloadFile(fileLink.shortCode, fileLink.fileName)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors touch-manipulation"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => deleteFileLink(fileLink.shortCode)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

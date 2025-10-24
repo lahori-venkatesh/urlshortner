@@ -11,7 +11,8 @@ import {
   BarChart3,
   Download,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -403,12 +404,14 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
             <p className="text-gray-500">No links found matching your criteria</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredLinks.map((link) => (
-              <div key={link.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
+              <div key={link.id} className="border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow bg-white">
+                {/* Mobile-First Layout */}
+                <div className="flex flex-col space-y-3">
+                  {/* Header Row - Type and Domain */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
                       <div className={`w-2 h-2 rounded-full ${
                         link.type === 'url' ? 'bg-blue-500' : 
                         link.type === 'qr' ? 'bg-purple-500' : 'bg-green-500'
@@ -422,60 +425,82 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
                         </span>
                       )}
                     </div>
-                    
-                    <div className="flex items-center space-x-2 mb-1">
-                      <code className="text-blue-600 font-mono text-sm">{link.shortUrl}</code>
-                    </div>
-                    
-                    <p className="text-sm text-gray-600 truncate mb-2">{link.originalUrl}</p>
-                    
-                    {/* Tags */}
-                    {link.tags && link.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {link.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span className="flex items-center space-x-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{link.clicks} clicks</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>{new Date(link.createdAt).toLocaleDateString()}</span>
-                      </span>
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <Eye className="w-3 h-3" />
+                      <span>{link.clicks}</span>
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="ml-4 flex items-center space-x-2">
-                    {/* Direct Analytics Button */}
+                  
+                  {/* Short URL - Prominent Display */}
+                  <div className="flex items-center justify-between">
+                    <code className="text-blue-600 font-mono text-sm sm:text-base font-medium flex-1 truncate">
+                      {link.shortUrl}
+                    </code>
                     <button
-                      onClick={() => {
-                        const shortCode = link.shortUrl.split('/').pop();
-                        window.open(`/dashboard/links/analytics/${shortCode}`, '_blank');
-                      }}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="View Analytics"
+                      onClick={() => copyToClipboard(link.shortUrl)}
+                      className="ml-2 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
+                      title="Copy Link"
                     >
-                      <BarChart3 className="w-4 h-4" />
+                      <Copy className="w-4 h-4" />
                     </button>
+                  </div>
+                  
+                  {/* Original URL - Truncated */}
+                  <p className="text-sm text-gray-600 truncate">{link.originalUrl}</p>
+                  
+                  {/* Tags */}
+                  {link.tags && link.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {link.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {link.tags.length > 3 && (
+                        <span className="text-xs text-gray-500">+{link.tags.length - 3} more</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Bottom Row - Date and Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center space-x-1 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3" />
+                      <span>{new Date(link.createdAt).toLocaleDateString()}</span>
+                    </div>
                     
-                    <LinkActions
-                      link={link}
-                      onEdit={editLink}
-                      onDelete={deleteLink}
-                      onUpdateTags={updateTags}
-                      showQRCode={true}
-                    />
+                    {/* Touch-Friendly Action Buttons */}
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => {
+                          const shortCode = link.shortUrl.split('/').pop();
+                          window.open(`/dashboard/links/analytics/${shortCode}`, '_blank');
+                        }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
+                        title="Analytics"
+                      >
+                        <BarChart3 className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => editLink(link.id)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors touch-manipulation"
+                        title="Edit"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      
+                      <button
+                        onClick={() => deleteLink(link.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
