@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Link, 
@@ -68,6 +69,7 @@ interface ShortenedLink {
 
 const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => {
   const { user } = useAuth();
+  const location = useLocation();
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -77,6 +79,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const [showPassword, setShowPassword] = useState(false);
   const [expirationDays, setExpirationDays] = useState<number | ''>('');
   const [maxClicks, setMaxClicks] = useState<number | ''>('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editQRId, setEditQRId] = useState<string | null>(null);
   const [isOneTime, setIsOneTime] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -116,6 +120,39 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const isPremium = user?.plan === 'premium';
+
+  // Handle edit mode when component loads with edit data
+  useEffect(() => {
+    const editData = (location.state as any)?.editQRData;
+    if (editData) {
+      setIsEditMode(true);
+      setEditQRId(editData.id);
+      setQrText(editData.content || '');
+      setQrCustomization({
+        foregroundColor: editData.foregroundColor || '#000000',
+        backgroundColor: editData.backgroundColor || '#FFFFFF',
+        size: editData.size || 300,
+        errorCorrectionLevel: editData.errorCorrectionLevel || 'M',
+        margin: 4,
+        pattern: editData.style === 'dots' ? 'circle' : 
+                 editData.style === 'rounded' ? 'rounded' :
+                 editData.style === 'classy' ? 'diamond' : 'square',
+        cornerStyle: editData.cornerStyle || 'square',
+        frameStyle: editData.frameStyle || 'none',
+        gradientType: 'none',
+        gradientDirection: 'to-right',
+        secondaryColor: '#333333',
+        centerTextFontSize: 16,
+        centerTextFontFamily: 'Arial',
+        centerTextColor: '#000000',
+        centerTextBackgroundColor: '#FFFFFF',
+        centerTextBold: true
+      });
+      
+      // Clear the location state to prevent re-loading on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Add roundRect polyfill for older browsers
   useEffect(() => {
@@ -481,26 +518,60 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           });
           backendResult = await response.json();
         } else if (mode === 'qr') {
-          // Call QR code API
+          // Call QR code API (create or update)
           const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-          const response = await fetch(`${apiUrl}/v1/qr`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              content: originalUrl,
-              contentType: 'TEXT',
-              userId: user?.id || 'anonymous-user',
-              title: `Dashboard QR - ${shortCode}`,
-              description: 'Created via Dashboard',
-              foregroundColor: qrCustomization.foregroundColor,
-              backgroundColor: qrCustomization.backgroundColor,
-              size: qrCustomization.size,
-              errorCorrectionLevel: qrCustomization.errorCorrectionLevel
-            })
-          });
-          backendResult = await response.json();
+          
+          if (isEditMode && editQRId) {
+            // Update existing QR code
+            const response = await fetch(`${apiUrl}/v1/qr/${editQRId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user?.id || 'anonymous-user',
+                content: originalUrl,
+                contentType: 'TEXT',
+                title: `Dashboard QR - ${shortCode}`,
+                description: 'Updated via Dashboard',
+                foregroundColor: qrCustomization.foregroundColor,
+                backgroundColor: qrCustomization.backgroundColor,
+                size: qrCustomization.size,
+                errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
+                style: qrCustomization.pattern === 'circle' ? 'dots' :
+                       qrCustomization.pattern === 'rounded' ? 'rounded' :
+                       qrCustomization.pattern === 'diamond' ? 'classy' : 'square',
+                cornerStyle: qrCustomization.cornerStyle,
+                frameStyle: qrCustomization.frameStyle
+              })
+            });
+            backendResult = await response.json();
+          } else {
+            // Create new QR code
+            const response = await fetch(`${apiUrl}/v1/qr`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                content: originalUrl,
+                contentType: 'TEXT',
+                userId: user?.id || 'anonymous-user',
+                title: `Dashboard QR - ${shortCode}`,
+                description: 'Created via Dashboard',
+                foregroundColor: qrCustomization.foregroundColor,
+                backgroundColor: qrCustomization.backgroundColor,
+                size: qrCustomization.size,
+                errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
+                style: qrCustomization.pattern === 'circle' ? 'dots' :
+                       qrCustomization.pattern === 'rounded' ? 'rounded' :
+                       qrCustomization.pattern === 'diamond' ? 'classy' : 'square',
+                cornerStyle: qrCustomization.cornerStyle,
+                frameStyle: qrCustomization.frameStyle
+              })
+            });
+            backendResult = await response.json();
+          }
         }
         
         if (backendResult && backendResult.success) {
@@ -513,7 +584,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             newLink.shortCode = backendResult.data.shortCode || newLink.shortCode;
           }
           
-          toast.success('Link created and saved to database!');
+          toast.success(isEditMode ? 'QR code updated successfully!' : 'Link created and saved to database!');
         } else {
           console.error('Backend save failed:', backendResult);
           toast.error('Failed to save to database: ' + (backendResult?.message || 'Unknown error'));
@@ -525,17 +596,23 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
       setResult(newLink);
       
-      // Reset form
-      setUrlInput('');
-      setQrText('');
-      setSelectedFile(null);
-      setCustomAlias('');
-      setPassword('');
-      setExpirationDays('');
-      setMaxClicks('');
-      setIsOneTime(false);
-      setAiSuggestions([]);
-      setSecurityCheck(null);
+      // Reset form (except in edit mode)
+      if (!isEditMode) {
+        setUrlInput('');
+        setQrText('');
+        setSelectedFile(null);
+        setCustomAlias('');
+        setPassword('');
+        setExpirationDays('');
+        setMaxClicks('');
+        setIsOneTime(false);
+        setAiSuggestions([]);
+        setSecurityCheck(null);
+      } else {
+        // Reset edit mode after successful update
+        setIsEditMode(false);
+        setEditQRId(null);
+      }
 
       // Add a small delay for better UX
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -585,21 +662,182 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     }
   };
 
-  const downloadQR = () => {
-    if (!canvasRef.current) {
-      toast.error('QR code not ready for download');
+  const downloadQR = async () => {
+    if (!qrText) {
+      toast.error('No QR code content to download');
       return;
     }
-    
+
     try {
+      // Generate QR code with full customization for download
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
+      
+      // Import QRCode dynamically
+      const QRCode = await import('qrcode');
+      
+      // Generate basic QR code first
+      await QRCode.toCanvas(canvas, qrText, {
+        width: qrCustomization.size,
+        margin: qrCustomization.margin,
+        color: {
+          dark: qrCustomization.foregroundColor,
+          light: qrCustomization.backgroundColor
+        },
+        errorCorrectionLevel: qrCustomization.errorCorrectionLevel
+      });
+
+      // Apply customizations
+      await applyQRCustomizations(ctx, canvas, qrCustomization);
+      
       const link = document.createElement('a');
       link.download = `qr-code-${Date.now()}.png`;
-      link.href = canvasRef.current.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png');
       link.click();
       toast.success('QR code downloaded successfully!');
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download QR code');
+    }
+  };
+
+  const applyQRCustomizations = async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: any) => {
+    // Apply gradient if specified
+    if (customization.gradientType !== 'none') {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let gradient: CanvasGradient;
+      
+      if (customization.gradientType === 'linear') {
+        switch (customization.gradientDirection) {
+          case 'to-right':
+            gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            break;
+          case 'to-bottom':
+            gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            break;
+          case 'to-top-right':
+            gradient = ctx.createLinearGradient(0, canvas.height, canvas.width, 0);
+            break;
+          case 'to-bottom-right':
+          default:
+            gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            break;
+        }
+      } else {
+        gradient = ctx.createRadialGradient(
+          canvas.width / 2, canvas.height / 2, 0,
+          canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) / 2
+        );
+      }
+
+      gradient.addColorStop(0, customization.foregroundColor);
+      gradient.addColorStop(1, customization.secondaryColor);
+
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // Apply pattern if not square
+    if (customization.pattern !== 'square') {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      const moduleSize = Math.floor(canvas.width / 25);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.foregroundColor;
+
+      for (let y = 0; y < canvas.height; y += moduleSize) {
+        for (let x = 0; x < canvas.width; x += moduleSize) {
+          const pixelIndex = (y * canvas.width + x) * 4;
+          const isDark = data[pixelIndex] < 128;
+
+          if (isDark) {
+            switch (customization.pattern) {
+              case 'circle':
+                ctx.beginPath();
+                ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize / 2 - 1, 0, 2 * Math.PI);
+                ctx.fill();
+                break;
+              case 'rounded':
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                  ctx.roundRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2, moduleSize / 4);
+                } else {
+                  ctx.rect(x + 1, y + 1, moduleSize - 2, moduleSize - 2);
+                }
+                ctx.fill();
+                break;
+              case 'diamond':
+                ctx.beginPath();
+                ctx.moveTo(x + moduleSize / 2, y + 1);
+                ctx.lineTo(x + moduleSize - 1, y + moduleSize / 2);
+                ctx.lineTo(x + moduleSize / 2, y + moduleSize - 1);
+                ctx.lineTo(x + 1, y + moduleSize / 2);
+                ctx.closePath();
+                ctx.fill();
+                break;
+              default:
+                ctx.fillRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2);
+                break;
+            }
+          }
+        }
+      }
+    }
+
+    // Apply frame style
+    if (customization.frameStyle !== 'none') {
+      switch (customization.frameStyle) {
+        case 'simple':
+          ctx.strokeStyle = customization.foregroundColor;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+          break;
+        case 'scan-me':
+          ctx.fillStyle = customization.foregroundColor;
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 5);
+          break;
+        case 'scan-me-black':
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('SCAN ME', canvas.width / 2, canvas.height - 6);
+          break;
+      }
+    }
+
+    // Add center text if specified
+    if (customization.centerText && customization.centerText.trim()) {
+      const fontSize = customization.centerTextFontSize || 16;
+      const fontWeight = customization.centerTextBold ? 'bold' : 'normal';
+      
+      ctx.font = `${fontWeight} ${fontSize}px ${customization.centerTextFontFamily || 'Arial'}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      const textMetrics = ctx.measureText(customization.centerText);
+      const textWidth = textMetrics.width;
+      const textHeight = fontSize;
+      
+      const x = canvas.width / 2;
+      const y = canvas.height / 2;
+      
+      // Add background for text
+      ctx.fillStyle = customization.centerTextBackgroundColor || '#FFFFFF';
+      ctx.fillRect(x - textWidth / 2 - 5, y - textHeight / 2 - 2, textWidth + 10, textHeight + 4);
+      
+      // Add text
+      ctx.fillStyle = customization.centerTextColor || '#000000';
+      ctx.fillText(customization.centerText, x, y);
     }
   };
 
@@ -626,6 +864,21 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* Header */}
+      {isEditMode && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <QrCode className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Edit QR Code</h2>
+              <p className="text-gray-600">Update your QR code settings and see changes in real-time</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Mode Selection */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex justify-center mb-6">
@@ -683,10 +936,31 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     <div className="space-y-4">
                       <div className="flex justify-center">
                         <div className="relative bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                          <canvas 
-                            ref={canvasRef} 
+                          <QRCodeGenerator
+                            value={qrText || 'https://example.com'}
+                            size={200}
                             className="rounded"
-                            style={{ maxWidth: '200px', maxHeight: '200px' }}
+                            customization={{
+                              foregroundColor: qrCustomization.foregroundColor,
+                              backgroundColor: qrCustomization.backgroundColor,
+                              size: 200,
+                              errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
+                              margin: qrCustomization.margin,
+                              pattern: qrCustomization.pattern,
+                              cornerStyle: qrCustomization.cornerStyle,
+                              frameStyle: qrCustomization.frameStyle,
+                              gradientType: qrCustomization.gradientType,
+                              gradientDirection: qrCustomization.gradientDirection,
+                              gradientStartColor: qrCustomization.foregroundColor,
+                              gradientEndColor: qrCustomization.secondaryColor,
+                              logo: qrCustomization.logo,
+                              centerText: qrCustomization.centerText,
+                              centerTextSize: qrCustomization.centerTextFontSize,
+                              centerTextFontFamily: qrCustomization.centerTextFontFamily,
+                              centerTextColor: qrCustomization.centerTextColor,
+                              centerTextBackgroundColor: qrCustomization.centerTextBackgroundColor,
+                              centerTextBold: qrCustomization.centerTextBold
+                            }}
                           />
                         </div>
                       </div>
@@ -1557,7 +1831,9 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 </div>
               ) : (
                 <>
-                  {mode === 'url' ? 'Shorten URL' : mode === 'qr' ? 'Generate QR Code' : 'Upload & Create Link'}
+                  {mode === 'url' ? 'Shorten URL' : 
+                   mode === 'qr' ? (isEditMode ? 'Update QR Code' : 'Generate QR Code') : 
+                   'Upload & Create Link'}
                 </>
               )}
             </button>

@@ -332,8 +332,26 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
     });
 
   const editQR = (qr: QRCodeData) => {
-    // Navigate to edit page
-    navigate(`/dashboard/qr-codes/edit/${qr.id}`);
+    // Navigate to create page with pre-loaded QR data for editing
+    navigate('/dashboard', { 
+      state: { 
+        activeSection: 'create', 
+        createMode: 'qr',
+        editQRData: {
+          id: qr.id,
+          title: qr.title,
+          content: qr.url,
+          contentType: qr.type.toUpperCase(),
+          foregroundColor: qr.customization.foregroundColor,
+          backgroundColor: qr.customization.backgroundColor,
+          size: qr.customization.size,
+          style: qr.customization.style,
+          cornerStyle: qr.customization.style === 'rounded' ? 'rounded' : 'square',
+          frameStyle: 'none',
+          errorCorrectionLevel: qr.customization.errorCorrection || 'M'
+        }
+      }
+    });
     setActiveDropdown(null);
   };
 

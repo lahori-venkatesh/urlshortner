@@ -18,7 +18,7 @@ import CustomDomainManager from './components/CustomDomainManager';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import FileViewer from './pages/FileViewer';
 import QRAnalyticsPage from './pages/QRAnalyticsPage';
-import QREditPage from './pages/QREditPage';
+
 import FileAnalyticsPage from './pages/FileAnalyticsPage';
 import ContactUs from './pages/ContactUs';
 import ShippingPolicy from './pages/ShippingPolicy';
@@ -120,11 +120,7 @@ function App() {
               </AuthRedirect>
             } />
             
-            <Route path="/dashboard/qr-codes/edit/:qrCode" element={
-              <AuthRedirect requireAuth={true}>
-                <QREditPage />
-              </AuthRedirect>
-            } />
+
             
             <Route path="/dashboard/file-links/analytics/:fileCode" element={
               <AuthRedirect requireAuth={true}>
