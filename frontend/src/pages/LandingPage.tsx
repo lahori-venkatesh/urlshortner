@@ -550,22 +550,7 @@ const LandingPage: React.FC = () => {
               ))}
             </div>
             
-            {/* Contact Information */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Get in Touch</h3>
-              <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-700">
-                <div className="flex items-center space-x-2">
-                  <Globe className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm">📍 Jaipur, Rajasthan</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">📞 +91 91829 28956</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">✉️ hello@pebly.in</span>
-                </div>
-              </div>
-            </div>
+
           </motion.div>
         </div>
       </section>

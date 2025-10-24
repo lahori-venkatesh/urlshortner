@@ -23,15 +23,15 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-300">
                 <span className="text-blue-400 mr-3">✉</span>
-                <span className="text-white font-medium">support@pebly.com</span>
+                <span className="text-white font-medium">hello@pebly.in</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <span className="text-blue-400 mr-3">📞</span>
-                <span className="text-white font-medium">+91 9876543210</span>
+                <span className="text-white font-medium">+91 91829 28956</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <span className="text-blue-400 mr-3">📍</span>
-                <span className="text-white font-medium">Bangalore, India</span>
+                <span className="text-white font-medium">Jaipur, Rajasthan</span>
               </div>
             </div>
           </div>
@@ -54,6 +54,14 @@ const Footer: React.FC = () => {
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/about" 
+                  className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
+                >
+                  About Us
                 </Link>
               </li>
               <li>

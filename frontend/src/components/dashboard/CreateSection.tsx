@@ -525,6 +525,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
               customAlias: customAlias || undefined,
               password: password || undefined,
               expirationDays: expirationDays || undefined,
+              maxClicks: maxClicks || undefined,
               title: `Dashboard URL - ${shortCode}`,
               description: 'Created via Dashboard'
             })
@@ -1837,6 +1838,19 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       placeholder="Never expires"
                       value={expirationDays}
                       onChange={(e) => setExpirationDays(e.target.value ? parseInt(e.target.value) : '')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Clicks
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Unlimited"
+                      value={maxClicks}
+                      onChange={(e) => setMaxClicks(e.target.value ? parseInt(e.target.value) : '')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

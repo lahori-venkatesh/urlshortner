@@ -38,7 +38,7 @@ public class UrlShorteningService {
     private static final int SHORT_CODE_LENGTH = 6;
     
     public ShortenedUrl createShortUrl(String originalUrl, String userId, String customAlias, 
-                                     String password, Integer expirationDays, String title, String description) {
+                                     String password, Integer expirationDays, Integer maxClicks, String title, String description) {
         
         // Validate URL
         if (!isValidUrl(originalUrl)) {
@@ -76,6 +76,11 @@ public class UrlShorteningService {
         // Set expiration
         if (expirationDays != null && expirationDays > 0) {
             shortenedUrl.setExpiresAt(LocalDateTime.now().plusDays(expirationDays));
+        }
+        
+        // Set max clicks limit
+        if (maxClicks != null && maxClicks > 0) {
+            shortenedUrl.setMaxClicks(maxClicks);
         }
         
         // Extract domain from URL

@@ -21,6 +21,7 @@ import QRAnalyticsPage from './pages/QRAnalyticsPage';
 
 import FileAnalyticsPage from './pages/FileAnalyticsPage';
 import ContactUs from './pages/ContactUs';
+import About from './pages/About';
 import ShippingPolicy from './pages/ShippingPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
 import CancellationRefund from './pages/CancellationRefund';
@@ -172,6 +173,7 @@ function App() {
             
             {/* Policy Pages */}
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/about" element={<About />} />
             <Route path="/shipping-policy" element={<ShippingPolicy />} />
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/cancellation-refund" element={<CancellationRefund />} />

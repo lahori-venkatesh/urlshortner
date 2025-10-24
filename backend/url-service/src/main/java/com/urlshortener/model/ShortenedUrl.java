@@ -38,6 +38,9 @@ public class ShortenedUrl {
     private LocalDateTime expiresAt;
     private boolean isExpired = false;
     
+    // Click limits
+    private Integer maxClicks; // Maximum allowed clicks (null = unlimited)
+    
     // Status and settings
     private boolean isActive = true;
     private boolean isPublic = true;
@@ -137,6 +140,9 @@ public class ShortenedUrl {
     
     public boolean isExpired() { return isExpired; }
     public void setExpired(boolean expired) { isExpired = expired; }
+    
+    public Integer getMaxClicks() { return maxClicks; }
+    public void setMaxClicks(Integer maxClicks) { this.maxClicks = maxClicks; }
     
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }

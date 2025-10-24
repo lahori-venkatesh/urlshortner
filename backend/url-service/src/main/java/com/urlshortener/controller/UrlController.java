@@ -79,6 +79,13 @@ public class UrlController {
                 return ResponseEntity.status(410).body(response);
             }
             
+            // Check if max clicks limit has been reached
+            if (url.getMaxClicks() != null && url.getTotalClicks() >= url.getMaxClicks()) {
+                response.put("success", false);
+                response.put("message", "URL has reached its maximum click limit");
+                return ResponseEntity.status(410).body(response);
+            }
+            
             // Check password protection
             if (url.isPasswordProtected()) {
                 String providedPassword = request != null ? (String) request.get("password") : null;
@@ -124,6 +131,7 @@ public class UrlController {
             String customAlias = (String) request.get("customAlias");
             String password = (String) request.get("password");
             Integer expirationDays = (Integer) request.get("expirationDays");
+            Integer maxClicks = (Integer) request.get("maxClicks");
             String title = (String) request.get("title");
             String description = (String) request.get("description");
             
@@ -134,7 +142,7 @@ public class UrlController {
             }
             
             ShortenedUrl shortenedUrl = urlShorteningService.createShortUrl(
-                originalUrl, userId, customAlias, password, expirationDays, title, description
+                originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description
             );
             
             Map<String, Object> urlData = new HashMap<>();
@@ -146,6 +154,7 @@ public class UrlController {
             urlData.put("description", shortenedUrl.getDescription());
             urlData.put("createdAt", shortenedUrl.getCreatedAt());
             urlData.put("expiresAt", shortenedUrl.getExpiresAt());
+            urlData.put("maxClicks", shortenedUrl.getMaxClicks());
             urlData.put("isPasswordProtected", shortenedUrl.isPasswordProtected());
             
             response.put("success", true);
