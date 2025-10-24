@@ -129,17 +129,24 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     const editData = (location.state as any)?.editQRData;
     if (editData) {
       console.log('Loading edit data:', editData); // Debug log
+      console.log('Setting QR text to:', editData.content); // Debug log
       setIsEditMode(true);
       setEditQRId(editData.id);
       setQrText(editData.content || '');
       
-      // Load all customization data
+      // Force a small delay to ensure state is set
+      setTimeout(() => {
+        console.log('QR text after setting:', qrText);
+      }, 100);
+      
+      // Load all customization data in a single call
       setQrCustomization({
         foregroundColor: editData.foregroundColor || '#000000',
         backgroundColor: editData.backgroundColor || '#FFFFFF',
         size: editData.size || 300,
         errorCorrectionLevel: editData.errorCorrectionLevel || 'M',
         margin: 4,
+        logo: editData.logoUrl || undefined, // Load logo directly
         logoSize: 20, // Default logo size
         logoCornerRadius: 0, // Default corner radius
         pattern: 'square',
@@ -154,14 +161,6 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         centerTextBackgroundColor: '#FFFFFF',
         centerTextBold: true
       });
-
-      // Load logo if available
-      if (editData.logoUrl) {
-        setQrCustomization(prev => ({
-          ...prev,
-          logo: editData.logoUrl
-        }));
-      }
       
       // Clear the location state to prevent re-loading on refresh
       window.history.replaceState({}, document.title);
@@ -935,7 +934,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             {/* QR Preview Section (only for QR mode) - Sticky on desktop */}
             {mode === 'qr' && (
               <div className="xl:w-80 xl:flex-shrink-0 order-1 xl:order-1">
-                <div className="bg-white rounded-2xl p-4 xl:p-6 text-center border border-gray-200 shadow-sm xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)]">
+                <div className="bg-white rounded-2xl p-4 xl:p-6 text-center border border-gray-200 shadow-sm sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
                   <div className="mb-4">
                     <h3 className="text-base xl:text-lg font-semibold text-gray-900 flex items-center justify-center">
                       <Eye className="w-4 h-4 xl:w-5 xl:h-5 mr-2 text-blue-600" />
@@ -1050,13 +1049,20 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     Enter text or URL for QR code
                   </label>
                   <div className="relative">
+                    {isEditMode && (
+                      <div className="mb-2 text-sm text-blue-600 font-medium">
+                        ✏️ Editing existing QR code
+                      </div>
+                    )}
                     <textarea
-                      placeholder="Enter text, URL, or any content..."
+                      placeholder={isEditMode ? "Editing QR code content..." : "Enter text, URL, or any content..."}
                       value={qrText}
                       onChange={(e) => setQrText(e.target.value)}
                       rows={3}
                       maxLength={2000}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                        isEditMode ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                      }`}
                     />
                     <div className="absolute bottom-2 right-2 text-xs text-gray-500">
                       {qrText.length}/2000

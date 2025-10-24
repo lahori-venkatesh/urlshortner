@@ -84,8 +84,10 @@ const UnifiedDashboard: React.FC = () => {
         setCreateMode(location.state.createMode as CreateMode);
       }
       
-      // Clear the state to prevent it from persisting
-      navigate(location.pathname, { replace: true, state: {} });
+      // Only clear the state if there's no editQRData to preserve
+      if (!location.state?.editQRData) {
+        navigate(location.pathname, { replace: true, state: {} });
+      }
     }
   }, [location.state, navigate, activeSection]);
 

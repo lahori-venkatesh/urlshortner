@@ -374,7 +374,7 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
           
           <motion.div
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6"
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-4 sm:p-6"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -391,11 +391,14 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
 
             {/* QR Code Preview */}
             <div className="flex justify-center mb-6">
-              <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm">
+              <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200 shadow-sm">
                 <canvas 
                   ref={canvasRef}
-                  className="block"
-                  style={{ width: '200px', height: '200px' }}
+                  className="block w-full h-auto max-w-[250px] max-h-[250px]"
+                  style={{ 
+                    width: 'min(250px, calc(100vw - 120px))', 
+                    height: 'min(250px, calc(100vw - 120px))' 
+                  }}
                 />
               </div>
             </div>
