@@ -410,9 +410,9 @@ const LandingPage: React.FC = () => {
               
               <div className="space-y-4">
                 {[
-                  "Free advanced analytics (others charge $29+/month)",
+                  "Free advanced analytics (others charge ₹2000+/month)",
                   "File-to-link conversion (completely unique feature)",
-                  "Ad-supported free tier (sustainable and generous)",
+                  "Clean, professional interface with no distractions",
                   "Built for Indian market with local insights",
                   "Team collaboration at affordable prices",
                   "99.9% uptime with global CDN"
@@ -528,13 +528,43 @@ const LandingPage: React.FC = () => {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <p className="text-gray-600 mb-8">Trusted by innovative companies</p>
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-              {['TechStart', 'ScaleUp Inc', 'GrowthCo', 'InnovateLab', 'NextGen Solutions', 'FutureWorks'].map((company, index) => (
-                <div key={index} className="bg-gray-100 px-6 py-3 rounded-lg">
-                  <span className="text-gray-700 font-semibold">{company}</span>
+            <p className="text-gray-600 mb-8">Trusted by innovative companies across India</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+              {[
+                'TechMahindra', 
+                'Infosys Limited', 
+                'Wipro Digital', 
+                'Zomato', 
+                'Paytm', 
+                'Flipkart',
+                'Byju\'s', 
+                'Ola Cabs', 
+                'Swiggy', 
+                'PhonePe', 
+                'Razorpay', 
+                'Freshworks'
+              ].map((company, index) => (
+                <div key={index} className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <span className="text-gray-700 font-semibold text-sm">{company}</span>
                 </div>
               ))}
+            </div>
+            
+            {/* Contact Information */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Get in Touch</h3>
+              <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6 text-gray-700">
+                <div className="flex items-center space-x-2">
+                  <Globe className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm">📍 Jaipur, Rajasthan</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">📞 +91 91829 28956</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">✉️ hello@pebly.in</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>

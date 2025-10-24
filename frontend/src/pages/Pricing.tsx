@@ -264,7 +264,7 @@ const Pricing: React.FC = () => {
     },
     {
       question: "Can I upgrade from Free to Premium anytime?",
-      answer: "Absolutely! You can upgrade from Free to Premium or Lifetime Access at any time. Your existing links and data will remain intact, and you'll immediately get access to all premium features."
+      answer: "Absolutely! You can upgrade from Free to Premium or Lifetime Access at any time. Your existing links and data will remain intact, and you'll immediately get access to all premium features with enhanced capabilities."
     },
     {
       question: "What payment methods do you accept?",
@@ -476,7 +476,7 @@ const Pricing: React.FC = () => {
               
               <ul className="space-y-3 mb-6">
                 {[
-                  "5 short links/month",
+                  "100 short links/month",
                   "Basic analytics",
                   "QR code generation",
                   "File-to-link conversion",
@@ -560,7 +560,7 @@ const Pricing: React.FC = () => {
                   "Bulk link management",
                   "Priority support",
                   "Team collaboration (5 users)",
-                  "Ad-free experience"
+                  "Professional dashboard"
                 ].map((feature, index) => (
                   <li key={index} className="flex items-center space-x-3">
                     <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
