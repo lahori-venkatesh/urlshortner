@@ -19,24 +19,7 @@ const LandingPage: React.FC = () => {
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Check for pricing section parameter and scroll to it
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
-    
-    if (section === 'pricing') {
-      // Wait for the component to render, then scroll to pricing
-      setTimeout(() => {
-        const pricingElement = document.getElementById('pricing');
-        if (pricingElement) {
-          pricingElement.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      }, 100);
-    }
-  }, []);
+
 
   const handleQuickShorten = async () => {
     if (activeTab === 'url' && !urlInput.trim()) return;
@@ -122,7 +105,12 @@ const LandingPage: React.FC = () => {
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
                 <a href="#features" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
-                <a href="#pricing" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Pricing</a>
+                <button 
+                  onClick={() => navigate('/pricing')}
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Pricing
+                </button>
                 <a href="#about" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</a>
                 <button 
                   onClick={() => {
@@ -161,7 +149,15 @@ const LandingPage: React.FC = () => {
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
               <a href="#features" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Features</a>
-              <a href="#pricing" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Pricing</a>
+              <button 
+                onClick={() => {
+                  navigate('/pricing');
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600"
+              >
+                Pricing
+              </button>
               <a href="#about" className="block px-3 py-2 text-gray-700 hover:text-blue-600">About</a>
               <button 
                 onClick={() => {
@@ -189,7 +185,7 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center"
@@ -198,7 +194,7 @@ const LandingPage: React.FC = () => {
             variants={staggerContainer}
           >
             <motion.h1 
-              className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+              className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight"
               variants={fadeInUp}
             >
               Shorten. Share. Analyze.{' '}
@@ -208,7 +204,7 @@ const LandingPage: React.FC = () => {
             </motion.h1>
             
             <motion.p 
-              className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto"
+              className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4"
               variants={fadeInUp}
             >
               A next-gen URL shortener with advanced analytics, file-to-link conversion, QR codes & more. 
@@ -216,7 +212,7 @@ const LandingPage: React.FC = () => {
             </motion.p>
 
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4"
               variants={fadeInUp}
             >
               <button 
@@ -224,11 +220,11 @@ const LandingPage: React.FC = () => {
                   setAuthMode('signup');
                   setIsAuthModalOpen(true);
                 }}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
               >
                 Get Started for Free
               </button>
-              <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all">
+              <button className="border-2 border-gray-300 text-gray-700 px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all">
                 Try Demo
               </button>
             </motion.div>
@@ -240,16 +236,17 @@ const LandingPage: React.FC = () => {
 
             {/* Hero Visual */}
             <motion.div 
-              className="relative"
+              className="relative px-4"
               variants={fadeInUp}
             >
-              <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-8 mx-auto max-w-4xl">
-                <div className="flex items-center justify-center space-x-4 text-sm">
-                  <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
-                    https://very-long-url-example.com/path/to/resource?param=value
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mx-auto max-w-4xl">
+                <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm">
+                  <div className="bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm w-full sm:w-auto text-center sm:text-left">
+                    <span className="hidden sm:inline">https://very-long-url-example.com/path/to/resource?param=value</span>
+                    <span className="sm:hidden">https://very-long-url.com/...</span>
                   </div>
-                  <ArrowRight className="w-6 h-6 text-blue-600" />
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg shadow-sm">
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 transform rotate-90 sm:rotate-0" />
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg shadow-sm w-full sm:w-auto text-center">
                     pebly.vercel.app/abc123
                   </div>
                 </div>
@@ -457,151 +454,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-16"
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Start free, upgrade when you need more. No hidden fees, no surprises.
-            </p>
-          </motion.div>
 
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-          >
-            {/* Free Plan */}
-            <motion.div 
-              className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200"
-              variants={fadeInUp}
-            >
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">₹0</div>
-                <p className="text-gray-600">Forever free with ads</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Unlimited short links",
-                  "Basic analytics",
-                  "QR code generation",
-                  "File-to-link conversion",
-                  "Community support",
-                  "Ads on dashboard"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
-                onClick={() => {
-                  setAuthMode('signup');
-                  setIsAuthModalOpen(true);
-                }}
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
-              >
-                Get Started Free
-              </button>
-            </motion.div>
-
-            {/* Premium Plan */}
-            <motion.div 
-              className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 border-2 border-blue-600 relative"
-              variants={fadeInUp}
-            >
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-yellow-400 text-yellow-900 px-4 py-1 rounded-full text-sm font-semibold">
-                  Most Popular
-                </span>
-              </div>
-              
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
-                <div className="text-4xl font-bold text-white mb-2">₹199</div>
-                <p className="text-blue-100">per month</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Everything in Free",
-                  "Ad-free experience",
-                  "Advanced analytics",
-                  "Custom branded domains",
-                  "Bulk link shortening",
-                  "Priority support",
-                  "API access",
-                  "Team collaboration (5 users)"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <Check className="w-5 h-5 text-white" />
-                    <span className="text-white">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
-                onClick={() => {
-                  setAuthMode('signup');
-                  setIsAuthModalOpen(true);
-                }}
-                className="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Start Premium Trial
-              </button>
-            </motion.div>
-
-            {/* Enterprise Plan */}
-            <motion.div 
-              className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200"
-              variants={fadeInUp}
-            >
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">Custom</div>
-                <p className="text-gray-600">Tailored for your needs</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Everything in Premium",
-                  "Unlimited team members",
-                  "White-label solution",
-                  "Custom integrations",
-                  "Dedicated support",
-                  "SLA guarantee",
-                  "Advanced security",
-                  "Custom analytics"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button className="w-full border-2 border-gray-900 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-900 hover:text-white transition-colors">
-                Contact Sales
-              </button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Testimonials Section */}
       <section className="py-16 bg-white">

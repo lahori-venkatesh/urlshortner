@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import QRCode from 'qrcode';
 import { 
   QrCode, 
   Plus, 
@@ -54,6 +55,54 @@ interface QRCodeData {
   qrCodeImage?: string;
   type: 'url' | 'text' | 'email' | 'phone' | 'wifi' | 'vcard' | 'sms';
 }
+
+interface QRCodePreviewProps {
+  value: string;
+  size: number;
+  foregroundColor?: string;
+  backgroundColor?: string;
+  className?: string;
+}
+
+const QRCodePreview: React.FC<QRCodePreviewProps> = ({ 
+  value, 
+  size, 
+  foregroundColor = '#000000', 
+  backgroundColor = '#ffffff',
+  className 
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const generateQR = async () => {
+      if (canvasRef.current && value) {
+        try {
+          await QRCode.toCanvas(canvasRef.current, value, {
+            width: size,
+            margin: 1,
+            color: {
+              dark: foregroundColor,
+              light: backgroundColor
+            },
+            errorCorrectionLevel: 'M'
+          });
+        } catch (error) {
+          console.error('Error generating QR code:', error);
+        }
+      }
+    };
+
+    generateQR();
+  }, [value, size, foregroundColor, backgroundColor]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className={className}
+      style={{ width: '100%', height: '100%' }}
+    />
+  );
+};
 
 interface QRManageSectionProps {
   onCreateClick: () => void;
@@ -651,20 +700,14 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                   {/* QR Preview and URL Row */}
                   <div className="flex items-center space-x-3">
                     {/* QR Code Preview */}
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 relative">
-                      {qr.qrCodeImage ? (
-                        <img src={qr.qrCodeImage} alt={qr.title} className="w-full h-full object-cover rounded-lg" />
-                      ) : (
-                        <div 
-                          className="w-full h-full flex items-center justify-center rounded-lg"
-                          style={{ backgroundColor: qr.customization.backgroundColor }}
-                        >
-                          <QrCode 
-                            className="w-8 h-8 sm:w-12 sm:h-12" 
-                            style={{ color: qr.customization.foregroundColor }}
-                          />
-                        </div>
-                      )}
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg flex items-center justify-center flex-shrink-0 relative border border-gray-200">
+                      <QRCodePreview 
+                        value={qr.url} 
+                        size={60}
+                        foregroundColor={qr.customization.foregroundColor}
+                        backgroundColor={qr.customization.backgroundColor}
+                        className="w-full h-full rounded-lg"
+                      />
                     </div>
                     
                     {/* URL Information */}
