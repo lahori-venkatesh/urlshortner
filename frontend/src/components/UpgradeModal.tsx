@@ -119,9 +119,6 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                   </p>
                 </div>
 
-                {/* Simple Plan Options */}
-                <div className="space-y-3 mb-6">
-
                 {/* Pricing cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   {/* Monthly Plan */}
@@ -205,7 +202,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                       </button>
                     </div>
                   </div>
-              </div>
+                </div>
 
                 {/* Features comparison */}
                 <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
