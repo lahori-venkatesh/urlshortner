@@ -179,8 +179,11 @@ const UnifiedDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ paddingTop: '68px' }}>
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile: No sidebar, content takes full width */}
+      {/* Desktop: Sidebar layout */}
+      
+      {/* Mobile Sidebar Overlay - Only for desktop */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -188,12 +191,11 @@ const UnifiedDashboard: React.FC = () => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Hidden on mobile, visible on desktop */}
       <div className={`
-        fixed left-0 z-20 bg-white shadow-xl border-r border-gray-200 transform transition-all duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        hidden lg:block fixed left-0 z-20 bg-white shadow-xl border-r border-gray-200 transform transition-all duration-300 ease-in-out
         ${sidebarCollapsed ? 'w-16' : 'w-64'}
-        top-0 lg:top-16 bottom-0 lg:bottom-4 h-screen lg:h-auto lg:rounded-lg
+        top-16 bottom-4 h-auto rounded-lg
       `}>
         <div className="flex flex-col h-full relative">
           {/* Mobile Header - Only close button */}
@@ -362,20 +364,8 @@ const UnifiedDashboard: React.FC = () => {
       <div className={`flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-in-out ${
         sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
       }`}>
-
-
-        {/* Mobile Menu Button for All Pages */}
-        <div className="lg:hidden fixed top-20 left-4 z-50">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="bg-white shadow-lg text-gray-600 hover:text-gray-900 p-2 rounded-lg"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:px-6 lg:pt-1 lg:pb-6">
+        {/* Content Area - Mobile First */}
+        <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
           {renderContent()}
         </main>
       </div>

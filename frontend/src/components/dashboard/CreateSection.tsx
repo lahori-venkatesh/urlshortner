@@ -872,58 +872,60 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Header */}
       {isEditMode && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <QrCode className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+              <QrCode className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Edit QR Code</h2>
-              <p className="text-gray-600">Update your QR code settings and see changes in real-time</p>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Edit QR Code</h2>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Update your QR code settings and see changes in real-time</p>
             </div>
           </div>
         </div>
       )}
       
       {/* Mode Selection */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-center mb-6">
-          <div className="bg-gray-100 p-1 rounded-lg flex">
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="bg-gray-100 p-1 rounded-lg flex w-full sm:w-auto overflow-x-auto">
             <button
               onClick={() => onModeChange('url')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-1 sm:flex-none ${
                 mode === 'url'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <Link className="w-4 h-4 inline mr-2" />
-              URL Shortener
+              <Link className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">URL Shortener</span>
+              <span className="sm:hidden">Short Link</span>
             </button>
             <button
               onClick={() => onModeChange('qr')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-1 sm:flex-none ${
                 mode === 'qr'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <QrCode className="w-4 h-4 inline mr-2" />
+              <QrCode className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
               QR Code
             </button>
             <button
               onClick={() => onModeChange('file')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-1 sm:flex-none ${
                 mode === 'file'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <Upload className="w-4 h-4 inline mr-2" />
-              File to Link
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">File to Link</span>
+              <span className="sm:hidden">File</span>
             </button>
           </div>
         </div>
@@ -1020,10 +1022,10 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             {/* Form Section - Scrollable on desktop */}
             <div className={`${mode === 'qr' ? 'flex-1 order-2 lg:order-2 lg:overflow-y-auto lg:max-h-[calc(100vh-8rem)] lg:pr-2' : ''} space-y-6`}>
             {/* Input Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-6">
               {mode === 'url' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">
                     Enter URL to shorten
                   </label>
                   <div className="relative">
@@ -1032,7 +1034,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       placeholder="https://example.com/very-long-url..."
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-3 sm:py-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     />
                     {isLoadingAI && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1045,7 +1047,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
               {mode === 'qr' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">
                     Enter text or URL for QR code
                   </label>
                   <div className="relative">
@@ -1060,7 +1062,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       onChange={(e) => setQrText(e.target.value)}
                       rows={3}
                       maxLength={2000}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                      className={`w-full px-3 sm:px-4 py-3 sm:py-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base ${
                         isEditMode ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
                       }`}
                     />
@@ -1083,7 +1085,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
               {mode === 'file' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">
                     Upload file to create shareable link
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
@@ -1201,7 +1203,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   <div className="space-y-6">
                     {/* Color Presets */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Color Presets</label>
+                      <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3">Color Presets</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {colorPresets.map((preset) => (
                           <button
@@ -1230,7 +1232,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
                     {/* Gradient Options */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Gradient Style</label>
+                      <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3">Gradient Style</label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                         {[
                           { id: 'none', name: 'None' },
@@ -1309,7 +1311,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   <div className="space-y-6">
                     {/* Frame Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Select Frame</label>
+                      <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3">Select Frame</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3">
                         {[
                           { id: 'none', name: 'No Frame', preview: '⬜', description: 'Clean QR code' },
@@ -1343,7 +1345,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
                     {/* Custom Colors */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Custom Colors</label>
+                      <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3">Custom Colors</label>
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-2">
@@ -1850,19 +1852,21 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 (mode === 'qr' && !qrText.trim()) || 
                 (mode === 'file' && !selectedFile)
               }
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 sm:py-4 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 text-sm sm:text-base"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  {mode === 'url' ? 'Shortening...' : mode === 'qr' ? 'Generating...' : 'Uploading...'}
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <span className="text-sm sm:text-base">
+                    {mode === 'url' ? 'Shortening...' : mode === 'qr' ? 'Generating...' : 'Uploading...'}
+                  </span>
                 </div>
               ) : (
-                <>
+                <span className="text-sm sm:text-base">
                   {mode === 'url' ? 'Shorten URL' : 
                    mode === 'qr' ? (isEditMode ? 'Update QR Code' : 'Generate QR Code') : 
                    'Upload & Create Link'}
-                </>
+                </span>
               )}
             </button>
             </div>

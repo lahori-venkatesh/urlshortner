@@ -146,55 +146,57 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome back!</h2>
-            <p className="text-blue-100">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Welcome back!</h2>
+            <p className="text-blue-100 text-sm sm:text-base">
               Here's what's happening with your links today.
             </p>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50"
+            className="bg-white/10 text-white px-3 py-2 rounded-lg hover:bg-white/20 transition-colors flex items-center space-x-2 disabled:opacity-50 self-start sm:self-auto"
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+            <span className="text-sm">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
         
-        <div className="flex flex-wrap gap-3">
+        {/* Mobile-First Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
           <button
             onClick={() => onCreateClick('url')}
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center space-x-2"
+            className="bg-white text-blue-600 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
           >
             <Link className="w-4 h-4" />
-            <span>Create Short Link</span>
+            <span className="hidden xs:inline">Create Short Link</span>
+            <span className="xs:hidden">Short Link</span>
           </button>
           <button
             onClick={() => onCreateClick('qr')}
-            className="bg-white/10 text-white px-4 py-2 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center space-x-2"
+            className="bg-white/10 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
           >
             <QrCode className="w-4 h-4" />
-            <span>Create QR</span>
+            <span className="hidden xs:inline">Create QR</span>
+            <span className="xs:hidden">QR Code</span>
           </button>
           <button
             onClick={() => onCreateClick('file')}
-            className="bg-white/10 text-white px-4 py-2 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center space-x-2"
+            className="bg-white/10 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
           >
             <Upload className="w-4 h-4" />
-            <span>Upload File to URL</span>
+            <span className="hidden xs:inline">Upload File</span>
+            <span className="xs:hidden">File</span>
           </button>
         </div>
-
-
       </div>
 
-      {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Enhanced Stats Cards - Mobile Optimized */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
