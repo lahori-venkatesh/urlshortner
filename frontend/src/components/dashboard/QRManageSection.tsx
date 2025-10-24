@@ -231,22 +231,29 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
 
   const downloadQR = async (qr: QRCodeData) => {
     try {
-      // Generate QR code using the qrcode library
+      // Generate QR code using the qrcode library with full customization
       const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
       
       // Import QRCode dynamically to avoid issues
       const QRCode = await import('qrcode');
       
-      // Generate QR code on canvas
+      // Generate basic QR code on canvas first
       await QRCode.toCanvas(canvas, qr.url, {
         width: qr.customization.size,
-        margin: 4, // Default margin since it's not in the interface
+        margin: 4,
         color: {
           dark: qr.customization.foregroundColor,
           light: qr.customization.backgroundColor
         },
         errorCorrectionLevel: qr.customization.errorCorrection
       });
+
+      // Apply style customizations
+      if (qr.customization.style !== 'square') {
+        await applyStyleToCanvas(ctx, canvas, qr.customization);
+      }
       
       // Download the canvas as PNG
       const link = document.createElement('a');
@@ -260,6 +267,43 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       toast.error('Failed to download QR code. Please try again.');
     }
     setActiveDropdown(null);
+  };
+
+  const applyStyleToCanvas = async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: any) => {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const moduleSize = Math.floor(canvas.width / 25); // Approximate module size
+
+    if (customization.style === 'dots' || customization.style === 'rounded') {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.foregroundColor;
+
+      for (let y = 0; y < canvas.height; y += moduleSize) {
+        for (let x = 0; x < canvas.width; x += moduleSize) {
+          const pixelIndex = (y * canvas.width + x) * 4;
+          const isDark = data[pixelIndex] < 128;
+
+          if (isDark) {
+            if (customization.style === 'dots') {
+              ctx.beginPath();
+              ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize / 2 - 1, 0, 2 * Math.PI);
+              ctx.fill();
+            } else if (customization.style === 'rounded') {
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2, moduleSize / 4);
+              } else {
+                // Fallback for browsers that don't support roundRect
+                ctx.rect(x + 1, y + 1, moduleSize - 2, moduleSize - 2);
+              }
+              ctx.fill();
+            }
+          }
+        }
+      }
+    }
   };
 
   const filteredQRCodes = qrCodes

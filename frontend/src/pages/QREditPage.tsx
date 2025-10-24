@@ -48,6 +48,8 @@ const QREditPage: React.FC = () => {
     content: '',
     contentType: 'URL',
     style: 'square',
+    cornerStyle: 'square',
+    frameStyle: 'none',
     foregroundColor: '#000000',
     backgroundColor: '#ffffff',
     size: 300,
@@ -80,6 +82,8 @@ const QREditPage: React.FC = () => {
           content: data.content || '',
           contentType: data.contentType || 'URL',
           style: data.style || 'square',
+          cornerStyle: data.cornerStyle || 'square',
+          frameStyle: data.frameStyle || 'none',
           foregroundColor: data.foregroundColor || '#000000',
           backgroundColor: data.backgroundColor || '#ffffff',
           size: data.size || 300,
@@ -116,6 +120,8 @@ const QREditPage: React.FC = () => {
           content: formData.content,
           contentType: formData.contentType,
           style: formData.style,
+          cornerStyle: (formData as any).cornerStyle,
+          frameStyle: (formData as any).frameStyle,
           foregroundColor: formData.foregroundColor,
           backgroundColor: formData.backgroundColor,
           size: formData.size,
@@ -159,6 +165,8 @@ const QREditPage: React.FC = () => {
           title: formData.title,
           description: formData.description,
           style: formData.style,
+          cornerStyle: (formData as any).cornerStyle,
+          frameStyle: (formData as any).frameStyle,
           foregroundColor: formData.foregroundColor,
           backgroundColor: formData.backgroundColor,
           size: formData.size,
@@ -187,6 +195,89 @@ const QREditPage: React.FC = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleDownloadQR = async () => {
+    try {
+      // Generate QR code using the qrcode library with full customization
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
+      
+      // Import QRCode dynamically to avoid issues
+      const QRCode = await import('qrcode');
+      
+      // Generate basic QR code on canvas first
+      await QRCode.toCanvas(canvas, formData.content || 'https://example.com', {
+        width: formData.size,
+        margin: 4,
+        color: {
+          dark: formData.foregroundColor,
+          light: formData.backgroundColor
+        },
+        errorCorrectionLevel: 'M'
+      });
+
+      // Apply style customizations
+      if (formData.style !== 'square') {
+        await applyStyleToCanvas(ctx, canvas, formData);
+      }
+      
+      // Download the canvas as PNG
+      const link = document.createElement('a');
+      link.download = `${(formData.title || 'qr_code').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_customized.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success('QR Code downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating QR code for download:', error);
+      toast.error('Failed to download QR code. Please try again.');
+    }
+  };
+
+  const applyStyleToCanvas = async (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, customization: any) => {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const moduleSize = Math.floor(canvas.width / 25); // Approximate module size
+
+    if (customization.style === 'dots' || customization.style === 'rounded' || customization.style === 'classy') {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = customization.foregroundColor;
+
+      for (let y = 0; y < canvas.height; y += moduleSize) {
+        for (let x = 0; x < canvas.width; x += moduleSize) {
+          const pixelIndex = (y * canvas.width + x) * 4;
+          const isDark = data[pixelIndex] < 128;
+
+          if (isDark) {
+            if (customization.style === 'dots') {
+              ctx.beginPath();
+              ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize / 2 - 1, 0, 2 * Math.PI);
+              ctx.fill();
+            } else if (customization.style === 'rounded') {
+              ctx.beginPath();
+              if (ctx.roundRect) {
+                ctx.roundRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2, moduleSize / 4);
+              } else {
+                ctx.rect(x + 1, y + 1, moduleSize - 2, moduleSize - 2);
+              }
+              ctx.fill();
+            } else if (customization.style === 'classy') {
+              ctx.beginPath();
+              ctx.moveTo(x + moduleSize / 2, y + 1);
+              ctx.lineTo(x + moduleSize - 1, y + moduleSize / 2);
+              ctx.lineTo(x + moduleSize / 2, y + moduleSize - 1);
+              ctx.lineTo(x + 1, y + moduleSize / 2);
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
+        }
+      }
+    }
   };
 
   if (loading) {
@@ -344,6 +435,48 @@ const QREditPage: React.FC = () => {
               </div>
 
               <div className="space-y-4">
+                {/* Color Presets */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Color Presets
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { name: 'Classic', fg: '#000000', bg: '#FFFFFF' },
+                      { name: 'Blue', fg: '#1E40AF', bg: '#EFF6FF' },
+                      { name: 'Green', fg: '#059669', bg: '#ECFDF5' },
+                      { name: 'Purple', fg: '#7C3AED', bg: '#F3E8FF' },
+                      { name: 'Red', fg: '#DC2626', bg: '#FEF2F2' },
+                      { name: 'Orange', fg: '#EA580C', bg: '#FFF7ED' },
+                      { name: 'Pink', fg: '#DB2777', bg: '#FDF2F8' },
+                      { name: 'Teal', fg: '#0D9488', bg: '#F0FDFA' }
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => {
+                          handleInputChange('foregroundColor', preset.fg);
+                          handleInputChange('backgroundColor', preset.bg);
+                        }}
+                        className="p-2 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors flex flex-col items-center space-y-1"
+                        title={preset.name}
+                      >
+                        <div className="w-6 h-6 rounded border border-gray-200 flex">
+                          <div 
+                            className="w-3 h-6 rounded-l" 
+                            style={{ backgroundColor: preset.fg }}
+                          ></div>
+                          <div 
+                            className="w-3 h-6 rounded-r" 
+                            style={{ backgroundColor: preset.bg }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-600">{preset.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -421,18 +554,86 @@ const QREditPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Style
+                    Data Pattern
                   </label>
-                  <select
-                    value={formData.style}
-                    onChange={(e) => handleInputChange('style', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="square">Square</option>
-                    <option value="rounded">Rounded</option>
-                    <option value="dots">Dots</option>
-                    <option value="classy">Classy</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'square', name: 'Square', icon: '⬛' },
+                      { id: 'rounded', name: 'Rounded', icon: '⬜' },
+                      { id: 'dots', name: 'Dots', icon: '⚫' },
+                      { id: 'classy', name: 'Diamond', icon: '◆' }
+                    ].map((pattern) => (
+                      <button
+                        key={pattern.id}
+                        type="button"
+                        onClick={() => handleInputChange('style', pattern.id)}
+                        className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
+                          formData.style === pattern.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-lg">{pattern.icon}</span>
+                        <span>{pattern.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Corner Style
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'square', name: 'Square', icon: '⬜' },
+                      { id: 'rounded', name: 'Rounded', icon: '🔲' },
+                      { id: 'circle', name: 'Circle', icon: '⭕' },
+                      { id: 'extra-rounded', name: 'Extra Rounded', icon: '🔘' }
+                    ].map((corner) => (
+                      <button
+                        key={corner.id}
+                        type="button"
+                        onClick={() => handleInputChange('cornerStyle', corner.id)}
+                        className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
+                          (formData as any).cornerStyle === corner.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-lg">{corner.icon}</span>
+                        <span>{corner.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Frame Style
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'none', name: 'None', icon: '⬜' },
+                      { id: 'simple', name: 'Simple', icon: '🔲' },
+                      { id: 'scan-me', name: 'Scan Me', icon: '📱' },
+                      { id: 'scan-me-black', name: 'Scan Me Black', icon: '📲' }
+                    ].map((frame) => (
+                      <button
+                        key={frame.id}
+                        type="button"
+                        onClick={() => handleInputChange('frameStyle', frame.id)}
+                        className={`p-3 border-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
+                          (formData as any).frameStyle === frame.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-lg">{frame.icon}</span>
+                        <span>{frame.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -479,11 +680,30 @@ const QREditPage: React.FC = () => {
                     value={formData.content || 'https://example.com'}
                     size={Math.min(formData.size, 300)}
                     className="mx-auto"
+                    customization={{
+                      foregroundColor: formData.foregroundColor,
+                      backgroundColor: formData.backgroundColor,
+                      size: Math.min(formData.size, 300),
+                      errorCorrectionLevel: 'M',
+                      margin: 2,
+                      pattern: formData.style === 'dots' ? 'circle' : 
+                               formData.style === 'rounded' ? 'rounded' :
+                               formData.style === 'classy' ? 'diamond' : 'square',
+                      cornerStyle: (formData as any).cornerStyle || 'square',
+                      frameStyle: (formData as any).frameStyle || 'none'
+                    }}
                   />
                 </div>
                 <p className="text-sm text-gray-600 mt-4">
                   Preview updates automatically as you make changes
                 </p>
+                <button
+                  onClick={handleDownloadQR}
+                  className="mt-4 flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mx-auto"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download QR Code</span>
+                </button>
               </div>
             </div>
 

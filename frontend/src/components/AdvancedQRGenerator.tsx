@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import { Download, Eye, Edit, Copy, Share2, Palette, Settings } from 'lucide-react';
+import QRCodeGenerator from './QRCodeGenerator';
 
 interface QRCodeData {
   id: string;
@@ -305,9 +306,19 @@ const AdvancedQRGenerator: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Preview</h3>
             <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
               {url ? (
-                <canvas 
-                  ref={canvasRef}
-                  className="border border-gray-200 rounded-lg shadow-sm"
+                <QRCodeGenerator
+                  value={url}
+                  size={Math.min(customization.size, 300)}
+                  className="mx-auto"
+                  customization={{
+                    foregroundColor: customization.foregroundColor,
+                    backgroundColor: customization.backgroundColor,
+                    size: Math.min(customization.size, 300),
+                    errorCorrectionLevel: customization.errorCorrectionLevel,
+                    margin: customization.margin,
+                    pattern: customization.style === 'dots' ? 'circle' : 
+                             customization.style === 'rounded' ? 'rounded' : 'square'
+                  }}
                 />
               ) : (
                 <div className="w-64 h-64 flex items-center justify-center text-gray-400">
@@ -362,24 +373,25 @@ const QRCodeCard: React.FC<QRCodeCardProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    if (canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, qrData.url, {
-        width: 150,
-        margin: qrData.customization.margin,
-        color: {
-          dark: qrData.customization.foregroundColor,
-          light: qrData.customization.backgroundColor
-        },
-        errorCorrectionLevel: qrData.customization.errorCorrectionLevel
-      });
-    }
-  }, [qrData]);
+  // No longer needed as we're using QRCodeGenerator component
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="text-center mb-4">
-        <canvas ref={canvasRef} className="mx-auto border border-gray-100 rounded" />
+        <QRCodeGenerator
+          value={qrData.url}
+          size={150}
+          className="mx-auto"
+          customization={{
+            foregroundColor: qrData.customization.foregroundColor,
+            backgroundColor: qrData.customization.backgroundColor,
+            size: 150,
+            errorCorrectionLevel: qrData.customization.errorCorrectionLevel,
+            margin: qrData.customization.margin,
+            pattern: qrData.customization.style === 'dots' ? 'circle' : 
+                     qrData.customization.style === 'rounded' ? 'rounded' : 'square'
+          }}
+        />
       </div>
       
       <div className="space-y-2">
