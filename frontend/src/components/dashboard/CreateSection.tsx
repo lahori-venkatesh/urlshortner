@@ -930,14 +930,14 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
         <div className="max-w-7xl mx-auto">
           {/* Main Form */}
-          <div className={`${mode === 'qr' ? 'flex flex-col xl:flex-row gap-6' : 'space-y-6'}`}>
-            {/* QR Preview Section (only for QR mode) - Sticky on desktop */}
+          <div className={`${mode === 'qr' ? 'flex flex-col lg:flex-row gap-6' : 'space-y-6'}`}>
+            {/* QR Preview Section (only for QR mode) - Sticky on all screens */}
             {mode === 'qr' && (
-              <div className="xl:w-80 xl:flex-shrink-0 order-1 xl:order-1">
-                <div className="bg-white rounded-2xl p-4 xl:p-6 text-center border border-gray-200 shadow-sm sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <div className="lg:w-80 lg:flex-shrink-0 order-1 lg:order-1">
+                <div className="bg-white rounded-2xl p-4 lg:p-6 text-center border border-gray-200 shadow-sm sticky top-16 sm:top-20 z-20 mb-6 lg:mb-0 max-h-[calc(100vh-5rem)] sm:max-h-[calc(100vh-6rem)] overflow-y-auto">
                   <div className="mb-4">
-                    <h3 className="text-base xl:text-lg font-semibold text-gray-900 flex items-center justify-center">
-                      <Eye className="w-4 h-4 xl:w-5 xl:h-5 mr-2 text-blue-600" />
+                    <h3 className="text-base lg:text-lg font-semibold text-gray-900 flex items-center justify-center">
+                      <Eye className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-blue-600" />
                       Live Preview
                     </h3>
                   </div>
@@ -1018,7 +1018,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             )}
 
             {/* Form Section - Scrollable on desktop */}
-            <div className={`${mode === 'qr' ? 'flex-1 order-2 xl:order-2 xl:overflow-y-auto xl:max-h-[calc(100vh-8rem)] xl:pr-2' : ''} space-y-6`}>
+            <div className={`${mode === 'qr' ? 'flex-1 order-2 lg:order-2 lg:overflow-y-auto lg:max-h-[calc(100vh-8rem)] lg:pr-2' : ''} space-y-6`}>
             {/* Input Section */}
             <div className="space-y-4">
               {mode === 'url' && (
