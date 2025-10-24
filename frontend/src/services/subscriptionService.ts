@@ -9,6 +9,9 @@ export interface UserPlanInfo {
   remainingDailyUrls: number;
   remainingDailyQrCodes: number;
   remainingDailyFiles: number;
+  remainingMonthlyUrls: number;
+  remainingMonthlyQrCodes: number;
+  remainingMonthlyFiles: number;
   maxFileSizeMB: number;
   canUseCustomAlias: boolean;
   canUsePasswordProtection: boolean;

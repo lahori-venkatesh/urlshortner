@@ -43,6 +43,12 @@ public class User {
     private int dailyFilesUploaded = 0;
     private LocalDateTime lastUsageReset = LocalDateTime.now();
     
+    // Monthly usage tracking (resets every month)
+    private int monthlyUrlsCreated = 0;
+    private int monthlyQrCodesCreated = 0;
+    private int monthlyFilesUploaded = 0;
+    private LocalDateTime lastMonthlyReset = LocalDateTime.now();
+    
     // Engagement tracking
     private int consecutiveLoginDays = 0;
     private int totalLinksShared = 0;
@@ -152,6 +158,18 @@ public class User {
     
     public int getDailyFilesUploaded() { return dailyFilesUploaded; }
     public void setDailyFilesUploaded(int dailyFilesUploaded) { this.dailyFilesUploaded = dailyFilesUploaded; }
+    
+    public int getMonthlyUrlsCreated() { return monthlyUrlsCreated; }
+    public void setMonthlyUrlsCreated(int monthlyUrlsCreated) { this.monthlyUrlsCreated = monthlyUrlsCreated; }
+    
+    public int getMonthlyQrCodesCreated() { return monthlyQrCodesCreated; }
+    public void setMonthlyQrCodesCreated(int monthlyQrCodesCreated) { this.monthlyQrCodesCreated = monthlyQrCodesCreated; }
+    
+    public int getMonthlyFilesUploaded() { return monthlyFilesUploaded; }
+    public void setMonthlyFilesUploaded(int monthlyFilesUploaded) { this.monthlyFilesUploaded = monthlyFilesUploaded; }
+    
+    public LocalDateTime getLastMonthlyReset() { return lastMonthlyReset; }
+    public void setLastMonthlyReset(LocalDateTime lastMonthlyReset) { this.lastMonthlyReset = lastMonthlyReset; }
     
     public LocalDateTime getLastUsageReset() { return lastUsageReset; }
     public void setLastUsageReset(LocalDateTime lastUsageReset) { this.lastUsageReset = lastUsageReset; }

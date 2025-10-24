@@ -28,9 +28,12 @@ public class SubscriptionService {
     public static final int FREE_DAILY_URLS = 5;
     public static final int FREE_DAILY_QR_CODES = 3;
     public static final int FREE_DAILY_FILES = 1;
+    public static final int FREE_MONTHLY_URLS = 100;
+    public static final int FREE_MONTHLY_QR_CODES = 50;
+    public static final int FREE_MONTHLY_FILES = 15;
     public static final int MONTHLY_DAILY_URLS = 100;
-    public static final int MONTHLY_DAILY_QR_CODES = 60;
-    public static final int MONTHLY_DAILY_FILES = 10;
+    public static final int MONTHLY_DAILY_QR_CODES = 50;
+    public static final int MONTHLY_DAILY_FILES = 15;
     public static final long FREE_FILE_SIZE_MB = 5;
     public static final long PREMIUM_FILE_SIZE_MB = 500;
     public static final int FREE_DATA_RETENTION_DAYS = 7;
@@ -81,12 +84,12 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         
-        // Reset daily counter if needed
+        // Reset counters if needed
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
         
         if (LIFETIME.equals(plan) || 
             (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
@@ -94,14 +97,14 @@ public class SubscriptionService {
             return true; // Unlimited for yearly and lifetime
         } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
                    user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_URLS;
+            return user.getDailyUrlsCreated() < MONTHLY_DAILY_URLS;
         } else if (isInTrialPeriod(user)) {
             return true; // Unlimited during trial
         } else {
-            dailyLimit = FREE_DAILY_URLS;
+            // Free plan: check both daily and monthly limits
+            return user.getDailyUrlsCreated() < FREE_DAILY_URLS && 
+                   user.getMonthlyUrlsCreated() < FREE_MONTHLY_URLS;
         }
-        
-        return user.getDailyUrlsCreated() < dailyLimit;
     }
     
     /**
@@ -113,12 +116,12 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         
-        // Reset daily counter if needed
+        // Reset counters if needed
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
         
         if (LIFETIME.equals(plan) || 
             (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
@@ -126,14 +129,14 @@ public class SubscriptionService {
             return true; // Unlimited for yearly and lifetime
         } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
                    user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_QR_CODES;
+            return user.getDailyQrCodesCreated() < MONTHLY_DAILY_QR_CODES;
         } else if (isInTrialPeriod(user)) {
             return true; // Unlimited during trial
         } else {
-            dailyLimit = FREE_DAILY_QR_CODES;
+            // Free plan: check both daily and monthly limits
+            return user.getDailyQrCodesCreated() < FREE_DAILY_QR_CODES && 
+                   user.getMonthlyQrCodesCreated() < FREE_MONTHLY_QR_CODES;
         }
-        
-        return user.getDailyQrCodesCreated() < dailyLimit;
     }
     
     /**
@@ -145,12 +148,12 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         
-        // Reset daily counter if needed
+        // Reset counters if needed
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
         
         if (LIFETIME.equals(plan) || 
             (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
@@ -158,14 +161,14 @@ public class SubscriptionService {
             return true; // Unlimited for yearly and lifetime
         } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
                    user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_FILES;
+            return user.getDailyFilesUploaded() < MONTHLY_DAILY_FILES;
         } else if (isInTrialPeriod(user)) {
             return true; // Unlimited during trial
         } else {
-            dailyLimit = FREE_DAILY_FILES;
+            // Free plan: check both daily and monthly limits
+            return user.getDailyFilesUploaded() < FREE_DAILY_FILES && 
+                   user.getMonthlyFilesUploaded() < FREE_MONTHLY_FILES;
         }
-        
-        return user.getDailyFilesUploaded() < dailyLimit;
     }
     
     /**
@@ -226,8 +229,10 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         user.setDailyUrlsCreated(user.getDailyUrlsCreated() + 1);
+        user.setMonthlyUrlsCreated(user.getMonthlyUrlsCreated() + 1);
         user.setTotalUrls(user.getTotalUrls() + 1);
         user.setUpdatedAt(LocalDateTime.now());
         
@@ -244,8 +249,10 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         user.setDailyQrCodesCreated(user.getDailyQrCodesCreated() + 1);
+        user.setMonthlyQrCodesCreated(user.getMonthlyQrCodesCreated() + 1);
         user.setTotalQrCodes(user.getTotalQrCodes() + 1);
         user.setUpdatedAt(LocalDateTime.now());
         
@@ -262,8 +269,10 @@ public class SubscriptionService {
         
         User user = userOpt.get();
         resetDailyUsageIfNeeded(user);
+        resetMonthlyUsageIfNeeded(user);
         
         user.setDailyFilesUploaded(user.getDailyFilesUploaded() + 1);
+        user.setMonthlyFilesUploaded(user.getMonthlyFilesUploaded() + 1);
         user.setUpdatedAt(LocalDateTime.now());
         
         userRepository.save(user);
@@ -284,6 +293,23 @@ public class SubscriptionService {
             user.setLastUsageReset(now);
             userRepository.save(user);
             logger.info("Reset daily usage for user: {}", user.getId());
+        }
+    }
+    
+    /**
+     * Reset monthly usage counters if 30 days have passed
+     */
+    private void resetMonthlyUsageIfNeeded(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastMonthlyReset = user.getLastMonthlyReset();
+        
+        if (lastMonthlyReset == null || ChronoUnit.DAYS.between(lastMonthlyReset, now) >= 30) {
+            user.setMonthlyUrlsCreated(0);
+            user.setMonthlyQrCodesCreated(0);
+            user.setMonthlyFilesUploaded(0);
+            user.setLastMonthlyReset(now);
+            userRepository.save(user);
+            logger.info("Reset monthly usage for user: {}", user.getId());
         }
     }
     
@@ -433,6 +459,51 @@ public class SubscriptionService {
     }
     
     /**
+     * Get remaining monthly URLs for free user
+     */
+    public int getRemainingMonthlyUrls(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return 0;
+        
+        User user = userOpt.get();
+        resetMonthlyUsageIfNeeded(user);
+        
+        if (hasPremiumAccess(userId)) return -1; // Unlimited for premium
+        
+        return Math.max(0, FREE_MONTHLY_URLS - user.getMonthlyUrlsCreated());
+    }
+    
+    /**
+     * Get remaining monthly QR codes for free user
+     */
+    public int getRemainingMonthlyQrCodes(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return 0;
+        
+        User user = userOpt.get();
+        resetMonthlyUsageIfNeeded(user);
+        
+        if (hasPremiumAccess(userId)) return -1; // Unlimited for premium
+        
+        return Math.max(0, FREE_MONTHLY_QR_CODES - user.getMonthlyQrCodesCreated());
+    }
+    
+    /**
+     * Get remaining monthly files for free user
+     */
+    public int getRemainingMonthlyFiles(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return 0;
+        
+        User user = userOpt.get();
+        resetMonthlyUsageIfNeeded(user);
+        
+        if (hasPremiumAccess(userId)) return -1; // Unlimited for premium
+        
+        return Math.max(0, FREE_MONTHLY_FILES - user.getMonthlyFilesUploaded());
+    }
+    
+    /**
      * Get user's current plan info
      */
     public UserPlanInfo getUserPlanInfo(String userId) {
@@ -451,6 +522,9 @@ public class SubscriptionService {
         info.setRemainingDailyUrls(getRemainingDailyUrls(userId));
         info.setRemainingDailyQrCodes(getRemainingDailyQrCodes(userId));
         info.setRemainingDailyFiles(getRemainingDailyFiles(userId));
+        info.setRemainingMonthlyUrls(getRemainingMonthlyUrls(userId));
+        info.setRemainingMonthlyQrCodes(getRemainingMonthlyQrCodes(userId));
+        info.setRemainingMonthlyFiles(getRemainingMonthlyFiles(userId));
         info.setMaxFileSizeMB(getMaxFileSizeMB(userId));
         
         return info;
@@ -468,6 +542,9 @@ public class SubscriptionService {
         private int remainingDailyUrls;
         private int remainingDailyQrCodes;
         private int remainingDailyFiles;
+        private int remainingMonthlyUrls;
+        private int remainingMonthlyQrCodes;
+        private int remainingMonthlyFiles;
         private long maxFileSizeMB;
         
         // Getters and setters
@@ -494,6 +571,15 @@ public class SubscriptionService {
         
         public int getRemainingDailyFiles() { return remainingDailyFiles; }
         public void setRemainingDailyFiles(int remainingDailyFiles) { this.remainingDailyFiles = remainingDailyFiles; }
+        
+        public int getRemainingMonthlyUrls() { return remainingMonthlyUrls; }
+        public void setRemainingMonthlyUrls(int remainingMonthlyUrls) { this.remainingMonthlyUrls = remainingMonthlyUrls; }
+        
+        public int getRemainingMonthlyQrCodes() { return remainingMonthlyQrCodes; }
+        public void setRemainingMonthlyQrCodes(int remainingMonthlyQrCodes) { this.remainingMonthlyQrCodes = remainingMonthlyQrCodes; }
+        
+        public int getRemainingMonthlyFiles() { return remainingMonthlyFiles; }
+        public void setRemainingMonthlyFiles(int remainingMonthlyFiles) { this.remainingMonthlyFiles = remainingMonthlyFiles; }
         
         public long getMaxFileSizeMB() { return maxFileSizeMB; }
         public void setMaxFileSizeMB(long maxFileSizeMB) { this.maxFileSizeMB = maxFileSizeMB; }

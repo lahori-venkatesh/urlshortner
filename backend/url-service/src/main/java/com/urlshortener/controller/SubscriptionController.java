@@ -35,6 +35,9 @@ public class SubscriptionController {
             planData.put("remainingDailyUrls", planInfo.getRemainingDailyUrls());
             planData.put("remainingDailyQrCodes", planInfo.getRemainingDailyQrCodes());
             planData.put("remainingDailyFiles", planInfo.getRemainingDailyFiles());
+            planData.put("remainingMonthlyUrls", planInfo.getRemainingMonthlyUrls());
+            planData.put("remainingMonthlyQrCodes", planInfo.getRemainingMonthlyQrCodes());
+            planData.put("remainingMonthlyFiles", planInfo.getRemainingMonthlyFiles());
             planData.put("maxFileSizeMB", planInfo.getMaxFileSizeMB());
             
             // Feature access
