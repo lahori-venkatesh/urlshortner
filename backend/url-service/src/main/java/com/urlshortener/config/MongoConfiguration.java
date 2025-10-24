@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.util.concurrent.TimeUnit;
@@ -79,6 +80,23 @@ public class MongoConfiguration {
             return new MongoTemplate(client, databaseName);
         } catch (Exception e) {
             System.err.println("Failed to create MongoTemplate: " + e.getMessage());
+            return null;
+        }
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "spring.data.mongodb.uri")
+    public GridFsTemplate gridFsTemplate() {
+        try {
+            MongoTemplate template = mongoTemplate();
+            if (template == null) {
+                System.err.println("MongoTemplate is null, cannot create GridFsTemplate");
+                return null;
+            }
+            return new GridFsTemplate(template.getMongoDatabaseFactory(), template.getConverter());
+        } catch (Exception e) {
+            System.err.println("Failed to create GridFsTemplate: " + e.getMessage());
             return null;
         }
     }

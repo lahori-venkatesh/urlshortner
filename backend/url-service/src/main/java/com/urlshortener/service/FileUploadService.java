@@ -41,7 +41,7 @@ public class FileUploadService {
     @Autowired
     private UserRepository userRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private GridFsTemplate gridFsTemplate;
     
     @Autowired
@@ -125,14 +125,21 @@ public class FileUploadService {
             }
             
             // Store file in GridFS
-            org.bson.types.ObjectId fileId = gridFsTemplate.store(
-                new ByteArrayInputStream(fileData),
-                uploadedFile.getFileCode(),
-                file.getContentType()
-            );
-            
-            uploadedFile.setGridFsFileId(fileId.toString());
-            uploadedFile.setStoredFileName(uploadedFile.getFileCode());
+            if (gridFsTemplate != null) {
+                org.bson.types.ObjectId fileId = gridFsTemplate.store(
+                    new ByteArrayInputStream(fileData),
+                    uploadedFile.getFileCode(),
+                    file.getContentType()
+                );
+                
+                uploadedFile.setGridFsFileId(fileId.toString());
+                uploadedFile.setStoredFileName(uploadedFile.getFileCode());
+            } else {
+                // Fallback: store file metadata only (no actual file storage)
+                uploadedFile.setGridFsFileId("no-gridfs-" + uploadedFile.getFileCode());
+                uploadedFile.setStoredFileName(uploadedFile.getFileCode());
+                logger.warn("GridFS not available, storing file metadata only");
+            }
             
             // Add compression metadata
             if (isCompressed) {
@@ -180,6 +187,10 @@ public class FileUploadService {
         }
         
         // Get file from GridFS
+        if (gridFsTemplate == null) {
+            throw new RuntimeException("File storage not available");
+        }
+        
         GridFSFile gridFSFile = gridFsTemplate.findOne(
             new Query(Criteria.where("filename").is(fileCode))
         );
@@ -252,7 +263,11 @@ public class FileUploadService {
         }
         
         // Delete from GridFS
-        gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileCode)));
+        if (gridFsTemplate != null) {
+            gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileCode)));
+        } else {
+            logger.warn("GridFS not available, skipping file content deletion");
+        }
         
         // Soft delete from database
         existing.setActive(false);
