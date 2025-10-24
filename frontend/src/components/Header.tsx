@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import ProfileDropdown from './ProfileDropdown';
 
 const Header: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -73,18 +74,8 @@ const Header: React.FC = () => {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  <img
-                    src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=3b82f6&color=fff`}
-                    alt={user?.name || 'User'}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user?.plan} Plan</p>
-                  </div>
-                </div>
+              <div className="relative">
+                <ProfileDropdown />
               </div>
             ) : (
               <Link 
@@ -99,29 +90,38 @@ const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           {isAuthenticated && (
-            <div className="lg:hidden" ref={menuRef}>
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6 text-gray-600" />
-                ) : (
-                  <Menu className="h-6 w-6 text-gray-600" />
-                )}
-              </button>
+            <>
+              {/* Mobile Menu Overlay */}
+              {mobileMenuOpen && (
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-25 z-40 lg:hidden"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+              )}
+              
+              <div className="lg:hidden relative" ref={menuRef}>
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? (
+                    <X className="h-6 w-6 text-gray-600" />
+                  ) : (
+                    <Menu className="h-6 w-6 text-gray-600" />
+                  )}
+                </button>
 
-              {/* Mobile Menu */}
-              <AnimatePresence>
-                {mobileMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50"
-                  >
+                {/* Mobile Menu */}
+                <AnimatePresence>
+                  {mobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[calc(100vh-6rem)] overflow-y-auto"
+                    >
                     {/* User Info */}
                     <div className="px-4 py-4 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
@@ -268,10 +268,11 @@ const Header: React.FC = () => {
                         Sign Out
                       </button>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
           )}
 
           {/* Non-authenticated mobile */}

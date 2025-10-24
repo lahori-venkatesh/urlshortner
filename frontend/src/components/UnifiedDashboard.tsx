@@ -7,7 +7,6 @@ import {
   Upload, 
   BarChart3, 
   Plus,
-  Menu,
   X,
   Crown,
   Zap,
