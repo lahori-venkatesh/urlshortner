@@ -11,7 +11,10 @@ import java.util.Map;
 import java.util.HashMap;
 
 @SpringBootApplication(exclude = {
-    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class
+    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration.class,
+    org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration.class
 })
 @RestController
 @CrossOrigin(origins = "*")

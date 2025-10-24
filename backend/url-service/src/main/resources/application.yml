@@ -41,7 +41,7 @@ spring:
   # MongoDB Configuration - Production Ready
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
+      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&maxPoolSize=10&minPoolSize=1&maxIdleTimeMS=30000&connectTimeoutMS=10000&socketTimeoutMS=10000}
       database: ${MONGODB_DATABASE:pebly-database}
       auto-index-creation: false
     
