@@ -41,6 +41,7 @@ interface QRCustomization {
   margin: number;
   logo?: string;
   logoSize?: number;
+  logoCornerRadius?: number;
   centerText?: string;
   centerTextFontSize: number;
   centerTextFontFamily: string;
@@ -100,6 +101,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     errorCorrectionLevel: 'M',
     margin: 4,
     logoSize: 20,
+    logoCornerRadius: 0,
     pattern: 'square',
     cornerStyle: 'square',
     frameStyle: 'none',
@@ -126,17 +128,22 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   useEffect(() => {
     const editData = (location.state as any)?.editQRData;
     if (editData) {
+      console.log('Loading edit data:', editData); // Debug log
       setIsEditMode(true);
       setEditQRId(editData.id);
       setQrText(editData.content || '');
+      
+      // Load all customization data
       setQrCustomization({
         foregroundColor: editData.foregroundColor || '#000000',
         backgroundColor: editData.backgroundColor || '#FFFFFF',
         size: editData.size || 300,
         errorCorrectionLevel: editData.errorCorrectionLevel || 'M',
         margin: 4,
+        logoSize: 20, // Default logo size
+        logoCornerRadius: 0, // Default corner radius
         pattern: 'square',
-        cornerStyle: editData.cornerStyle || 'square',
+        cornerStyle: 'square',
         frameStyle: editData.frameStyle || 'none',
         gradientType: 'none',
         gradientDirection: 'to-right',
@@ -147,6 +154,14 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         centerTextBackgroundColor: '#FFFFFF',
         centerTextBold: true
       });
+
+      // Load logo if available
+      if (editData.logoUrl) {
+        setQrCustomization(prev => ({
+          ...prev,
+          logo: editData.logoUrl
+        }));
+      }
       
       // Clear the location state to prevent re-loading on refresh
       window.history.replaceState({}, document.title);
@@ -950,6 +965,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                               gradientEndColor: qrCustomization.secondaryColor,
                               logo: qrCustomization.logo,
                               logoSize: qrCustomization.logoSize,
+                              logoCornerRadius: qrCustomization.logoCornerRadius,
                               centerText: qrCustomization.centerText,
                               centerTextSize: qrCustomization.centerTextFontSize,
                               centerTextFontFamily: qrCustomization.centerTextFontFamily,
@@ -1432,6 +1448,29 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                               <div className="flex justify-between text-xs text-gray-500 mt-1">
                                 <span>Small (10%)</span>
                                 <span>Large (40%)</span>
+                              </div>
+                            </div>
+
+                            {/* Logo Corner Radius */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-2">
+                                Corner Radius: {qrCustomization.logoCornerRadius || 0}px
+                              </label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="20"
+                                step="2"
+                                value={qrCustomization.logoCornerRadius || 0}
+                                onChange={(e) => setQrCustomization(prev => ({
+                                  ...prev,
+                                  logoCornerRadius: parseInt(e.target.value)
+                                }))}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                              />
+                              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Square (0px)</span>
+                                <span>Rounded (20px)</span>
                               </div>
                             </div>
                           </div>

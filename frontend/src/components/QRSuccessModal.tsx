@@ -16,6 +16,7 @@ interface QRCustomization {
   gradientEndColor?: string;
   logo?: string;
   logoSize?: number;
+  logoCornerRadius?: number;
   centerText?: string;
   centerTextSize?: number;
   centerTextFontFamily?: string;
@@ -236,12 +237,47 @@ const QRSuccessModal: React.FC<QRSuccessModalProps> = ({
           const logoSize = Math.min(canvas.width, canvas.height) * logoSizePercent;
           const x = (canvas.width - logoSize) / 2;
           const y = (canvas.height - logoSize) / 2;
+          const cornerRadius = customization.logoCornerRadius || 0;
+          
+          // Save the current context state
+          ctx.save();
+          
+          // Create clipping path for logo with corner radius
+          ctx.beginPath();
+          if (cornerRadius > 0 && ctx.roundRect) {
+            // Use roundRect if available and corner radius is set
+            ctx.roundRect(x, y, logoSize, logoSize, cornerRadius);
+          } else if (cornerRadius > 0) {
+            // Fallback for browsers that don't support roundRect
+            const radius = Math.min(cornerRadius, logoSize / 2);
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + logoSize - radius, y);
+            ctx.quadraticCurveTo(x + logoSize, y, x + logoSize, y + radius);
+            ctx.lineTo(x + logoSize, y + logoSize - radius);
+            ctx.quadraticCurveTo(x + logoSize, y + logoSize, x + logoSize - radius, y + logoSize);
+            ctx.lineTo(x + radius, y + logoSize);
+            ctx.quadraticCurveTo(x, y + logoSize, x, y + logoSize - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+          } else {
+            // Square logo (no corner radius)
+            ctx.rect(x, y, logoSize, logoSize);
+          }
+          
+          // Clip to the path
+          ctx.clip();
           
           // Add white background for logo
           ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(x - 5, y - 5, logoSize + 10, logoSize + 10);
+          ctx.fillRect(x - 2, y - 2, logoSize + 4, logoSize + 4);
           
+          // Draw the logo image
           ctx.drawImage(img, x, y, logoSize, logoSize);
+          
+          // Restore the context state
+          ctx.restore();
+          
           resolve();
         };
         

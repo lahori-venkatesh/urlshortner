@@ -346,9 +346,11 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
           backgroundColor: qr.customization.backgroundColor,
           size: qr.customization.size,
           style: qr.customization.style,
-          cornerStyle: qr.customization.style === 'rounded' ? 'rounded' : 'square',
-          frameStyle: 'none',
-          errorCorrectionLevel: qr.customization.errorCorrection || 'M'
+          cornerStyle: 'square', // Always square now
+          frameStyle: 'none', // Default frame style
+          errorCorrectionLevel: qr.customization.errorCorrection || 'M',
+          logoUrl: qr.customization.logoUrl,
+          description: qr.description
         }
       }
     });
