@@ -6,11 +6,12 @@ import AuthModal from '../components/AuthModal';
 import PaymentModal from '../components/PaymentModal';
 import { useAuth } from '../context/AuthContext';
 import { paymentService } from '../services/paymentService';
+import { subscriptionService, PricingData } from '../services/subscriptionService';
 import toast from 'react-hot-toast';
 
 const Pricing: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -21,22 +22,35 @@ const Pricing: React.FC = () => {
     price: number;
   } | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discount: number;
     type: 'percentage' | 'fixed';
   } | null>(null);
+  const [pricingData, setPricingData] = useState<PricingData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [showCouponInput, setShowCouponInput] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
+    loadPricingData();
     if (isAuthenticated) {
       loadSubscriptionStatus();
     }
   }, [isAuthenticated]);
+
+  const loadPricingData = async () => {
+    try {
+      const pricing = await subscriptionService.getPricing();
+      setPricingData(pricing);
+    } catch (error) {
+      console.error('Failed to load pricing:', error);
+      toast.error('Failed to load pricing information');
+    }
+  };
 
   const loadSubscriptionStatus = async () => {
     try {
@@ -55,8 +69,32 @@ const Pricing: React.FC = () => {
     navigate('/dashboard');
   };
 
-  const handlePlanSelect = (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, price: number) => {
-    handleRazorpayPayment(planType, planName, price);
+  const handlePlanSelect = async (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, price: number) => {
+    if (!isAuthenticated) {
+      setAuthMode('signup');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error('Please log in to upgrade');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const subscriptionPlanType = planType === 'MONTHLY' ? 'PREMIUM_MONTHLY' : 
+                                  planType === 'YEARLY' ? 'PREMIUM_YEARLY' : 'LIFETIME';
+      
+      await subscriptionService.initializePayment(subscriptionPlanType, user.id);
+      toast.success('Payment successful! Your plan has been upgraded.');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Payment failed:', error);
+      toast.error('Payment failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePaymentSuccess = () => {

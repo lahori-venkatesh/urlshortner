@@ -3,6 +3,7 @@ package com.urlshortener.controller;
 import com.urlshortener.model.QrCode;
 import com.urlshortener.service.QrCodeService;
 import com.urlshortener.service.DashboardService;
+import com.urlshortener.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ public class QrCodeController {
     
     @Autowired
     private QrCodeService qrCodeService;
+    
+    @Autowired
+    private SubscriptionService subscriptionService;
     
     @Autowired
     private DashboardService dashboardService;
@@ -44,6 +48,27 @@ public class QrCodeController {
                 return ResponseEntity.badRequest().body(response);
             }
             
+            // Check subscription limits
+            if (userId != null && !subscriptionService.canCreateQrCode(userId)) {
+                int remaining = subscriptionService.getRemainingDailyQrCodes(userId);
+                response.put("success", false);
+                response.put("message", "Daily QR code limit reached. You have " + remaining + " QR codes remaining today. Upgrade to Premium for unlimited access.");
+                response.put("upgradeRequired", true);
+                return ResponseEntity.status(429).body(response);
+            }
+            
+            // Check premium features
+            boolean hasCustomization = (foregroundColor != null && !foregroundColor.equals("#000000")) ||
+                                     (backgroundColor != null && !backgroundColor.equals("#FFFFFF")) ||
+                                     (style != null && !style.equals("square"));
+            
+            if (userId != null && hasCustomization && !subscriptionService.canCustomizeQrCodes(userId)) {
+                response.put("success", false);
+                response.put("message", "QR code customization is available with Premium plans only.");
+                response.put("upgradeRequired", true);
+                return ResponseEntity.status(403).body(response);
+            }
+            
             QrCode qrCode = qrCodeService.createQrCode(
                 content, contentType != null ? contentType : "TEXT", userId,
                 title, description, style, foregroundColor, backgroundColor,
@@ -63,6 +88,11 @@ public class QrCodeController {
             qrData.put("size", qrCode.getSize());
             qrData.put("format", qrCode.getFormat());
             qrData.put("createdAt", qrCode.getCreatedAt());
+            
+            // Track usage for subscription management
+            if (userId != null) {
+                subscriptionService.incrementQrCodeUsage(userId);
+            }
             
             response.put("success", true);
             response.put("message", "QR Code created successfully");

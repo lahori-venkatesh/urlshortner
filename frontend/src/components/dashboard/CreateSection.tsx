@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSubscription } from '../../context/SubscriptionContext';
+import { subscriptionService } from '../../services/subscriptionService';
 import { 
   Link, 
   QrCode, 
@@ -14,7 +16,7 @@ import {
   Sparkles, 
   Shield,
   Palette,
-
+  Crown,
   Download,
   Save
 } from 'lucide-react';
@@ -71,6 +73,7 @@ interface ShortenedLink {
 
 const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => {
   const { user } = useAuth();
+  const { planInfo, checkAccess, showUpgradeModal, startTrial } = useSubscription();
   const location = useLocation();
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
@@ -444,6 +447,57 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     if (mode === 'url' && !urlInput.trim()) return;
     if (mode === 'qr' && !qrText.trim()) return;
     if (mode === 'file' && !selectedFile) return;
+
+    // Check subscription limits before creating
+    if (user?.id) {
+      const action = mode === 'url' ? 'create-url' : mode === 'qr' ? 'create-qr' : 'create-file';
+      const accessCheck = await checkAccess(action);
+      
+      if (!accessCheck.hasAccess) {
+        showUpgradeModal('daily-limit', accessCheck.message);
+        return;
+      }
+
+      // Check premium features
+      if (customAlias && !(await checkAccess('custom-alias')).hasAccess) {
+        showUpgradeModal('custom-alias');
+        return;
+      }
+
+      if (password && !(await checkAccess('password-protection')).hasAccess) {
+        showUpgradeModal('password-protection');
+        return;
+      }
+
+      if (expirationDays && !(await checkAccess('expiration')).hasAccess) {
+        showUpgradeModal('expiration');
+        return;
+      }
+
+      // Check QR customization
+      if (mode === 'qr') {
+        const hasCustomization = qrCustomization.foregroundColor !== '#000000' ||
+                                qrCustomization.backgroundColor !== '#FFFFFF' ||
+                                qrCustomization.logo ||
+                                qrCustomization.frameStyle !== 'none';
+        
+        if (hasCustomization && !(await checkAccess('customize-qr')).hasAccess) {
+          showUpgradeModal('customize-qr');
+          return;
+        }
+      }
+
+      // Check file size for file uploads
+      if (mode === 'file' && selectedFile) {
+        const maxSizeMB = planInfo?.maxFileSizeMB || 5;
+        const fileSizeMB = selectedFile.size / (1024 * 1024);
+        
+        if (fileSizeMB > maxSizeMB) {
+          showUpgradeModal('file-size', `File size exceeds ${maxSizeMB}MB limit. Upgrade to Premium for up to 500MB uploads.`);
+          return;
+        }
+      }
+    }
 
     setIsLoading(true);
 
@@ -884,6 +938,105 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             <div className="min-w-0">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Edit QR Code</h2>
               <p className="text-sm sm:text-base text-gray-600 mt-1">Update your QR code settings and see changes in real-time</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Usage Limits Banner for Free Users */}
+      {planInfo && !planInfo.hasPremiumAccess && (
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Zap className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Free Plan Limits</h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                  <span>URLs: {planInfo.remainingDailyUrls}/10 today</span>
+                  <span>QR Codes: {planInfo.remainingDailyQrCodes}/10 today</span>
+                  <span>Files: {planInfo.maxFileSizeMB}MB max</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => showUpgradeModal()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              Upgrade
+            </button>
+          </div>
+          
+          {/* Progress bars */}
+          <div className="mt-4 space-y-2">
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Daily URLs</span>
+                <span>{10 - planInfo.remainingDailyUrls}/10</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((10 - planInfo.remainingDailyUrls) / 10) * 100}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Daily QR Codes</span>
+                <span>{10 - planInfo.remainingDailyQrCodes}/10</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((10 - planInfo.remainingDailyQrCodes) / 10) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Trial offer */}
+          {planInfo.trialEligible && (
+            <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">🎉 You're eligible for a free trial!</p>
+                  <p className="text-xs text-gray-600">Get 1-day premium access to try all features</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    const success = await startTrial();
+                    if (success) {
+                      toast.success('Trial started! You now have premium access for 24 hours.');
+                    } else {
+                      toast.error('Failed to start trial. Please try again.');
+                    }
+                  }}
+                  className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                >
+                  Start Trial
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Premium Badge */}
+      {planInfo && planInfo.hasPremiumAccess && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+              <Crown className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Premium Active</h3>
+              <p className="text-sm text-gray-600">
+                {planInfo.inTrial ? 'Trial expires soon - upgrade to continue' : 
+                 planInfo.plan === 'LIFETIME' ? 'Lifetime access' : 
+                 `Plan: ${subscriptionService.formatPlanName(planInfo.plan)}`}
+              </p>
             </div>
           </div>
         </div>

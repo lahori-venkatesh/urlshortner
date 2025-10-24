@@ -23,16 +23,30 @@ public class User {
     private String profilePicture;
     
     // Account details
-    private String subscriptionPlan = "FREE"; // FREE, PREMIUM
+    private String subscriptionPlan = "FREE"; // FREE, PREMIUM_MONTHLY, PREMIUM_YEARLY, LIFETIME
     private LocalDateTime subscriptionExpiry;
     private boolean isActive = true;
     private boolean emailVerified = false;
+    private String subscriptionId; // Razorpay subscription ID
+    private String customerId; // Razorpay customer ID
     
     // Usage statistics
     private int totalUrls = 0;
     private int totalQrCodes = 0;
     private int totalFiles = 0;
     private int totalClicks = 0;
+    
+    // Daily usage tracking (resets every 24 hours)
+    private int dailyUrlsCreated = 0;
+    private int dailyQrCodesCreated = 0;
+    private LocalDateTime lastUsageReset = LocalDateTime.now();
+    
+    // Engagement tracking
+    private int consecutiveLoginDays = 0;
+    private int totalLinksShared = 0;
+    private boolean hasUsedTrial = false;
+    private LocalDateTime trialStartDate;
+    private LocalDateTime trialEndDate;
     
     // Timestamps
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -118,4 +132,34 @@ public class User {
     
     public int getApiCallsThisMonth() { return apiCallsThisMonth; }
     public void setApiCallsThisMonth(int apiCallsThisMonth) { this.apiCallsThisMonth = apiCallsThisMonth; }
+    
+    public String getSubscriptionId() { return subscriptionId; }
+    public void setSubscriptionId(String subscriptionId) { this.subscriptionId = subscriptionId; }
+    
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
+    
+    public int getDailyUrlsCreated() { return dailyUrlsCreated; }
+    public void setDailyUrlsCreated(int dailyUrlsCreated) { this.dailyUrlsCreated = dailyUrlsCreated; }
+    
+    public int getDailyQrCodesCreated() { return dailyQrCodesCreated; }
+    public void setDailyQrCodesCreated(int dailyQrCodesCreated) { this.dailyQrCodesCreated = dailyQrCodesCreated; }
+    
+    public LocalDateTime getLastUsageReset() { return lastUsageReset; }
+    public void setLastUsageReset(LocalDateTime lastUsageReset) { this.lastUsageReset = lastUsageReset; }
+    
+    public int getConsecutiveLoginDays() { return consecutiveLoginDays; }
+    public void setConsecutiveLoginDays(int consecutiveLoginDays) { this.consecutiveLoginDays = consecutiveLoginDays; }
+    
+    public int getTotalLinksShared() { return totalLinksShared; }
+    public void setTotalLinksShared(int totalLinksShared) { this.totalLinksShared = totalLinksShared; }
+    
+    public boolean isHasUsedTrial() { return hasUsedTrial; }
+    public void setHasUsedTrial(boolean hasUsedTrial) { this.hasUsedTrial = hasUsedTrial; }
+    
+    public LocalDateTime getTrialStartDate() { return trialStartDate; }
+    public void setTrialStartDate(LocalDateTime trialStartDate) { this.trialStartDate = trialStartDate; }
+    
+    public LocalDateTime getTrialEndDate() { return trialEndDate; }
+    public void setTrialEndDate(LocalDateTime trialEndDate) { this.trialEndDate = trialEndDate; }
 }

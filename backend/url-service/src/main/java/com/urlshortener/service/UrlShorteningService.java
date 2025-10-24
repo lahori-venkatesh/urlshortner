@@ -31,6 +31,9 @@ public class UrlShorteningService {
     @Autowired
     private CacheService cacheService;
     
+    @Autowired
+    private SubscriptionService subscriptionService;
+    
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
     
@@ -43,6 +46,25 @@ public class UrlShorteningService {
         // Validate URL
         if (!isValidUrl(originalUrl)) {
             throw new RuntimeException("Invalid URL format");
+        }
+        
+        // Check subscription limits
+        if (!subscriptionService.canCreateUrl(userId)) {
+            int remaining = subscriptionService.getRemainingDailyUrls(userId);
+            throw new RuntimeException("Daily URL limit reached. You have " + remaining + " URLs remaining today. Upgrade to Premium for unlimited access.");
+        }
+        
+        // Check premium features
+        if (customAlias != null && !customAlias.trim().isEmpty() && !subscriptionService.canUseCustomAlias(userId)) {
+            throw new RuntimeException("Custom aliases are available with Premium plans only.");
+        }
+        
+        if (password != null && !password.trim().isEmpty() && !subscriptionService.canUsePasswordProtection(userId)) {
+            throw new RuntimeException("Password protection is available with Premium plans only.");
+        }
+        
+        if (expirationDays != null && expirationDays > 0 && !subscriptionService.canSetExpiration(userId)) {
+            throw new RuntimeException("Link expiration is available with Premium plans only.");
         }
         
         // Generate or validate short code
@@ -94,9 +116,10 @@ public class UrlShorteningService {
         // Save to database
         ShortenedUrl saved = shortenedUrlRepository.save(shortenedUrl);
         
-        // Update user statistics
+        // Update user statistics and usage tracking
         if (userId != null) {
             updateUserStats(userId);
+            subscriptionService.incrementUrlUsage(userId);
             // Invalidate user URLs cache
             cacheService.clearCache("userUrls", userId);
         }

@@ -2,7 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { QueryProvider } from './providers/QueryProvider';
+import UpgradeModal from './components/UpgradeModal';
+import { useSubscription } from './context/SubscriptionContext';
 import AuthRedirect from './components/AuthRedirect';
 import Header from './components/Header';
 import LandingPage from './pages/LandingPage';
@@ -28,11 +31,12 @@ import CancellationRefund from './pages/CancellationRefund';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import './App.css';
 
-function App() {
+const AppContent: React.FC = () => {
+  const { upgradeModalState, hideUpgradeModal } = useSubscription();
+
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <Router>
+    <>
+      <Router>
         <div className="min-h-screen">
           <Routes>
             <Route path="/" element={
@@ -185,7 +189,26 @@ function App() {
           <Toaster position="top-right" />
         </div>
       </Router>
-    </AuthProvider>
+      
+      {/* Global Upgrade Modal */}
+      <UpgradeModal
+        isOpen={upgradeModalState.isOpen}
+        onClose={hideUpgradeModal}
+        feature={upgradeModalState.feature}
+        message={upgradeModalState.message}
+      />
+    </>
+  );
+};
+
+function App() {
+  return (
+    <QueryProvider>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <AppContent />
+        </SubscriptionProvider>
+      </AuthProvider>
     </QueryProvider>
   );
 }
