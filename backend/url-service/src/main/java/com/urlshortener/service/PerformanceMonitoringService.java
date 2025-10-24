@@ -27,7 +27,7 @@ public class PerformanceMonitoringService {
     @Autowired
     private MeterRegistry meterRegistry;
     
-    @Autowired
+    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
     
     // Performance counters
@@ -169,9 +169,14 @@ public class PerformanceMonitoringService {
         Map<String, Object> stats = new HashMap<>();
         
         try {
-            // Get cache entry count
-            Set<String> keys = redisTemplate.keys("pebly:*");
-            long cacheEntries = keys != null ? keys.size() : 0;
+            long cacheEntries = 0;
+            
+            // Get cache entry count (only if Redis is available)
+            if (redisTemplate != null) {
+                Set<String> keys = redisTemplate.keys("pebly:*");
+                cacheEntries = keys != null ? keys.size() : 0;
+            }
+            
             activeCacheEntries.set(cacheEntries);
             
             // Calculate cache hit ratio

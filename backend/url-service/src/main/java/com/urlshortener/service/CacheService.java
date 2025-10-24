@@ -18,7 +18,7 @@ public class CacheService {
     @Autowired
     private CacheManager cacheManager;
     
-    @Autowired
+    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
     
     /**
@@ -106,6 +106,11 @@ public class CacheService {
      * Clear cache entries matching pattern
      */
     public void clearCachePattern(String pattern) {
+        if (redisTemplate == null) {
+            logger.debug("Redis not available - cache pattern clear skipped: {}", pattern);
+            return;
+        }
+        
         try {
             Set<String> keys = redisTemplate.keys("pebly:" + pattern);
             if (keys != null && !keys.isEmpty()) {
@@ -121,6 +126,11 @@ public class CacheService {
      * Set cache entry with custom TTL
      */
     public void setCacheWithTtl(String key, Object value, long ttlSeconds) {
+        if (redisTemplate == null) {
+            logger.debug("Redis not available - cache set skipped: {}", key);
+            return;
+        }
+        
         try {
             redisTemplate.opsForValue().set("pebly:" + key, value, ttlSeconds, TimeUnit.SECONDS);
             logger.debug("Set cache entry with TTL: {} ({}s)", key, ttlSeconds);
@@ -133,6 +143,11 @@ public class CacheService {
      * Get cache entry
      */
     public Object getCacheEntry(String key) {
+        if (redisTemplate == null) {
+            logger.debug("Redis not available - cache get skipped: {}", key);
+            return null;
+        }
+        
         try {
             return redisTemplate.opsForValue().get("pebly:" + key);
         } catch (Exception e) {
@@ -145,6 +160,10 @@ public class CacheService {
      * Check if cache entry exists
      */
     public boolean cacheExists(String key) {
+        if (redisTemplate == null) {
+            return false;
+        }
+        
         try {
             return Boolean.TRUE.equals(redisTemplate.hasKey("pebly:" + key));
         } catch (Exception e) {
@@ -157,6 +176,10 @@ public class CacheService {
      * Increment counter in cache
      */
     public Long incrementCounter(String key) {
+        if (redisTemplate == null) {
+            return 0L;
+        }
+        
         try {
             return redisTemplate.opsForValue().increment("pebly:counter:" + key);
         } catch (Exception e) {
@@ -169,6 +192,11 @@ public class CacheService {
      * Get cache statistics
      */
     public void logCacheStats() {
+        if (redisTemplate == null) {
+            logger.info("Redis not available - using simple cache");
+            return;
+        }
+        
         try {
             Set<String> keys = redisTemplate.keys("pebly:*");
             logger.info("Total cache entries: {}", keys != null ? keys.size() : 0);

@@ -21,13 +21,13 @@ public class AnalyticsService {
     
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsService.class);
     
-    @Autowired
+    @Autowired(required = false)
     private ClickAnalyticsRepository clickAnalyticsRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private ShortenedUrlRepository shortenedUrlRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private CacheService cacheService;
     
     @CacheEvict(value = {"urlAnalytics", "userAnalytics", "clickCounts", "realtimeAnalytics"}, 
@@ -35,6 +35,12 @@ public class AnalyticsService {
     public ClickAnalytics recordClick(String shortCode, String ipAddress, String userAgent,
                                     String referrer, String country, String city, 
                                     String deviceType, String browser, String os) {
+        
+        // Check if repositories are available
+        if (shortenedUrlRepository == null || clickAnalyticsRepository == null) {
+            logger.warn("Analytics repositories not available - running in simple mode");
+            return null;
+        }
         
         // Get the shortened URL
         Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCode(shortCode);

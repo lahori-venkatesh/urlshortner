@@ -10,7 +10,9 @@ import com.urlshortener.service.DatabaseService;
 import java.util.Map;
 import java.util.HashMap;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class
+})
 @RestController
 @CrossOrigin(origins = "*")
 public class UrlShortenerSimpleApplication {

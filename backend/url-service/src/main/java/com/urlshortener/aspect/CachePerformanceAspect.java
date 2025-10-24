@@ -20,10 +20,10 @@ public class CachePerformanceAspect {
     
     private static final Logger logger = LoggerFactory.getLogger(CachePerformanceAspect.class);
     
-    @Autowired
+    @Autowired(required = false)
     private PerformanceMonitoringService performanceMonitoringService;
     
-    @Autowired
+    @Autowired(required = false)
     private CacheManager cacheManager;
     
     /**
@@ -43,21 +43,26 @@ public class CachePerformanceAspect {
             
             Duration duration = Duration.between(startTime, Instant.now());
             
-            if (cacheHit) {
-                performanceMonitoringService.recordCacheHit(methodName);
-                logger.debug("Cache HIT for method: {} ({}ms)", methodName, duration.toMillis());
-            } else {
-                performanceMonitoringService.recordCacheMiss(methodName);
-                logger.debug("Cache MISS for method: {} ({}ms)", methodName, duration.toMillis());
+            if (performanceMonitoringService != null) {
+                if (cacheHit) {
+                    performanceMonitoringService.recordCacheHit(methodName);
+                } else {
+                    performanceMonitoringService.recordCacheMiss(methodName);
+                }
+                performanceMonitoringService.recordCacheOperation("read", duration);
             }
             
-            performanceMonitoringService.recordCacheOperation("read", duration);
+            logger.debug("Cache {} for method: {} ({}ms)", cacheHit ? "HIT" : "MISS", methodName, duration.toMillis());
             
             return result;
             
         } catch (Exception e) {
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordError("cache.read", e.getMessage());
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordError("cache.read", e.getMessage());
+            }
+            
             logger.error("Cache operation failed for method: {} ({}ms)", methodName, duration.toMillis(), e);
             throw e;
         }
@@ -75,7 +80,10 @@ public class CachePerformanceAspect {
             Object result = joinPoint.proceed();
             
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordCacheOperation("evict", duration);
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordCacheOperation("evict", duration);
+            }
             
             logger.debug("Cache EVICT for method: {} ({}ms)", methodName, duration.toMillis());
             
@@ -83,7 +91,11 @@ public class CachePerformanceAspect {
             
         } catch (Exception e) {
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordError("cache.evict", e.getMessage());
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordError("cache.evict", e.getMessage());
+            }
+            
             logger.error("Cache evict failed for method: {} ({}ms)", methodName, duration.toMillis(), e);
             throw e;
         }
@@ -101,7 +113,10 @@ public class CachePerformanceAspect {
             Object result = joinPoint.proceed();
             
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordCacheOperation("put", duration);
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordCacheOperation("put", duration);
+            }
             
             logger.debug("Cache PUT for method: {} ({}ms)", methodName, duration.toMillis());
             
@@ -109,7 +124,11 @@ public class CachePerformanceAspect {
             
         } catch (Exception e) {
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordError("cache.put", e.getMessage());
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordError("cache.put", e.getMessage());
+            }
+            
             logger.error("Cache put failed for method: {} ({}ms)", methodName, duration.toMillis(), e);
             throw e;
         }
@@ -119,8 +138,8 @@ public class CachePerformanceAspect {
      * Monitor database query methods (methods in repository or service classes)
      */
     @Around("execution(* com.urlshortener.repository.*.*(..)) || " +
-            "execution(* com.urlshortener.service.*.*(..) && " +
-            "!execution(* com.urlshortener.service.PerformanceMonitoringService.*(..))")
+            "(execution(* com.urlshortener.service.*.*(..)) && " +
+            "!execution(* com.urlshortener.service.PerformanceMonitoringService.*(..)))")
     public Object monitorDatabaseQueries(ProceedingJoinPoint joinPoint) throws Throwable {
         // Only monitor if it's likely a database operation
         String methodName = getMethodName(joinPoint);
@@ -134,7 +153,10 @@ public class CachePerformanceAspect {
             Object result = joinPoint.proceed();
             
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordDatabaseQuery(methodName, duration);
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordDatabaseQuery(methodName, duration);
+            }
             
             // Log slow queries (> 500ms)
             if (duration.toMillis() > 500) {
@@ -145,7 +167,11 @@ public class CachePerformanceAspect {
             
         } catch (Exception e) {
             Duration duration = Duration.between(startTime, Instant.now());
-            performanceMonitoringService.recordError("database.query", e.getMessage());
+            
+            if (performanceMonitoringService != null) {
+                performanceMonitoringService.recordError("database.query", e.getMessage());
+            }
+            
             logger.error("Database query failed: {} ({}ms)", methodName, duration.toMillis(), e);
             throw e;
         }
@@ -175,6 +201,10 @@ public class CachePerformanceAspect {
     
     private boolean isCacheHit(String cacheKey) {
         try {
+            if (cacheManager == null) {
+                return false;
+            }
+            
             // Check common cache names for the key
             String[] cacheNames = {"userUrls", "userQRCodes", "userFiles", "urlAnalytics", 
                                  "userAnalytics", "dashboardOverview", "realtimeAnalytics"};

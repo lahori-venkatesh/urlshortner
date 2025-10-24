@@ -5,11 +5,10 @@ spring:
   application:
     name: pebly-backend
   
-  # MongoDB Configuration
+  # MongoDB Configuration - Disabled for simple mode
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
-      database: ${MONGODB_DATABASE:pebly-database}
+      uri: # Disabled
   
   # Disable Redis for now to avoid connection issues
   cache:
@@ -30,10 +29,13 @@ spring:
       allowed-headers: "*"
       allow-credentials: true
 
-# Disable Redis auto-configuration
+# Disable auto-configurations for simple mode
 spring.autoconfigure.exclude: 
   - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
+  - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
 
 logging:
   level:

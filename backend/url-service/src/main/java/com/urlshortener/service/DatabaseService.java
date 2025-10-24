@@ -14,26 +14,32 @@ import java.util.Map;
 @Service
 public class DatabaseService {
     
-    @Autowired
+    @Autowired(required = false)
     private MongoTemplate mongoTemplate;
     
-    @Autowired
+    @Autowired(required = false)
     private UserRepository userRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private ShortenedUrlRepository shortenedUrlRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private UploadedFileRepository uploadedFileRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private ClickAnalyticsRepository clickAnalyticsRepository;
     
-    @Autowired
+    @Autowired(required = false)
     private QrCodeRepository qrCodeRepository;
     
     public Map<String, Object> initializeDatabase() {
         Map<String, Object> result = new HashMap<>();
+        
+        if (mongoTemplate == null) {
+            result.put("success", false);
+            result.put("message", "MongoDB not configured - running in simple mode");
+            return result;
+        }
         
         try {
             // Create indexes for better performance
@@ -57,77 +63,84 @@ public class DatabaseService {
     }
     
     private void createIndexes() {
-        // User collection indexes
-        mongoTemplate.indexOps(User.class)
-            .ensureIndex(new Index().on("email", Sort.Direction.ASC).unique());
-        mongoTemplate.indexOps(User.class)
-            .ensureIndex(new Index().on("googleId", Sort.Direction.ASC));
-        mongoTemplate.indexOps(User.class)
-            .ensureIndex(new Index().on("apiKey", Sort.Direction.ASC));
-        mongoTemplate.indexOps(User.class)
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC));
+        if (mongoTemplate == null) {
+            return;
+        }
         
-        // ShortenedUrl collection indexes
-        mongoTemplate.indexOps(ShortenedUrl.class)
-            .ensureIndex(new Index().on("shortCode", Sort.Direction.ASC).unique());
-        mongoTemplate.indexOps(ShortenedUrl.class)
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC));
-        mongoTemplate.indexOps(ShortenedUrl.class)
-            .ensureIndex(new Index().on("customAlias", Sort.Direction.ASC));
-        mongoTemplate.indexOps(ShortenedUrl.class)
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC));
-        mongoTemplate.indexOps(ShortenedUrl.class)
-            .ensureIndex(new Index().on("totalClicks", Sort.Direction.DESC));
-        
-        // UploadedFile collection indexes
-        mongoTemplate.indexOps(UploadedFile.class)
-            .ensureIndex(new Index().on("fileCode", Sort.Direction.ASC).unique());
-        mongoTemplate.indexOps(UploadedFile.class)
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC));
-        mongoTemplate.indexOps(UploadedFile.class)
-            .ensureIndex(new Index().on("uploadedAt", Sort.Direction.DESC));
-        mongoTemplate.indexOps(UploadedFile.class)
-            .ensureIndex(new Index().on("fileType", Sort.Direction.ASC));
-        
-        // ClickAnalytics collection indexes
-        mongoTemplate.indexOps(ClickAnalytics.class)
-            .ensureIndex(new Index().on("shortCode", Sort.Direction.ASC));
-        mongoTemplate.indexOps(ClickAnalytics.class)
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC));
-        mongoTemplate.indexOps(ClickAnalytics.class)
-            .ensureIndex(new Index().on("clickedAt", Sort.Direction.DESC));
-        mongoTemplate.indexOps(ClickAnalytics.class)
-            .ensureIndex(new Index().on("country", Sort.Direction.ASC));
-        mongoTemplate.indexOps(ClickAnalytics.class)
-            .ensureIndex(new Index().on("deviceType", Sort.Direction.ASC));
-        
-        // QrCode collection indexes
-        mongoTemplate.indexOps(QrCode.class)
-            .ensureIndex(new Index().on("qrCode", Sort.Direction.ASC).unique());
-        mongoTemplate.indexOps(QrCode.class)
-            .ensureIndex(new Index().on("userId", Sort.Direction.ASC));
-        mongoTemplate.indexOps(QrCode.class)
-            .ensureIndex(new Index().on("shortCode", Sort.Direction.ASC));
-        mongoTemplate.indexOps(QrCode.class)
-            .ensureIndex(new Index().on("fileCode", Sort.Direction.ASC));
-        mongoTemplate.indexOps(QrCode.class)
-            .ensureIndex(new Index().on("createdAt", Sort.Direction.DESC));
+        try {
+            // Test connection first
+            mongoTemplate.getDb().getName();
+            
+            // User collection indexes
+            createIndexSafely(User.class, "email", Sort.Direction.ASC, true);
+            createIndexSafely(User.class, "googleId", Sort.Direction.ASC, false);
+            createIndexSafely(User.class, "apiKey", Sort.Direction.ASC, false);
+            createIndexSafely(User.class, "createdAt", Sort.Direction.DESC, false);
+            
+            // ShortenedUrl collection indexes
+            createIndexSafely(ShortenedUrl.class, "shortCode", Sort.Direction.ASC, true);
+            createIndexSafely(ShortenedUrl.class, "userId", Sort.Direction.ASC, false);
+            createIndexSafely(ShortenedUrl.class, "customAlias", Sort.Direction.ASC, false);
+            createIndexSafely(ShortenedUrl.class, "createdAt", Sort.Direction.DESC, false);
+            createIndexSafely(ShortenedUrl.class, "totalClicks", Sort.Direction.DESC, false);
+            
+            // UploadedFile collection indexes
+            createIndexSafely(UploadedFile.class, "fileCode", Sort.Direction.ASC, true);
+            createIndexSafely(UploadedFile.class, "userId", Sort.Direction.ASC, false);
+            createIndexSafely(UploadedFile.class, "uploadedAt", Sort.Direction.DESC, false);
+            createIndexSafely(UploadedFile.class, "fileType", Sort.Direction.ASC, false);
+            
+            // ClickAnalytics collection indexes
+            createIndexSafely(ClickAnalytics.class, "shortCode", Sort.Direction.ASC, false);
+            createIndexSafely(ClickAnalytics.class, "userId", Sort.Direction.ASC, false);
+            createIndexSafely(ClickAnalytics.class, "clickedAt", Sort.Direction.DESC, false);
+            createIndexSafely(ClickAnalytics.class, "country", Sort.Direction.ASC, false);
+            createIndexSafely(ClickAnalytics.class, "deviceType", Sort.Direction.ASC, false);
+            
+            // QrCode collection indexes
+            createIndexSafely(QrCode.class, "qrCode", Sort.Direction.ASC, true);
+            createIndexSafely(QrCode.class, "userId", Sort.Direction.ASC, false);
+            createIndexSafely(QrCode.class, "shortCode", Sort.Direction.ASC, false);
+            createIndexSafely(QrCode.class, "fileCode", Sort.Direction.ASC, false);
+            createIndexSafely(QrCode.class, "createdAt", Sort.Direction.DESC, false);
+            
+        } catch (Exception e) {
+            System.err.println("Warning: Could not create MongoDB indexes - " + e.getMessage());
+            // Don't throw exception, just log and continue
+        }
+    }
+    
+    private void createIndexSafely(Class<?> entityClass, String field, Sort.Direction direction, boolean unique) {
+        try {
+            Index index = new Index().on(field, direction);
+            if (unique) {
+                index = index.unique();
+            }
+            mongoTemplate.indexOps(entityClass).ensureIndex(index);
+        } catch (Exception e) {
+            System.err.println("Warning: Could not create index on " + entityClass.getSimpleName() + "." + field + " - " + e.getMessage());
+        }
     }
     
     public Map<String, Object> getDatabaseStats() {
         Map<String, Object> stats = new HashMap<>();
+        
+        if (mongoTemplate == null) {
+            stats.put("error", "MongoDB not configured - running in simple mode");
+            return stats;
+        }
         
         try {
             // Get database name
             String dbName = mongoTemplate.getDb().getName();
             stats.put("databaseName", dbName);
             
-            // Count documents in each collection
-            stats.put("users", userRepository.count());
-            stats.put("shortenedUrls", shortenedUrlRepository.count());
-            stats.put("uploadedFiles", uploadedFileRepository.count());
-            stats.put("clickAnalytics", clickAnalyticsRepository.count());
-            stats.put("qrCodes", qrCodeRepository.count());
+            // Count documents in each collection (with null checks)
+            stats.put("users", userRepository != null ? userRepository.count() : 0);
+            stats.put("shortenedUrls", shortenedUrlRepository != null ? shortenedUrlRepository.count() : 0);
+            stats.put("uploadedFiles", uploadedFileRepository != null ? uploadedFileRepository.count() : 0);
+            stats.put("clickAnalytics", clickAnalyticsRepository != null ? clickAnalyticsRepository.count() : 0);
+            stats.put("qrCodes", qrCodeRepository != null ? qrCodeRepository.count() : 0);
             
             // Collection names
             stats.put("collections", mongoTemplate.getCollectionNames());
@@ -141,6 +154,12 @@ public class DatabaseService {
     
     public Map<String, Object> testDatabaseOperations() {
         Map<String, Object> result = new HashMap<>();
+        
+        if (mongoTemplate == null || userRepository == null) {
+            result.put("success", false);
+            result.put("message", "MongoDB not configured - running in simple mode");
+            return result;
+        }
         
         try {
             // Test user creation
@@ -192,6 +211,11 @@ public class DatabaseService {
     public Map<String, Object> getRealtimeStats() {
         Map<String, Object> stats = new HashMap<>();
         
+        if (mongoTemplate == null) {
+            stats.put("error", "MongoDB not configured - running in simple mode");
+            return stats;
+        }
+        
         try {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
@@ -200,11 +224,19 @@ public class DatabaseService {
             
             // User statistics
             Map<String, Object> userStats = new HashMap<>();
-            userStats.put("total", userRepository.count());
-            userStats.put("active", userRepository.findByIsActiveTrue().size());
-            userStats.put("verified", userRepository.findByEmailVerified(true).size());
-            userStats.put("premium", userRepository.countBySubscriptionPlan("PREMIUM"));
-            userStats.put("registeredToday", userRepository.findByCreatedAtBetween(todayStart, now).size());
+            if (userRepository != null) {
+                userStats.put("total", userRepository.count());
+                userStats.put("active", userRepository.findByIsActiveTrue().size());
+                userStats.put("verified", userRepository.findByEmailVerified(true).size());
+                userStats.put("premium", userRepository.countBySubscriptionPlan("PREMIUM"));
+                userStats.put("registeredToday", userRepository.findByCreatedAtBetween(todayStart, now).size());
+            } else {
+                userStats.put("total", 0);
+                userStats.put("active", 0);
+                userStats.put("verified", 0);
+                userStats.put("premium", 0);
+                userStats.put("registeredToday", 0);
+            }
             
             // URL statistics
             Map<String, Object> urlStats = new HashMap<>();

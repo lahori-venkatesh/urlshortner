@@ -41,23 +41,13 @@ spring:
   # MongoDB Configuration - Production Ready
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
+      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
       database: ${MONGODB_DATABASE:pebly-database}
-      auto-index-creation: true
-      # Connection pool settings for high performance
-      options:
-        max-pool-size: 100
-        min-pool-size: 10
-        max-idle-time: 60000
-        max-life-time: 120000
-        connect-timeout: 10000
-        socket-timeout: 5000
-        server-selection-timeout: 5000
-        heartbeat-frequency: 10000
+      auto-index-creation: false
     
-    # Redis Configuration - Production Ready
+    # Redis Configuration - Production Ready (Optional)
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 2000ms
@@ -71,7 +61,7 @@ spring:
         shutdown-timeout: 100ms
 
   cache:
-    type: redis
+    type: ${CACHE_TYPE:simple}  # Use simple cache by default, redis in production
     redis:
       time-to-live: 3600000  # 1 hour
       cache-null-values: false
