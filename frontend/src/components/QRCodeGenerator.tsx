@@ -7,8 +7,8 @@ interface QRCustomization {
   size?: number;
   errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
   margin?: number;
-  pattern?: 'square' | 'circle' | 'rounded' | 'diamond';
-  cornerStyle?: 'square' | 'rounded' | 'circle' | 'extra-rounded';
+  pattern?: 'square';
+  cornerStyle?: 'square';
   frameStyle?: 'none' | 'simple' | 'scan-me' | 'scan-me-black' | 'branded' | 'modern' | 'classic' | 'rounded';
   gradientType?: 'none' | 'linear' | 'radial';
   gradientDirection?: 'to-right' | 'to-bottom' | 'to-top-right' | 'to-bottom-right';
@@ -104,15 +104,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       applyGradient(ctx, canvas);
     }
 
-    // Apply pattern customization
-    if (config.pattern !== 'square') {
-      applyPattern(ctx, canvas);
-    }
+    // Pattern is always square, no additional processing needed
 
-    // Apply corner style
-    if (config.cornerStyle !== 'square') {
-      applyCornerStyle(ctx, canvas);
-    }
+    // Corner style is always square, no additional processing needed
 
     // Apply frame style
     if (config.frameStyle !== 'none') {
@@ -170,96 +164,14 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   };
 
   const applyPattern = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const moduleSize = Math.floor(canvas.width / 25); // Approximate module size
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = config.backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = config.foregroundColor;
-
-    for (let y = 0; y < canvas.height; y += moduleSize) {
-      for (let x = 0; x < canvas.width; x += moduleSize) {
-        const pixelIndex = (y * canvas.width + x) * 4;
-        const isDark = data[pixelIndex] < 128; // Check if pixel is dark
-
-        if (isDark) {
-          switch (config.pattern) {
-            case 'circle':
-              ctx.beginPath();
-              ctx.arc(x + moduleSize / 2, y + moduleSize / 2, moduleSize / 2 - 1, 0, 2 * Math.PI);
-              ctx.fill();
-              break;
-            case 'rounded':
-              ctx.beginPath();
-              if (ctx.roundRect) {
-                ctx.roundRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2, moduleSize / 4);
-              } else {
-                // Fallback for browsers that don't support roundRect
-                const radius = moduleSize / 4;
-                ctx.moveTo(x + 1 + radius, y + 1);
-                ctx.lineTo(x + moduleSize - 1 - radius, y + 1);
-                ctx.quadraticCurveTo(x + moduleSize - 1, y + 1, x + moduleSize - 1, y + 1 + radius);
-                ctx.lineTo(x + moduleSize - 1, y + moduleSize - 1 - radius);
-                ctx.quadraticCurveTo(x + moduleSize - 1, y + moduleSize - 1, x + moduleSize - 1 - radius, y + moduleSize - 1);
-                ctx.lineTo(x + 1 + radius, y + moduleSize - 1);
-                ctx.quadraticCurveTo(x + 1, y + moduleSize - 1, x + 1, y + moduleSize - 1 - radius);
-                ctx.lineTo(x + 1, y + 1 + radius);
-                ctx.quadraticCurveTo(x + 1, y + 1, x + 1 + radius, y + 1);
-                ctx.closePath();
-              }
-              ctx.fill();
-              break;
-            case 'diamond':
-              ctx.beginPath();
-              ctx.moveTo(x + moduleSize / 2, y + 1);
-              ctx.lineTo(x + moduleSize - 1, y + moduleSize / 2);
-              ctx.lineTo(x + moduleSize / 2, y + moduleSize - 1);
-              ctx.lineTo(x + 1, y + moduleSize / 2);
-              ctx.closePath();
-              ctx.fill();
-              break;
-            default:
-              ctx.fillRect(x + 1, y + 1, moduleSize - 2, moduleSize - 2);
-              break;
-          }
-        }
-      }
-    }
+    // Since we only support square pattern, this function is simplified
+    // The basic QR code generation already creates square patterns
+    // No additional pattern processing needed
   };
 
   const applyCornerStyle = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
-    // This is a simplified corner style application
-    // In a full implementation, you'd need to detect and modify the finder patterns
-    const cornerSize = Math.floor(canvas.width / 5);
-    
-    if (config.cornerStyle === 'rounded' || config.cornerStyle === 'circle' || config.cornerStyle === 'extra-rounded') {
-      const radius = config.cornerStyle === 'circle' ? cornerSize / 2 : 
-                    config.cornerStyle === 'extra-rounded' ? cornerSize / 3 : cornerSize / 6;
-      
-      // Apply rounded corners to the three finder patterns (simplified)
-      const positions = [
-        { x: 0, y: 0 },
-        { x: canvas.width - cornerSize, y: 0 },
-        { x: 0, y: canvas.height - cornerSize }
-      ];
-
-      positions.forEach(pos => {
-        ctx.fillStyle = config.backgroundColor;
-        ctx.fillRect(pos.x, pos.y, cornerSize, cornerSize);
-        
-        ctx.fillStyle = config.foregroundColor;
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(pos.x + 2, pos.y + 2, cornerSize - 4, cornerSize - 4, radius);
-        } else {
-          // Fallback for browsers that don't support roundRect
-          ctx.rect(pos.x + 2, pos.y + 2, cornerSize - 4, cornerSize - 4);
-        }
-        ctx.fill();
-      });
-    }
+    // Since we only support square corner style, no additional processing needed
+    // The basic QR code generation already creates square corners
   };
 
   const applyFrameStyle = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {

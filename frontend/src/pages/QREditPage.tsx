@@ -686,9 +686,7 @@ const QREditPage: React.FC = () => {
                       size: Math.min(formData.size, 300),
                       errorCorrectionLevel: 'M',
                       margin: 2,
-                      pattern: formData.style === 'dots' ? 'circle' : 
-                               formData.style === 'rounded' ? 'rounded' :
-                               formData.style === 'classy' ? 'diamond' : 'square',
+                      pattern: 'square',
                       cornerStyle: (formData as any).cornerStyle || 'square',
                       frameStyle: (formData as any).frameStyle || 'none'
                     }}

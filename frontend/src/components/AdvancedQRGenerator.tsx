@@ -316,8 +316,7 @@ const AdvancedQRGenerator: React.FC = () => {
                     size: Math.min(customization.size, 300),
                     errorCorrectionLevel: customization.errorCorrectionLevel,
                     margin: customization.margin,
-                    pattern: customization.style === 'dots' ? 'circle' : 
-                             customization.style === 'rounded' ? 'rounded' : 'square'
+                    pattern: 'square'
                   }}
                 />
               ) : (
@@ -388,8 +387,7 @@ const QRCodeCard: React.FC<QRCodeCardProps> = ({
             size: 150,
             errorCorrectionLevel: qrData.customization.errorCorrectionLevel,
             margin: qrData.customization.margin,
-            pattern: qrData.customization.style === 'dots' ? 'circle' : 
-                     qrData.customization.style === 'rounded' ? 'rounded' : 'square'
+            pattern: 'square'
           }}
         />
       </div>

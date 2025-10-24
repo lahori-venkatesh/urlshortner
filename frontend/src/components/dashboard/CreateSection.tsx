@@ -135,9 +135,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         size: editData.size || 300,
         errorCorrectionLevel: editData.errorCorrectionLevel || 'M',
         margin: 4,
-        pattern: editData.style === 'dots' ? 'circle' : 
-                 editData.style === 'rounded' ? 'rounded' :
-                 editData.style === 'classy' ? 'diamond' : 'square',
+        pattern: 'square',
         cornerStyle: editData.cornerStyle || 'square',
         frameStyle: editData.frameStyle || 'none',
         gradientType: 'none',
@@ -539,9 +537,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 backgroundColor: qrCustomization.backgroundColor,
                 size: qrCustomization.size,
                 errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
-                style: qrCustomization.pattern === 'circle' ? 'dots' :
-                       qrCustomization.pattern === 'rounded' ? 'rounded' :
-                       qrCustomization.pattern === 'diamond' ? 'classy' : 'square',
+                style: 'square',
                 cornerStyle: qrCustomization.cornerStyle,
                 frameStyle: qrCustomization.frameStyle
               })
@@ -564,9 +560,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 backgroundColor: qrCustomization.backgroundColor,
                 size: qrCustomization.size,
                 errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
-                style: qrCustomization.pattern === 'circle' ? 'dots' :
-                       qrCustomization.pattern === 'rounded' ? 'rounded' :
-                       qrCustomization.pattern === 'diamond' ? 'classy' : 'square',
+                style: 'square',
                 cornerStyle: qrCustomization.cornerStyle,
                 frameStyle: qrCustomization.frameStyle
               })
