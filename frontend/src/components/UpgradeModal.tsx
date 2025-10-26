@@ -15,7 +15,7 @@ interface UpgradeModalProps {
 const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, message }) => {
   const { user } = useAuth();
   const [pricing, setPricing] = useState<PricingData | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly' | 'lifetime'>('yearly');
+  const [isYearly, setIsYearly] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -125,86 +125,99 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                   </p>
                 </div>
 
-                {/* Pricing cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
-                  {/* Monthly Plan */}
-                  <div className={`relative p-6 border-2 rounded-xl transition-all hover:shadow-lg ${
-                    selectedPlan === 'monthly' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                  }`}>
-                    <div className="text-center">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Premium Monthly</h4>
-                      <div className="mb-4">
-                        <span className="text-3xl font-bold text-gray-900">₹{pricing.monthly.price}</span>
-                        <span className="text-base text-gray-600">/month</span>
-                      </div>
-                      <button
-                        onClick={() => handleUpgrade('PREMIUM_MONTHLY')}
-                        disabled={isLoading}
-                        className={`w-full py-3 px-4 rounded-lg text-base font-semibold transition-all ${
-                          selectedPlan === 'monthly'
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        } disabled:opacity-50`}
-                      >
-                        {isLoading ? 'Processing...' : 'Choose Monthly'}
-                      </button>
-                    </div>
+                {/* Plan Toggle */}
+                <div className="flex items-center justify-center mb-8">
+                  <div className="bg-gray-100 p-1 rounded-xl flex items-center">
+                    <button
+                      onClick={() => setIsYearly(false)}
+                      className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                        !isYearly
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      onClick={() => setIsYearly(true)}
+                      className={`px-6 py-2 rounded-lg text-sm font-medium transition-all relative ${
+                        isYearly
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Yearly
+                      {isYearly && (
+                        <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                          Save 20%
+                        </span>
+                      )}
+                    </button>
                   </div>
+                </div>
 
-                  {/* Yearly Plan */}
-                  <div className={`relative p-6 border-2 rounded-xl transition-all hover:shadow-lg ${
-                    selectedPlan === 'yearly' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
-                  }`}>
+                {/* Pricing cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-8">
+                  {/* Premium Plan (Monthly/Yearly) */}
+                  <div className="relative p-8 border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl transition-all hover:shadow-xl">
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                        Best Value 💎
+                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                        {isYearly ? 'Best Value 💎' : 'Most Popular 🔥'}
                       </span>
                     </div>
-                    <div className="text-center pt-3">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Premium Yearly</h4>
+                    <div className="text-center pt-2">
+                      <h4 className="text-xl font-bold text-gray-900 mb-4">
+                        Premium {isYearly ? 'Yearly' : 'Monthly'}
+                      </h4>
                       <div className="mb-2">
-                        <span className="text-3xl font-bold text-gray-900">₹{pricing.yearly.price}</span>
-                        <span className="text-base text-gray-600">/year</span>
+                        <span className="text-4xl font-bold text-gray-900">
+                          ₹{isYearly ? pricing.yearly.price : pricing.monthly.price}
+                        </span>
+                        <span className="text-lg text-gray-600">
+                          /{isYearly ? 'year' : 'month'}
+                        </span>
                       </div>
-                      <div className="mb-4">
-                        <span className="text-sm text-green-600 font-medium">Save ₹{pricing.yearly.savings} per year</span>
-                      </div>
+                      {isYearly && (
+                        <div className="mb-6">
+                          <span className="text-sm text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full">
+                            Save ₹{pricing.yearly.savings} per year
+                          </span>
+                        </div>
+                      )}
+                      {!isYearly && <div className="mb-6"></div>}
                       <button
-                        onClick={() => handleUpgrade('PREMIUM_YEARLY')}
+                        onClick={() => handleUpgrade(isYearly ? 'PREMIUM_YEARLY' : 'PREMIUM_MONTHLY')}
                         disabled={isLoading}
-                        className={`w-full py-3 px-4 rounded-lg text-base font-semibold transition-all ${
-                          selectedPlan === 'yearly'
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        } disabled:opacity-50`}
+                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
                       >
-                        {isLoading ? 'Processing...' : 'Choose Yearly'}
+                        {isLoading ? 'Processing Payment...' : `Upgrade Now - ₹${isYearly ? pricing.yearly.price : pricing.monthly.price}`}
                       </button>
                     </div>
                   </div>
 
                   {/* Lifetime Plan */}
-                  <div className={`relative p-6 border-2 rounded-xl transition-all hover:shadow-lg ${
-                    selectedPlan === 'lifetime' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-gray-300'
-                  }`}>
-                    <div className="text-center">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-3">Lifetime</h4>
+                  <div className="relative p-8 border-2 border-yellow-500 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl transition-all hover:shadow-xl">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                        One-Time Payment ⚡
+                      </span>
+                    </div>
+                    <div className="text-center pt-2">
+                      <h4 className="text-xl font-bold text-gray-900 mb-4">Lifetime Access</h4>
                       <div className="mb-2">
-                        <span className="text-3xl font-bold text-gray-900">₹{pricing.lifetime.price}</span>
+                        <span className="text-4xl font-bold text-gray-900">₹{pricing.lifetime.price}</span>
                       </div>
-                      <div className="mb-4">
-                        <span className="text-sm text-orange-600 font-medium">Pay once, use forever</span>
+                      <div className="mb-6">
+                        <span className="text-sm text-orange-600 font-medium bg-orange-100 px-3 py-1 rounded-full">
+                          Pay once, use forever
+                        </span>
                       </div>
                       <button
                         onClick={() => handleUpgrade('LIFETIME')}
                         disabled={isLoading}
-                        className={`w-full py-3 px-4 rounded-lg text-base font-semibold transition-all ${
-                          selectedPlan === 'lifetime'
-                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        } disabled:opacity-50`}
+                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 shadow-lg hover:shadow-xl"
                       >
-                        {isLoading ? 'Processing...' : 'Choose Lifetime'}
+                        {isLoading ? 'Processing Payment...' : `Get Lifetime - ₹${pricing.lifetime.price}`}
                       </button>
                     </div>
                   </div>
