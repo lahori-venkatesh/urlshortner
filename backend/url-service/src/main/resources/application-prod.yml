@@ -11,6 +11,25 @@ spring:
       uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0}
       database: ${MONGODB_DATABASE:pebly-database}
       auto-index-creation: false
+    
+    # Redis Cloud Configuration for Production
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 3000ms
+      ssl:
+        enabled: ${REDIS_SSL:true}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 2000ms
+          time-between-eviction-runs: 30s
+        shutdown-timeout: 100ms
 
   # CORS Configuration for Production
   web:
@@ -38,8 +57,14 @@ spring:
       exposed-headers:
         - "Authorization"
 
+  # Cache Configuration for Production
   cache:
-    type: ${CACHE_TYPE:simple}
+    type: ${CACHE_TYPE:redis}
+    redis:
+      time-to-live: 3600000  # 1 hour in milliseconds
+      cache-null-values: false
+      key-prefix: "pebly:"
+      use-key-prefix: true
 
 # Application Configuration
 app:
@@ -54,6 +79,8 @@ logging:
     com.urlshortener: INFO
     org.springframework.security: WARN
     org.springframework.data.mongodb: WARN
+    org.springframework.data.redis: INFO
+    io.lettuce.core: WARN
     root: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
