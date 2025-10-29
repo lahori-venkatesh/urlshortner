@@ -49,6 +49,31 @@ A modern, full-stack URL shortener with QR code generation, file sharing, and an
 - **Frontend**: Vercel
 - **Backend**: Render
 - **Database**: MongoDB Atlas
+- **Cache**: Redis Cloud
+
+## 📁 Project Structure
+
+```
+pebly/
+├── backend/                    # Spring Boot backend
+│   └── url-service/           # Main service
+│       ├── src/main/java/     # Java source code
+│       ├── src/main/resources/ # Configuration files
+│       └── pom.xml            # Maven dependencies
+├── frontend/                   # React frontend
+│   ├── src/                   # Source code
+│   ├── public/                # Static assets
+│   └── package.json           # NPM dependencies
+├── scripts/                   # Deployment scripts
+│   ├── backup.sh              # Database backup
+│   ├── deploy-production.sh   # Production deployment
+│   └── setup-production.sh    # Production setup
+├── .env.example               # Environment variables template
+├── .gitignore                 # Git ignore rules
+├── LICENSE                    # MIT License
+└── README.md                  # Project documentation
+```
+- **Database**: MongoDB Atlas
 - **Cache**: Render Redis
 
 ## 🚀 Quick Start

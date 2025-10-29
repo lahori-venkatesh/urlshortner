@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
+import { SupportProvider } from './context/SupportContext';
 import { QueryProvider } from './providers/QueryProvider';
 import UpgradeModal from './components/UpgradeModal';
+import SupportWidget from './components/support/SupportWidget';
 import { useSubscription } from './context/SubscriptionContext';
 import AuthRedirect from './components/AuthRedirect';
 import Header from './components/Header';
@@ -197,6 +199,9 @@ const AppContent: React.FC = () => {
         feature={upgradeModalState.feature}
         message={upgradeModalState.message}
       />
+      
+      {/* Global Support Widget */}
+      <SupportWidget />
     </>
   );
 };
@@ -206,7 +211,9 @@ function App() {
     <QueryProvider>
       <AuthProvider>
         <SubscriptionProvider>
-          <AppContent />
+          <SupportProvider>
+            <AppContent />
+          </SupportProvider>
         </SubscriptionProvider>
       </AuthProvider>
     </QueryProvider>

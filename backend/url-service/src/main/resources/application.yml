@@ -41,7 +41,7 @@ spring:
   # MongoDB Configuration - Production Ready
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&maxPoolSize=10&minPoolSize=1&maxIdleTimeMS=30000&connectTimeoutMS=10000&socketTimeoutMS=10000}
+      uri: ${MONGODB_URI}
       database: ${MONGODB_DATABASE:pebly-database}
       auto-index-creation: false
     
@@ -96,7 +96,7 @@ google:
 # Razorpay Payment Configuration
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID:rzp_live_RWtmHyTZfva7rb}
+    id: ${RAZORPAY_KEY_ID}
     secret: ${RAZORPAY_KEY_SECRET:}
 
 # Application Configuration

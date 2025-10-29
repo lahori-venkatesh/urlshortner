@@ -1,3 +1,0 @@
-# This file ensures the uploads directory is tracked by Git
-# The directory is needed for file upload functionality
-# Actual uploaded files are ignored by .gitignore
