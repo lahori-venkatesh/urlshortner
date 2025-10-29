@@ -20,26 +20,30 @@ public class SubscriptionService {
     
     // Plan constants
     public static final String FREE_PLAN = "FREE";
-    public static final String PREMIUM_MONTHLY = "PREMIUM_MONTHLY";
-    public static final String PREMIUM_YEARLY = "PREMIUM_YEARLY";
-    public static final String LIFETIME = "LIFETIME";
+    public static final String PRO_MONTHLY = "PRO_MONTHLY";
+    public static final String PRO_YEARLY = "PRO_YEARLY";
+    public static final String BUSINESS_MONTHLY = "BUSINESS_MONTHLY";
+    public static final String BUSINESS_YEARLY = "BUSINESS_YEARLY";
     
-    // Usage limits - Updated
-    public static final int FREE_DAILY_URLS = 5;
-    public static final int FREE_DAILY_QR_CODES = 3;
-    public static final int FREE_DAILY_FILES = 1;
-    public static final int FREE_MONTHLY_URLS = 100;
-    public static final int FREE_MONTHLY_QR_CODES = 50;
-    public static final int FREE_MONTHLY_FILES = 15;
-    public static final int MONTHLY_DAILY_URLS = 100;
-    public static final int MONTHLY_DAILY_QR_CODES = 50;
-    public static final int MONTHLY_DAILY_FILES = 15;
+    // Usage limits - New Structure
+    // Free Plan: 75 URLs, 30 QR codes, 5 files per month
+    public static final int FREE_MONTHLY_URLS = 75;
+    public static final int FREE_MONTHLY_QR_CODES = 30;
+    public static final int FREE_MONTHLY_FILES = 5;
+    
+    // Pro Plan: Unlimited URLs/QR, 50 files per month
+    public static final int PRO_MONTHLY_FILES = 50;
+    
+    // Business Plan: Unlimited URLs/QR, 200 files per month
+    public static final int BUSINESS_MONTHLY_FILES = 200;
+    
+    // File size limits
     public static final long FREE_FILE_SIZE_MB = 5;
-    public static final long PREMIUM_FILE_SIZE_MB = 500;
-    public static final int FREE_DATA_RETENTION_DAYS = 7;
+    public static final long PRO_FILE_SIZE_MB = 100;
+    public static final long BUSINESS_FILE_SIZE_MB = 500;
     
     /**
-     * Check if user has premium access
+     * Check if user has premium access (Pro or Business)
      */
     public boolean hasPremiumAccess(String userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -48,13 +52,9 @@ public class SubscriptionService {
         User user = userOpt.get();
         String plan = user.getSubscriptionPlan();
         
-        // Lifetime plan always has access
-        if (LIFETIME.equals(plan)) {
-            return true;
-        }
-        
         // Check if premium subscription is active
-        if ((PREMIUM_MONTHLY.equals(plan) || PREMIUM_YEARLY.equals(plan)) && 
+        if ((PRO_MONTHLY.equals(plan) || PRO_YEARLY.equals(plan) || 
+             BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
             user.getSubscriptionExpiry() != null && 
             user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
             return true;
@@ -62,6 +62,21 @@ public class SubscriptionService {
         
         // Check if user is in trial period
         return isInTrialPeriod(user);
+    }
+    
+    /**
+     * Check if user has business plan access
+     */
+    public boolean hasBusinessAccess(String userId) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) return false;
+        
+        User user = userOpt.get();
+        String plan = user.getSubscriptionPlan();
+        
+        return (BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
+               user.getSubscriptionExpiry() != null && 
+               user.getSubscriptionExpiry().isAfter(LocalDateTime.now());
     }
     
     /**
@@ -76,7 +91,7 @@ public class SubscriptionService {
     }
     
     /**
-     * Check if user can create more URLs today
+     * Check if user can create more URLs
      */
     public boolean canCreateUrl(String userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -85,30 +100,22 @@ public class SubscriptionService {
         User user = userOpt.get();
         
         // Reset counters if needed
-        resetDailyUsageIfNeeded(user);
         resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now()))) {
-            return true; // Unlimited for yearly and lifetime
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-                   user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            return user.getDailyUrlsCreated() < MONTHLY_DAILY_URLS;
-        } else if (isInTrialPeriod(user)) {
-            return true; // Unlimited during trial
+        // Pro and Business plans have unlimited URLs
+        if (hasPremiumAccess(userId) || isInTrialPeriod(user)) {
+            return true;
         } else {
-            // Free plan: check both daily and monthly limits
-            return user.getDailyUrlsCreated() < FREE_DAILY_URLS && 
-                   user.getMonthlyUrlsCreated() < FREE_MONTHLY_URLS;
+            // Free plan: check monthly limit (75 URLs per month)
+            return user.getMonthlyUrlsCreated() < FREE_MONTHLY_URLS;
         }
     }
     
     /**
-     * Check if user can create more QR codes today
+     * Check if user can create more QR codes
      */
     public boolean canCreateQrCode(String userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -117,30 +124,22 @@ public class SubscriptionService {
         User user = userOpt.get();
         
         // Reset counters if needed
-        resetDailyUsageIfNeeded(user);
         resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now()))) {
-            return true; // Unlimited for yearly and lifetime
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-                   user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            return user.getDailyQrCodesCreated() < MONTHLY_DAILY_QR_CODES;
-        } else if (isInTrialPeriod(user)) {
-            return true; // Unlimited during trial
+        // Pro and Business plans have unlimited QR codes
+        if (hasPremiumAccess(userId) || isInTrialPeriod(user)) {
+            return true;
         } else {
-            // Free plan: check both daily and monthly limits
-            return user.getDailyQrCodesCreated() < FREE_DAILY_QR_CODES && 
-                   user.getMonthlyQrCodesCreated() < FREE_MONTHLY_QR_CODES;
+            // Free plan: check monthly limit (30 QR codes per month)
+            return user.getMonthlyQrCodesCreated() < FREE_MONTHLY_QR_CODES;
         }
     }
     
     /**
-     * Check if user can upload more files today
+     * Check if user can upload more files
      */
     public boolean canUploadFile(String userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -149,25 +148,20 @@ public class SubscriptionService {
         User user = userOpt.get();
         
         // Reset counters if needed
-        resetDailyUsageIfNeeded(user);
         resetMonthlyUsageIfNeeded(user);
         
         // Check limits based on plan
         String plan = user.getSubscriptionPlan();
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now()))) {
-            return true; // Unlimited for yearly and lifetime
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-                   user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            return user.getDailyFilesUploaded() < MONTHLY_DAILY_FILES;
-        } else if (isInTrialPeriod(user)) {
-            return true; // Unlimited during trial
+        if (hasBusinessAccess(userId)) {
+            // Business plan: 200 files per month
+            return user.getMonthlyFilesUploaded() < BUSINESS_MONTHLY_FILES;
+        } else if (hasPremiumAccess(userId) || isInTrialPeriod(user)) {
+            // Pro plan: 50 files per month
+            return user.getMonthlyFilesUploaded() < PRO_MONTHLY_FILES;
         } else {
-            // Free plan: check both daily and monthly limits
-            return user.getDailyFilesUploaded() < FREE_DAILY_FILES && 
-                   user.getMonthlyFilesUploaded() < FREE_MONTHLY_FILES;
+            // Free plan: 5 files per month
+            return user.getMonthlyFilesUploaded() < FREE_MONTHLY_FILES;
         }
     }
     
@@ -217,7 +211,13 @@ public class SubscriptionService {
      * Get maximum file size for user
      */
     public long getMaxFileSizeMB(String userId) {
-        return hasPremiumAccess(userId) ? PREMIUM_FILE_SIZE_MB : FREE_FILE_SIZE_MB;
+        if (hasBusinessAccess(userId)) {
+            return BUSINESS_FILE_SIZE_MB; // 500MB for Business
+        } else if (hasPremiumAccess(userId)) {
+            return PRO_FILE_SIZE_MB; // 100MB for Pro
+        } else {
+            return FREE_FILE_SIZE_MB; // 5MB for Free
+        }
     }
     
     /**

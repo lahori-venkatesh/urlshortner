@@ -158,20 +158,20 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
 
                 {/* Pricing cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-8">
-                  {/* Premium Plan (Monthly/Yearly) */}
-                  <div className="relative p-8 border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl transition-all hover:shadow-xl">
+                  {/* Pro Plan */}
+                  <div className="relative p-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl transition-all hover:shadow-xl">
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                      <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                         {isYearly ? 'Best Value 💎' : 'Most Popular 🔥'}
                       </span>
                     </div>
                     <div className="text-center pt-2">
                       <h4 className="text-xl font-bold text-gray-900 mb-4">
-                        Premium {isYearly ? 'Yearly' : 'Monthly'}
+                        Pro {isYearly ? 'Yearly' : 'Monthly'}
                       </h4>
                       <div className="mb-2">
                         <span className="text-4xl font-bold text-gray-900">
-                          ₹{isYearly ? pricing.yearly.price : pricing.monthly.price}
+                          ₹{isYearly ? '2,999' : '349'}
                         </span>
                         <span className="text-lg text-gray-600">
                           /{isYearly ? 'year' : 'month'}
@@ -180,44 +180,54 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                       {isYearly && (
                         <div className="mb-6">
                           <span className="text-sm text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full">
-                            Save ₹{pricing.yearly.savings} per year
+                            Save ₹1,189 per year
                           </span>
                         </div>
                       )}
                       {!isYearly && <div className="mb-6"></div>}
                       <button
-                        onClick={() => handleUpgrade(isYearly ? 'PREMIUM_YEARLY' : 'PREMIUM_MONTHLY')}
+                        onClick={() => handleUpgrade(isYearly ? 'PRO_YEARLY' : 'PRO_MONTHLY')}
                         disabled={isLoading}
-                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
                       >
-                        {isLoading ? 'Processing Payment...' : `Upgrade Now - ₹${isYearly ? pricing.yearly.price : pricing.monthly.price}`}
+                        {isLoading ? 'Processing Payment...' : `Upgrade to Pro - ₹${isYearly ? '2,999' : '349'}`}
                       </button>
                     </div>
                   </div>
 
-                  {/* Lifetime Plan */}
-                  <div className="relative p-8 border-2 border-yellow-500 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl transition-all hover:shadow-xl">
+                  {/* Business Plan */}
+                  <div className="relative p-8 border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl transition-all hover:shadow-xl">
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                        One-Time Payment ⚡
+                      <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                        For Teams 🚀
                       </span>
                     </div>
                     <div className="text-center pt-2">
-                      <h4 className="text-xl font-bold text-gray-900 mb-4">Lifetime Access</h4>
+                      <h4 className="text-xl font-bold text-gray-900 mb-4">
+                        Business {isYearly ? 'Yearly' : 'Monthly'}
+                      </h4>
                       <div className="mb-2">
-                        <span className="text-4xl font-bold text-gray-900">₹{pricing.lifetime.price}</span>
-                      </div>
-                      <div className="mb-6">
-                        <span className="text-sm text-orange-600 font-medium bg-orange-100 px-3 py-1 rounded-full">
-                          Pay once, use forever
+                        <span className="text-4xl font-bold text-gray-900">
+                          ₹{isYearly ? '5,999' : '699'}
+                        </span>
+                        <span className="text-lg text-gray-600">
+                          /{isYearly ? 'year' : 'month'}
                         </span>
                       </div>
+                      {isYearly && (
+                        <div className="mb-6">
+                          <span className="text-sm text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full">
+                            Save ₹2,389 per year
+                          </span>
+                        </div>
+                      )}
+                      {!isYearly && <div className="mb-6"></div>}
                       <button
-                        onClick={() => handleUpgrade('LIFETIME')}
+                        onClick={() => handleUpgrade(isYearly ? 'BUSINESS_YEARLY' : 'BUSINESS_MONTHLY')}
                         disabled={isLoading}
-                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
                       >
-                        {isLoading ? 'Processing Payment...' : `Get Lifetime - ₹${pricing.lifetime.price}`}
+                        {isLoading ? 'Processing Payment...' : `Upgrade to Business - ₹${isYearly ? '5,999' : '699'}`}
                       </button>
                     </div>
                   </div>
@@ -226,36 +236,28 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                 {/* Features comparison */}
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-6 text-center">
-                    What you get with Premium
+                    What you get with Pro & Business Plans
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Zap className="w-5 h-5 text-green-500 flex-shrink-0" />
                       <span className="text-sm text-gray-700">Unlimited URLs & QR codes</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Palette className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">Custom QR codes with logos</span>
+                      <span className="text-sm text-gray-700">Advanced analytics</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Globe className="w-5 h-5 text-purple-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">Custom aliases & domains</span>
+                      <span className="text-sm text-gray-700">Custom domains</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Shield className="w-5 h-5 text-red-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">Password protection</span>
+                      <span className="text-sm text-gray-700">Team collaboration</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Clock className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">Link expiration dates</span>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-                      <BarChart3 className="w-5 h-5 text-indigo-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">Detailed analytics</span>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
-                      <Star className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">500MB file uploads</span>
+                      <span className="text-sm text-gray-700">API access</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
                       <Crown className="w-5 h-5 text-pink-500 flex-shrink-0" />
