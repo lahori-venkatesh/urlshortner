@@ -954,9 +954,9 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
               <div>
                 <h3 className="font-semibold text-gray-900">Free Plan Limits</h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  <span>URLs: {planInfo.remainingDailyUrls}/5 today</span>
-                  <span>QR Codes: {planInfo.remainingDailyQrCodes}/3 today</span>
-                  <span>Files: {planInfo.remainingDailyFiles}/1 today</span>
+                  <span>URLs: {planInfo.remainingMonthlyUrls || 0}/75 this month</span>
+                  <span>QR Codes: {planInfo.remainingMonthlyQrCodes || 0}/30 this month</span>
+                  <span>Files: {planInfo.remainingMonthlyFiles || 0}/5 this month</span>
                 </div>
               </div>
             </div>
@@ -968,46 +968,46 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             </button>
           </div>
           
-          {/* Compact Progress bars */}
+          {/* Monthly Progress bars */}
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="bg-white/50 rounded-lg p-2">
+            <div className="bg-white/50 rounded-lg p-3">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Daily URLs</span>
-                <span>{5 - planInfo.remainingDailyUrls}/5</span>
+                <span>Short Links</span>
+                <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${((5 - planInfo.remainingDailyUrls) / 5) * 100}%` }}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
                 />
               </div>
-              <div className="text-xs text-gray-500 mt-1">Monthly: {100 - planInfo.remainingMonthlyUrls}/100</div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
             </div>
-            <div className="bg-white/50 rounded-lg p-2">
+            <div className="bg-white/50 rounded-lg p-3">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Daily QR Codes</span>
-                <span>{3 - planInfo.remainingDailyQrCodes}/3</span>
+                <span>QR Codes</span>
+                <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-green-500 to-blue-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${((3 - planInfo.remainingDailyQrCodes) / 3) * 100}%` }}
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
                 />
               </div>
-              <div className="text-xs text-gray-500 mt-1">Monthly: {50 - planInfo.remainingMonthlyQrCodes}/50</div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
             </div>
-            <div className="bg-white/50 rounded-lg p-2">
+            <div className="bg-white/50 rounded-lg p-3">
               <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Daily Files</span>
-                <span>{1 - planInfo.remainingDailyFiles}/1</span>
+                <span>File Conversions</span>
+                <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-orange-500 to-red-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${((1 - planInfo.remainingDailyFiles) / 1) * 100}%` }}
+                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
                 />
               </div>
-              <div className="text-xs text-gray-500 mt-1">Monthly: {15 - planInfo.remainingMonthlyFiles}/15</div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
             </div>
           </div>
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Infinity, Star, Tag, Percent } from 'lucide-react';
+import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Star, Tag, Percent, Infinity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from '../components/AuthModal';
 import PaymentModal from '../components/PaymentModal';
+import NewPricingPlans from '../components/NewPricingPlans';
 import { useAuth } from '../context/AuthContext';
 import { paymentService } from '../services/paymentService';
 import { subscriptionService, PricingData } from '../services/subscriptionService';

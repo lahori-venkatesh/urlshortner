@@ -118,66 +118,92 @@ const SubscriptionSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Compact Usage Stats */}
-      <div className="bg-gray-50 rounded-lg p-3">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Usage Limits</h4>
+      {/* Usage Limits - Updated for New Pricing Structure */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h4 className="text-sm font-medium text-gray-900 mb-4">Monthly Usage Limits</h4>
         
         {planInfo.hasPremiumAccess ? (
-          <div className="grid grid-cols-3 gap-2">
-            <div className="text-center bg-white rounded p-2">
-              <div className="text-sm font-bold text-blue-600">∞</div>
-              <div className="text-xs text-gray-500">URLs</div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-blue-600">∞</div>
+              <div className="text-xs text-gray-500 mt-1">Short Links</div>
+              <div className="text-xs text-green-600 mt-1">Unlimited</div>
             </div>
-            <div className="text-center bg-white rounded p-2">
-              <div className="text-sm font-bold text-purple-600">∞</div>
-              <div className="text-xs text-gray-500">QR codes</div>
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-purple-600">∞</div>
+              <div className="text-xs text-gray-500 mt-1">QR Codes</div>
+              <div className="text-xs text-green-600 mt-1">Unlimited</div>
             </div>
-            <div className="text-center bg-white rounded p-2">
-              <div className="text-sm font-bold text-green-600">∞</div>
-              <div className="text-xs text-gray-500">Files</div>
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-orange-600">
+                {planInfo.plan === 'BUSINESS_MONTHLY' || planInfo.plan === 'BUSINESS_YEARLY' ? '200' : '50'}
+              </div>
+              <div className="text-xs text-gray-500 mt-1">File Conversions</div>
+              <div className="text-xs text-blue-600 mt-1">
+                {planInfo.remainingMonthlyFiles} remaining
+              </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Daily Limits */}
-            <div className="bg-white rounded-lg p-3">
-              <h5 className="text-xs font-medium text-gray-700 mb-2 text-center">Daily Limits</h5>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <div className="text-sm font-bold text-blue-600">{planInfo.remainingDailyUrls}/5</div>
-                  <div className="text-xs text-gray-500">URLs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-purple-600">{planInfo.remainingDailyQrCodes}/3</div>
-                  <div className="text-xs text-gray-500">QR codes</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-green-600">{planInfo.remainingDailyFiles}/1</div>
-                  <div className="text-xs text-gray-500">Files</div>
-                </div>
+          <div className="grid grid-cols-3 gap-3">
+            {/* Free Plan - Monthly Limits Only */}
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-blue-600">
+                {planInfo.remainingMonthlyUrls || 0}/75
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Short Links</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
+                ></div>
               </div>
             </div>
             
-            {/* Monthly Limits */}
-            <div className="bg-white rounded-lg p-3">
-              <h5 className="text-xs font-medium text-gray-700 mb-2 text-center">Monthly Limits</h5>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <div className="text-sm font-bold text-blue-600">{planInfo.remainingMonthlyUrls}/100</div>
-                  <div className="text-xs text-gray-500">URLs</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-purple-600">{planInfo.remainingMonthlyQrCodes}/50</div>
-                  <div className="text-xs text-gray-500">QR codes</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm font-bold text-green-600">{planInfo.remainingMonthlyFiles}/15</div>
-                  <div className="text-xs text-gray-500">Files</div>
-                </div>
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-purple-600">
+                {planInfo.remainingMonthlyQrCodes || 0}/30
+              </div>
+              <div className="text-xs text-gray-500 mt-1">QR Codes</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-purple-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-lg font-bold text-orange-600">
+                {planInfo.remainingMonthlyFiles || 0}/5
+              </div>
+              <div className="text-xs text-gray-500 mt-1">File Conversions</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div 
+                  className="bg-orange-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
+                ></div>
               </div>
             </div>
           </div>
         )}
+        
+        {/* Plan Info */}
+        <div className="mt-4 text-center">
+          <div className="text-xs text-gray-600">
+            Current Plan: <span className="font-medium text-gray-900">
+              {planInfo.hasPremiumAccess 
+                ? (planInfo.plan?.includes('BUSINESS') ? 'Business' : 'Pro')
+                : 'Free'
+              }
+            </span>
+          </div>
+          {!planInfo.hasPremiumAccess && (
+            <div className="text-xs text-blue-600 mt-1">
+              Limits reset monthly • <button className="underline hover:no-underline">Upgrade for unlimited</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Features */}
