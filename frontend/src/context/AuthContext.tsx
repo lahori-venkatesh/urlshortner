@@ -6,7 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  plan: 'free' | 'premium' | 'enterprise';
+  plan: string;
   avatar?: string;
   picture?: string;
   phone?: string;
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          plan: response.user.subscriptionPlan || 'free',
           avatar: response.user.profilePicture || googleUserInfo.picture,
           picture: response.user.profilePicture || googleUserInfo.picture,
           createdAt: response.user.createdAt,
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          plan: response.user.subscriptionPlan || 'free',
           avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
           createdAt: response.user.createdAt,
           timezone: 'Asia/Kolkata',
@@ -155,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan.toLowerCase() as 'free' | 'premium' | 'enterprise',
+          plan: response.user.subscriptionPlan || 'free',
           avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
           createdAt: response.user.createdAt,
           timezone: 'Asia/Kolkata',

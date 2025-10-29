@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com';
 
 export interface PaymentRequest {
-  planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
+  planType: 'PRO_MONTHLY' | 'PRO_YEARLY' | 'BUSINESS_MONTHLY' | 'BUSINESS_YEARLY';
   email: string;
   name: string;
   phone: string;
@@ -123,7 +123,7 @@ class PaymentService {
       key: paymentResponse.razorpayKeyId,
       amount: paymentResponse.amount * 100, // Convert to paise
       currency: paymentResponse.currency,
-      name: 'Pebly Premium',
+      name: 'Pebly Pro',
       description: paymentResponse.description,
       order_id: paymentResponse.orderId,
       prefill: {

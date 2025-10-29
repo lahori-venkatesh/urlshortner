@@ -53,7 +53,7 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
               <p className="text-gray-700 mb-4">
                 Pebly provides URL shortening, QR code generation, file-to-link conversion, and analytics 
-                services. We offer both free and premium subscription plans with varying features and limitations.
+                services. We offer free, Pro, and Business subscription plans with varying features and limitations.
               </p>
             </section>    
         <section className="mb-8">
@@ -94,9 +94,10 @@ const TermsAndConditions: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">5.1 Plan Types</h3>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Free Plan:</strong> Limited features with usage restrictions</li>
-                  <li><strong>Premium Monthly:</strong> Full features billed monthly</li>
-                  <li><strong>Premium Yearly:</strong> Full features billed annually with discount</li>
-                  <li><strong>Lifetime Access:</strong> One-time payment for permanent access</li>
+                  <li><strong>Pro Monthly:</strong> Advanced features billed monthly</li>
+                  <li><strong>Pro Yearly:</strong> Advanced features billed annually with discount</li>
+                  <li><strong>Business Monthly:</strong> Team features billed monthly</li>
+                  <li><strong>Business Yearly:</strong> Team features billed annually with discount</li>
                 </ul>
                 
                 <h3 className="text-lg font-semibold text-gray-900 mt-6">5.2 Billing Terms</h3>

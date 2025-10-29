@@ -36,7 +36,7 @@ const SubscriptionSection: React.FC = () => {
     if (!user?.id) return;
     
     const confirmed = window.confirm(
-      'Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your billing period.'
+      'Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of your billing period.'
     );
     
     if (!confirmed) return;
@@ -80,12 +80,14 @@ const SubscriptionSection: React.FC = () => {
     switch (plan) {
       case 'FREE':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">🆓 Free Plan</span>;
-      case 'PREMIUM_MONTHLY':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Crown className="w-3 h-3 mr-1" />Premium Monthly</span>;
-      case 'PREMIUM_YEARLY':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"><Crown className="w-3 h-3 mr-1" />Premium Yearly</span>;
-      case 'LIFETIME':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white"><Crown className="w-3 h-3 mr-1" />Lifetime</span>;
+      case 'PRO_MONTHLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Crown className="w-3 h-3 mr-1" />Pro Monthly</span>;
+      case 'PRO_YEARLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><Crown className="w-3 h-3 mr-1" />Pro Yearly</span>;
+      case 'BUSINESS_MONTHLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"><Crown className="w-3 h-3 mr-1" />Business Monthly</span>;
+      case 'BUSINESS_YEARLY':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"><Crown className="w-3 h-3 mr-1" />Business Yearly</span>;
       default:
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Unknown</span>;
     }
@@ -122,7 +124,7 @@ const SubscriptionSection: React.FC = () => {
       <div className="bg-gray-50 rounded-lg p-4">
         <h4 className="text-sm font-medium text-gray-900 mb-4">Monthly Usage Limits</h4>
         
-        {planInfo.hasPremiumAccess ? (
+        {planInfo.hasProAccess ? (
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center bg-white rounded-lg p-3 border border-gray-200">
               <div className="text-lg font-bold text-blue-600">∞</div>
@@ -192,13 +194,13 @@ const SubscriptionSection: React.FC = () => {
         <div className="mt-4 text-center">
           <div className="text-xs text-gray-600">
             Current Plan: <span className="font-medium text-gray-900">
-              {planInfo.hasPremiumAccess 
+              {planInfo.hasProAccess 
                 ? (planInfo.plan?.includes('BUSINESS') ? 'Business' : 'Pro')
                 : 'Free'
               }
             </span>
           </div>
-          {!planInfo.hasPremiumAccess && (
+          {!planInfo.hasProAccess && (
             <div className="text-xs text-blue-600 mt-1">
               Limits reset monthly • <button className="underline hover:no-underline">Upgrade for unlimited</button>
             </div>
@@ -245,7 +247,7 @@ const SubscriptionSection: React.FC = () => {
             className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
           >
             <Crown className="w-4 h-4 mr-2" />
-            Upgrade to Premium
+            Upgrade to Pro
           </button>
         ) : (
           <>
@@ -256,7 +258,7 @@ const SubscriptionSection: React.FC = () => {
               <CreditCard className="w-4 h-4 mr-2" />
               Manage Billing
             </button>
-            {planInfo.plan !== 'LIFETIME' && (
+            {(planInfo.plan?.includes('PRO') || planInfo.plan?.includes('BUSINESS')) && (
               <button
                 onClick={handleCancelSubscription}
                 disabled={isLoading}
@@ -409,7 +411,7 @@ const Profile: React.FC = () => {
                 <h2 className="text-xl font-bold text-gray-900 mb-1">{formData.name}</h2>
                 <p className="text-gray-600 mb-2">{formData.email}</p>
                 <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  {user?.plan === 'premium' ? '👑 Premium' : '🆓 Free Plan'}
+                  {(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) ? '👑 Pro/Business' : '🆓 Free Plan'}
                 </div>
                 
                 {formData.bio && (

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
+  planType: 'PRO_MONTHLY' | 'PRO_YEARLY' | 'BUSINESS_MONTHLY' | 'BUSINESS_YEARLY';
   planName: string;
   planPrice: number;
   onSuccess: () => void;
@@ -58,7 +58,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Initiate Razorpay payment
       await paymentService.initiateRazorpayPayment(paymentResponse);
       
-      toast.success('Payment successful! Welcome to Pebly Premium!');
+      toast.success('Payment successful! Welcome to Pebly Pro!');
       onSuccess();
       onClose();
       
@@ -95,15 +95,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <div>
               <h3 className="font-semibold text-gray-900">{planName}</h3>
               <p className="text-sm text-gray-600">
-                {planType === 'MONTHLY' && 'Billed monthly'}
-                {planType === 'YEARLY' && 'Billed annually'}
-                {planType === 'LIFETIME' && 'One-time payment'}
+                {(planType === 'PRO_MONTHLY' || planType === 'BUSINESS_MONTHLY') && 'Billed monthly'}
+                {(planType === 'PRO_YEARLY' || planType === 'BUSINESS_YEARLY') && 'Billed annually'}
               </p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-gray-900">₹{planPrice}</div>
-              {planType === 'YEARLY' && (
-                <div className="text-sm text-green-600 font-medium">Save 17%</div>
+              {(planType === 'PRO_YEARLY' || planType === 'BUSINESS_YEARLY') && (
+                <div className="text-sm text-green-600 font-medium">Save 30%</div>
               )}
             </div>
           </div>

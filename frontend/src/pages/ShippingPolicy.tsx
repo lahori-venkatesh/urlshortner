@@ -88,11 +88,11 @@ const ShippingPolicy: React.FC = () => {
                     <p className="text-green-800">Instant activation upon account registration</p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-blue-900 mb-2">Premium Plans</h3>
+                    <h3 className="font-semibold text-blue-900 mb-2">Pro Plans</h3>
                     <p className="text-blue-800">Activated within 5 minutes of successful payment</p>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <h3 className="font-semibold text-purple-900 mb-2">Lifetime Access</h3>
+                    <h3 className="font-semibold text-purple-900 mb-2">Business Plans</h3>
                     <p className="text-purple-800">Activated within 5 minutes of successful payment</p>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
@@ -163,7 +163,7 @@ const ShippingPolicy: React.FC = () => {
                   <li>Contact our support team at <strong>support@pebly.com</strong></li>
                   <li>Use the in-app chat support for immediate assistance</li>
                   <li>Check our help documentation and FAQ section</li>
-                  <li>Premium users receive priority support with faster response times</li>
+                  <li>Pro and Business users receive priority support with faster response times</li>
                 </ul>
               </div>
             </section>
@@ -176,7 +176,7 @@ const ShippingPolicy: React.FC = () => {
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Data Export:</strong> Export your links, analytics, and QR codes at any time</li>
-                  <li><strong>API Access:</strong> Programmatic access to your data (Lifetime plan)</li>
+                  <li><strong>API Access:</strong> Programmatic access to your data (Pro and Business plans)</li>
                   <li><strong>Backup Services:</strong> Regular automated backups of your data</li>
                   <li><strong>Migration Assistance:</strong> Help with data migration if needed</li>
                 </ul>

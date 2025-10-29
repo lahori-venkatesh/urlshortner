@@ -58,9 +58,10 @@ const CancellationRefund: React.FC = () => {
                     <div>
                       <h3 className="font-semibold text-green-900 mb-2">Eligible for Refund:</h3>
                       <ul className="text-green-800 space-y-1">
-                        <li>• Premium Monthly subscriptions (within 30 days)</li>
-                        <li>• Premium Yearly subscriptions (within 30 days)</li>
-                        <li>• Lifetime Access purchases (within 30 days)</li>
+                        <li>• Pro Monthly subscriptions (within 30 days)</li>
+                        <li>• Pro Yearly subscriptions (within 30 days)</li>
+                        <li>• Business Monthly subscriptions (within 30 days)</li>
+                        <li>• Business Yearly subscriptions (within 30 days)</li>
                         <li>• Accidental duplicate payments</li>
                         <li>• Technical issues preventing service use</li>
                       </ul>
@@ -113,11 +114,11 @@ const CancellationRefund: React.FC = () => {
                   <li>Prorated refunds available within first 30 days</li>
                 </ul>
 
-                <h3 className="text-lg font-semibold text-gray-900">Lifetime Access</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Business Plans</h3>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>No recurring billing to cancel</li>
+                  <li>Monthly or yearly billing cycles available</li>
                   <li>Full refund available within 30 days of purchase</li>
-                  <li>Account remains active unless refund is processed</li>
+                  <li>Advanced team features and priority support</li>
                 </ul>
               </div>
             </section>
@@ -198,7 +199,7 @@ const CancellationRefund: React.FC = () => {
                 <p>When you cancel your subscription:</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Data Retention:</strong> Your data is preserved for 90 days</li>
-                  <li><strong>Feature Access:</strong> Premium features are disabled at period end</li>
+                  <li><strong>Feature Access:</strong> Pro features are disabled at period end</li>
                   <li><strong>Free Plan:</strong> Account automatically downgrades to free tier</li>
                   <li><strong>Reactivation:</strong> You can resubscribe anytime to restore full access</li>
                 </ul>

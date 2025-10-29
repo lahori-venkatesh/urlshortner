@@ -458,7 +458,7 @@ const UrlShortener: React.FC = () => {
             <div className="flex items-center space-x-3">
               <Zap className="w-5 h-5" />
               <div>
-                <p className="font-semibold">Upgrade to Premium</p>
+                <p className="font-semibold">Upgrade to Pro</p>
                 <p className="text-sm opacity-90">Remove ads, get advanced analytics, and unlock all features</p>
               </div>
             </div>

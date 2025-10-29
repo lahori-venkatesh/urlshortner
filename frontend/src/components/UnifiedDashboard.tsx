@@ -32,7 +32,7 @@ const UnifiedDashboard: React.FC = () => {
   const [createMode, setCreateMode] = useState<CreateMode>('url');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isPremium] = useState(user?.plan === 'premium' || false);
+  const [isPro] = useState(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS') || false);
 
   // Close sidebar on mobile when section changes
   useEffect(() => {
@@ -325,13 +325,13 @@ const UnifiedDashboard: React.FC = () => {
           </nav>
 
           {/* Upgrade Banner for Free Users */}
-          {!isPremium && (
+          {!isPro && (
             <div className="p-4 border-t border-gray-200">
               {!sidebarCollapsed ? (
                 <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-4 rounded-xl shadow-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <Zap className="w-4 h-4" />
-                    <span className="font-semibold text-sm">Upgrade to Premium</span>
+                    <span className="font-semibold text-sm">Upgrade to Pro</span>
                   </div>
                   <p className="text-xs opacity-90 mb-3">
                     Unlock advanced analytics, unlimited QR codes, and more!
@@ -348,7 +348,7 @@ const UnifiedDashboard: React.FC = () => {
                   <button 
                     onClick={handleUpgradeClick}
                     className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl flex items-center justify-center hover:shadow-lg transition-all duration-200 transform hover:scale-110 group"
-                    title="Upgrade to Premium"
+                    title="Upgrade to Pro"
                   >
                     <Crown className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   </button>

@@ -458,7 +458,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         return;
       }
 
-      // Check premium features
+      // Check Pro features
       if (customAlias && !(await checkAccess('custom-alias')).hasAccess) {
         showUpgradeModal('custom-alias');
         return;
@@ -493,7 +493,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         const fileSizeMB = selectedFile.size / (1024 * 1024);
         
         if (fileSizeMB > maxSizeMB) {
-          showUpgradeModal('file-size', `File size exceeds ${maxSizeMB}MB limit. Upgrade to Premium for up to 500MB uploads.`);
+          showUpgradeModal('file-size', `File size exceeds ${maxSizeMB}MB limit. Upgrade to Pro for up to 500MB uploads.`);
           return;
         }
       }
@@ -944,7 +944,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
       )}
 
       {/* Usage Limits Banner for Free Users */}
-      {planInfo && !planInfo.hasPremiumAccess && (
+      {planInfo && !planInfo.hasProAccess && (
         <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -1017,13 +1017,13 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">🎉 You're eligible for a free trial!</p>
-                  <p className="text-xs text-gray-600">Get 1-day premium access to try all features</p>
+                  <p className="text-xs text-gray-600">Get 1-day Pro access to try all features</p>
                 </div>
                 <button
                   onClick={async () => {
                     const success = await startTrial();
                     if (success) {
-                      toast.success('Trial started! You now have premium access for 24 hours.');
+                      toast.success('Trial started! You now have Pro access for 24 hours.');
                     } else {
                       toast.error('Failed to start trial. Please try again.');
                     }
@@ -1038,18 +1038,17 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         </div>
       )}
 
-      {/* Premium Badge */}
-      {planInfo && planInfo.hasPremiumAccess && (
+      {/* Pro Plan Badge */}
+      {planInfo && planInfo.hasProAccess && (
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
               <Crown className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Premium Active</h3>
+              <h3 className="font-semibold text-gray-900">Pro Plan Active</h3>
               <p className="text-sm text-gray-600">
                 {planInfo.inTrial ? 'Trial expires soon - upgrade to continue' : 
-                 planInfo.plan === 'LIFETIME' ? 'Lifetime access' : 
                  `Plan: ${subscriptionService.formatPlanName(planInfo.plan)}`}
               </p>
             </div>

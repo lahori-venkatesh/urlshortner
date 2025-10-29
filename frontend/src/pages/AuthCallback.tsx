@@ -43,7 +43,7 @@ const AuthCallback: React.FC = () => {
             id: authResponse.user.id,
             name: `${authResponse.user.firstName} ${authResponse.user.lastName}`,
             email: authResponse.user.email,
-            plan: (authResponse.user.subscriptionPlan || 'free') as 'free' | 'premium' | 'enterprise',
+            plan: authResponse.user.subscriptionPlan || 'free',
             avatar: authResponse.user.profilePicture,
             picture: authResponse.user.profilePicture,
             createdAt: new Date().toISOString(),

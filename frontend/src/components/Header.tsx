@@ -134,8 +134,11 @@ const Header: React.FC = () => {
                           <p className="text-base font-semibold text-gray-900">{user?.name}</p>
                           <p className="text-sm text-gray-500">{user?.email}</p>
                           <div className="flex items-center mt-1">
-                            {user?.plan === 'premium' && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
-                            <span className="text-xs font-medium text-blue-600 capitalize">{user?.plan} Plan</span>
+                            {(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
+                            <span className="text-xs font-medium text-blue-600 capitalize">
+                              {user?.plan?.includes('BUSINESS') ? 'Business' : 
+                               user?.plan?.includes('PRO') ? 'Pro' : 'Free'} Plan
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -261,7 +264,7 @@ const Header: React.FC = () => {
                           className="w-full flex items-center px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-colors"
                         >
                           <Crown className="w-4 h-4 mr-3" />
-                          Upgrade to Premium
+                          Upgrade to Pro
                         </button>
                       )}
                       

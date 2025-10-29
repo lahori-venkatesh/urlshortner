@@ -4,7 +4,7 @@ import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Star, Tag, Perce
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from '../components/AuthModal';
 import PaymentModal from '../components/PaymentModal';
-import NewPricingPlans from '../components/NewPricingPlans';
+
 import { useAuth } from '../context/AuthContext';
 import { paymentService } from '../services/paymentService';
 import { subscriptionService, PricingData } from '../services/subscriptionService';
@@ -18,7 +18,7 @@ const Pricing: React.FC = () => {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<{
-    type: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
+    type: 'PRO_MONTHLY' | 'PRO_YEARLY' | 'BUSINESS_MONTHLY' | 'BUSINESS_YEARLY';
     name: string;
     price: number;
   } | null>(null);
@@ -70,7 +70,7 @@ const Pricing: React.FC = () => {
     navigate('/dashboard');
   };
 
-  const handlePlanSelect = async (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, price: number) => {
+  const handlePlanSelect = async (planType: 'PRO_MONTHLY' | 'PRO_YEARLY' | 'BUSINESS_MONTHLY' | 'BUSINESS_YEARLY', planName: string, price: number) => {
     if (!isAuthenticated) {
       setAuthMode('signup');
       setIsAuthModalOpen(true);
@@ -84,8 +84,7 @@ const Pricing: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const subscriptionPlanType = planType === 'MONTHLY' ? 'PREMIUM_MONTHLY' : 
-                                  planType === 'YEARLY' ? 'PREMIUM_YEARLY' : 'LIFETIME';
+      const subscriptionPlanType = planType;
       
       await subscriptionService.initializePayment(subscriptionPlanType, user.id);
       toast.success('Payment successful! Your plan has been upgraded.');
@@ -172,7 +171,7 @@ const Pricing: React.FC = () => {
     });
   };
 
-  const handleRazorpayPayment = async (planType: 'MONTHLY' | 'YEARLY' | 'LIFETIME', planName: string, originalPrice: number) => {
+  const handleRazorpayPayment = async (planType: 'PRO_MONTHLY' | 'PRO_YEARLY' | 'BUSINESS_MONTHLY' | 'BUSINESS_YEARLY', planName: string, originalPrice: number) => {
     if (!isAuthenticated) {
       setAuthMode('signup');
       setIsAuthModalOpen(true);
@@ -506,7 +505,7 @@ const Pricing: React.FC = () => {
             >
               <div className="text-center mb-6">
                 <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Star className="w-6 h-6 text-gray-600" />
+                  <Tag className="w-6 h-6 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Free</h3>
                 <div className="text-3xl font-bold text-gray-900 mb-1">₹0</div>
@@ -515,10 +514,10 @@ const Pricing: React.FC = () => {
               
               <ul className="space-y-3 mb-6">
                 {[
-                  "100 short links/month",
+                  "75 short links per month",
+                  "30 QR codes per month", 
+                  "5 file conversions per month",
                   "Basic analytics",
-                  "QR code generation",
-                  "File-to-link conversion",
                   "Community support"
                 ].map((feature, index) => (
                   <li key={index} className="flex items-center space-x-3">
@@ -545,7 +544,7 @@ const Pricing: React.FC = () => {
               </button>
             </motion.div>
 
-            {/* Premium Plan */}
+            {/* Pro Plan */}
             <motion.div 
               className="bg-blue-600 rounded-xl shadow-lg p-6 relative transform scale-105 border-2 border-blue-500"
               variants={fadeInUp}
@@ -561,32 +560,18 @@ const Pricing: React.FC = () => {
                 <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Crown className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Premium</h3>
+                <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
                 <div className="space-y-1">
-                  {appliedCoupon ? (
-                    <>
-                      <div className="text-lg text-blue-200 line-through">
-                        ₹{billingCycle === 'monthly' ? '299' : '2,499'}
-                      </div>
-                      <div className="text-3xl font-bold text-white">
-                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 299 : 2499)}
-                      </div>
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold inline-block">
-                        {appliedCoupon.discount}% OFF
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-3xl font-bold text-white mb-1">
-                      ₹{billingCycle === 'monthly' ? '299' : '2,499'}
-                    </div>
-                  )}
+                  <div className="text-3xl font-bold text-white mb-1">
+                    ₹{billingCycle === 'monthly' ? '349' : '2,999'}
+                  </div>
                 </div>
                 <p className="text-blue-100 text-sm">
                   per {billingCycle === 'monthly' ? 'month' : 'year'}
                 </p>
-                {billingCycle === 'yearly' && !appliedCoupon && (
+                {billingCycle === 'yearly' && (
                   <p className="text-yellow-300 font-medium mt-1 text-sm">
-                    Save ₹1,089 annually
+                    Save ₹1,189 annually
                   </p>
                 )}
               </div>
@@ -594,12 +579,13 @@ const Pricing: React.FC = () => {
               <ul className="space-y-3 mb-6">
                 {[
                   "Unlimited short links",
+                  "Unlimited QR codes",
+                  "50 file conversions per month",
                   "Advanced analytics",
-                  "Custom branded domains",
-                  "Bulk link management",
+                  "1 custom domain",
+                  "Up to 3 team members",
                   "Priority support",
-                  "Team collaboration (5 users)",
-                  "Professional dashboard"
+                  "API access"
                 ].map((feature, index) => (
                   <li key={index} className="flex items-center space-x-3">
                     <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -611,64 +597,59 @@ const Pricing: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => handlePlanSelect(
-                  billingCycle === 'monthly' ? 'MONTHLY' : 'YEARLY', 
-                  `Premium ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`, 
-                  billingCycle === 'monthly' ? 299 : 2499
-                )}
-                className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                disabled={subscriptionStatus?.hasActiveSubscription || isProcessingPayment}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setAuthMode('signup');
+                    setIsAuthModalOpen(true);
+                  }
+                }}
+                className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
-                {isProcessingPayment ? 'Processing...' : subscriptionStatus?.hasActiveSubscription ? 'Current Plan' : `Choose ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`}
+                Upgrade to Pro
               </button>
             </motion.div>
 
-            {/* Lifetime Plan */}
+            {/* Business Plan */}
             <motion.div 
               className="bg-purple-600 rounded-xl shadow-md p-6 border border-purple-500 hover:shadow-lg transition-all duration-300 relative"
               variants={fadeInUp}
             >
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <span className="bg-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
-                  Best Value
+                  For Teams
                 </span>
               </div>
               
               <div className="text-center mb-6 pt-2">
                 <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Infinity className="w-6 h-6 text-white" />
+                  <Zap className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Lifetime Access</h3>
+                <h3 className="text-xl font-semibold text-white mb-2">Business</h3>
                 <div className="space-y-1">
-                  {appliedCoupon ? (
-                    <>
-                      <div className="text-lg text-purple-200 line-through">₹9,999</div>
-                      <div className="text-3xl font-bold text-white">
-                        ₹{calculateDiscountedPrice(9999)}
-                      </div>
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold inline-block">
-                        {appliedCoupon.discount}% OFF
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-3xl font-bold text-white mb-1">₹9,999</div>
-                  )}
+                  <div className="text-3xl font-bold text-white mb-1">
+                    ₹{billingCycle === 'monthly' ? '699' : '5,999'}
+                  </div>
                 </div>
-                <p className="text-purple-100 text-sm">one-time payment</p>
-                {!appliedCoupon && (
-                  <p className="text-yellow-300 font-medium mt-1 text-sm">Never pay again!</p>
+                <p className="text-purple-100 text-sm">
+                  per {billingCycle === 'monthly' ? 'month' : 'year'}
+                </p>
+                {billingCycle === 'yearly' && (
+                  <p className="text-yellow-300 font-medium mt-1 text-sm">
+                    Save ₹2,389 annually
+                  </p>
                 )}
               </div>
               
               <ul className="space-y-3 mb-6">
                 {[
-                  "Everything in Premium",
-                  "Lifetime access guarantee",
-                  "All future updates included",
-                  "White-label solution",
-                  "Unlimited team members",
-                  "VIP support channel",
-                  "Early access to new features"
+                  "Everything in Pro",
+                  "200 file conversions per month",
+                  "3 custom domains",
+                  "Up to 10 team members",
+                  "White-label branding",
+                  "VIP support",
+                  "99.9% SLA guarantee",
+                  "Advanced API features"
                 ].map((feature, index) => (
                   <li key={index} className="flex items-center space-x-3">
                     <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -680,11 +661,15 @@ const Pricing: React.FC = () => {
               </ul>
               
               <button 
-                onClick={() => handlePlanSelect('LIFETIME', 'Lifetime Access', 9999)}
-                className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                disabled={subscriptionStatus?.hasActiveSubscription || isProcessingPayment}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setAuthMode('signup');
+                    setIsAuthModalOpen(true);
+                  }
+                }}
+                className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
-                {isProcessingPayment ? 'Processing...' : subscriptionStatus?.hasActiveSubscription ? 'Ultimate Upgrade' : 'Get Lifetime Access'}
+                Upgrade to Business
               </button>
             </motion.div>
           </motion.div>
@@ -711,27 +696,29 @@ const Pricing: React.FC = () => {
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-4 px-6 font-semibold text-gray-900">Features</th>
                     <th className="text-center py-4 px-6 font-semibold text-gray-900">Free</th>
-                    <th className="text-center py-4 px-6 font-semibold text-blue-600">Premium</th>
-                    <th className="text-center py-4 px-6 font-semibold text-purple-600">Lifetime</th>
+                    <th className="text-center py-4 px-6 font-semibold text-blue-600">Pro</th>
+                    <th className="text-center py-4 px-6 font-semibold text-purple-600">Business</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[
-                    { feature: "Short links per month", free: "5", premium: "Unlimited", lifetime: "Unlimited" },
-                    { feature: "QR code generation", free: "✓", premium: "✓", lifetime: "✓" },
-                    { feature: "Basic analytics", free: "✓", premium: "✓", lifetime: "✓" },
-                    { feature: "Advanced analytics", free: "✗", premium: "✓", lifetime: "✓" },
-                    { feature: "Custom domains", free: "✗", premium: "✓", lifetime: "✓" },
-                    { feature: "Team members", free: "1", premium: "5", lifetime: "Unlimited" },
-                    { feature: "API access", free: "✗", premium: "✗", lifetime: "✓" },
-                    { feature: "Priority support", free: "✗", premium: "✓", lifetime: "VIP" },
-                    { feature: "White-label solution", free: "✗", premium: "✗", lifetime: "✓" }
+                    { feature: "Short links per month", free: "75", pro: "Unlimited", business: "Unlimited" },
+                    { feature: "QR codes per month", free: "30", pro: "Unlimited", business: "Unlimited" },
+                    { feature: "File conversions per month", free: "5", pro: "50", business: "200" },
+                    { feature: "Basic analytics", free: "✓", pro: "✓", business: "✓" },
+                    { feature: "Advanced analytics", free: "✗", pro: "✓", business: "✓" },
+                    { feature: "Custom domains", free: "✗", pro: "1", business: "3" },
+                    { feature: "Team members", free: "1", pro: "3", business: "10" },
+                    { feature: "API access", free: "✗", pro: "✓", business: "✓" },
+                    { feature: "Priority support", free: "✗", pro: "✓", business: "VIP" },
+                    { feature: "White-label branding", free: "✗", pro: "✗", business: "✓" },
+                    { feature: "SLA guarantee", free: "✗", pro: "✗", business: "99.9%" }
                   ].map((row, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="py-4 px-6 font-medium text-gray-900">{row.feature}</td>
                       <td className="py-4 px-6 text-center text-gray-600">{row.free}</td>
-                      <td className="py-4 px-6 text-center text-blue-600 font-medium">{row.premium}</td>
-                      <td className="py-4 px-6 text-center text-purple-600 font-medium">{row.lifetime}</td>
+                      <td className="py-4 px-6 text-center text-blue-600 font-medium">{row.pro}</td>
+                      <td className="py-4 px-6 text-center text-purple-600 font-medium">{row.business}</td>
                     </tr>
                   ))}
                 </tbody>

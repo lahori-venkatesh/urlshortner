@@ -104,7 +104,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                     </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Upgrade Required</h3>
-                      <p className="text-sm text-gray-600">Unlock premium features</p>
+                      <p className="text-sm text-gray-600">Unlock Pro features</p>
                     </div>
                   </div>
                   <button
@@ -118,7 +118,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                 {/* Enhanced message */}
                 <div className="mb-8 text-center">
                   <p className="text-lg text-gray-600 mb-2">
-                    {message || 'This feature requires a Premium subscription.'}
+                    {message || 'This feature requires a Pro subscription.'}
                   </p>
                   <p className="text-sm text-gray-500">
                     Choose a plan that works best for you

@@ -357,12 +357,12 @@ const LandingPage: React.FC = () => {
               {
                 icon: <Users className="w-6 h-6" />,
                 title: "Team Collaboration",
-                description: "Manage links, campaigns, and roles with your team. Perfect for agencies and enterprises."
+                description: "Manage links, campaigns, and roles with your team. Perfect for agencies and businesses."
               },
               {
                 icon: <Shield className="w-6 h-6" />,
                 title: "Advanced Security",
-                description: "Password protection, expiration dates, one-time clicks, and enterprise-grade security."
+                description: "Password protection, expiration dates, one-time clicks, and business-grade security."
               },
               {
                 icon: <Globe className="w-6 h-6" />,

@@ -44,7 +44,7 @@ interface QRCodeData {
     size: number;
     errorCorrection: 'L' | 'M' | 'Q' | 'H';
   };
-  isPremium: boolean;
+  isPro: boolean;
   trackingEnabled: boolean;
   isDynamic: boolean;
   isHidden: boolean;
@@ -139,7 +139,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       size: qr.size || 256,
       errorCorrection: qr.errorCorrectionLevel || 'M'
     },
-    isPremium: false,
+    isPro: false,
     trackingEnabled: true,
     isDynamic: false,
     isHidden: false,

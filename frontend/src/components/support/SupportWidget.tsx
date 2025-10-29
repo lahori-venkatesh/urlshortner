@@ -387,7 +387,7 @@ const FAQSection: React.FC = () => {
       id: '4',
       category: 'General',
       question: 'How do I upgrade my plan?',
-      answer: 'Go to your Profile page and click on "Upgrade to Premium". Choose your preferred plan and complete the payment process. Your account will be upgraded immediately.'
+      answer: 'Go to your Profile page and click on "Upgrade to Pro". Choose your preferred plan and complete the payment process. Your account will be upgraded immediately.'
     }
   ];
 

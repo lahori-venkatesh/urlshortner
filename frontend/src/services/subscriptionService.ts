@@ -2,7 +2,7 @@
 
 export interface UserPlanInfo {
   plan: string;
-  hasPremiumAccess: boolean;
+  hasProAccess: boolean;
   inTrial: boolean;
   trialEligible: boolean;
   subscriptionExpiry: string | null;
@@ -34,7 +34,7 @@ export interface PricingData {
   free: PricingPlan;
   monthly: PricingPlan;
   yearly: PricingPlan;
-  lifetime: PricingPlan;
+  business: PricingPlan;
 }
 
 class SubscriptionService {
@@ -102,7 +102,7 @@ class SubscriptionService {
   }
 
   /**
-   * Upgrade user to premium plan
+   * Upgrade user to pro plan
    */
   async upgradePlan(userId: string, planType: string, subscriptionId?: string, customerId?: string): Promise<boolean> {
     try {
@@ -155,17 +155,21 @@ class SubscriptionService {
     let planName = '';
 
     switch (planType) {
-      case 'PREMIUM_MONTHLY':
-        amount = pricing.monthly.price * 100; // Convert to paise
-        planName = pricing.monthly.name;
+      case 'PRO_MONTHLY':
+        amount = 349 * 100; // Convert to paise
+        planName = 'Pro Monthly';
         break;
-      case 'PREMIUM_YEARLY':
-        amount = pricing.yearly.price * 100;
-        planName = pricing.yearly.name;
+      case 'PRO_YEARLY':
+        amount = 2999 * 100;
+        planName = 'Pro Yearly';
         break;
-      case 'LIFETIME':
-        amount = pricing.lifetime.price * 100;
-        planName = pricing.lifetime.name;
+      case 'BUSINESS_MONTHLY':
+        amount = 699 * 100;
+        planName = 'Business Monthly';
+        break;
+      case 'BUSINESS_YEARLY':
+        amount = 5999 * 100;
+        planName = 'Business Yearly';
         break;
       default:
         throw new Error('Invalid plan type');
@@ -226,12 +230,14 @@ class SubscriptionService {
     switch (plan) {
       case 'FREE':
         return 'Free';
-      case 'PREMIUM_MONTHLY':
-        return 'Premium Monthly';
-      case 'PREMIUM_YEARLY':
-        return 'Premium Yearly';
-      case 'LIFETIME':
-        return 'Lifetime';
+      case 'PRO_MONTHLY':
+        return 'Pro Monthly';
+      case 'PRO_YEARLY':
+        return 'Pro Yearly';
+      case 'BUSINESS_MONTHLY':
+        return 'Business Monthly';
+      case 'BUSINESS_YEARLY':
+        return 'Business Yearly';
       default:
         return plan;
     }
@@ -244,12 +250,14 @@ class SubscriptionService {
     switch (plan) {
       case 'FREE':
         return 'bg-gray-100 text-gray-800';
-      case 'PREMIUM_MONTHLY':
+      case 'PRO_MONTHLY':
         return 'bg-blue-100 text-blue-800';
-      case 'PREMIUM_YEARLY':
+      case 'PRO_YEARLY':
+        return 'bg-blue-100 text-blue-800';
+      case 'BUSINESS_MONTHLY':
         return 'bg-purple-100 text-purple-800';
-      case 'LIFETIME':
-        return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
+      case 'BUSINESS_YEARLY':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -260,16 +268,16 @@ class SubscriptionService {
    */
   getUpgradeMessage(feature: string): string {
     const messages: { [key: string]: string } = {
-      'custom-alias': 'Custom aliases are available with Premium plans. Create branded short links!',
-      'password-protection': 'Password protection is available with Premium plans. Secure your links!',
-      'expiration': 'Link expiration is available with Premium plans. Set automatic expiry dates!',
-      'custom-domain': 'Custom domains are available with Premium plans. Use your own domain!',
-      'detailed-analytics': 'Detailed analytics are available with Premium plans. See where your audience is from!',
-      'customize-qr': 'QR code customization is available with Premium plans. Add your logo and colors!',
-      'daily-limit': 'You\'ve reached your daily limit. Upgrade to Premium for unlimited access!'
+      'custom-alias': 'Custom aliases are available with Pro plans. Create branded short links!',
+      'password-protection': 'Password protection is available with Pro plans. Secure your links!',
+      'expiration': 'Link expiration is available with Pro plans. Set automatic expiry dates!',
+      'custom-domain': 'Custom domains are available with Pro plans. Use your own domain!',
+      'detailed-analytics': 'Detailed analytics are available with Pro plans. See where your audience is from!',
+      'customize-qr': 'QR code customization is available with Pro plans. Add your logo and colors!',
+      'daily-limit': 'You\'ve reached your monthly limit. Upgrade to Pro for unlimited access!'
     };
 
-    return messages[feature] || 'This feature is available with Premium plans.';
+    return messages[feature] || 'This feature is available with Pro plans.';
   }
 }
 
