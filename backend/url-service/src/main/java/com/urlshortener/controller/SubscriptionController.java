@@ -261,13 +261,13 @@ public class SubscriptionController {
             freePlan.put("currency", "INR");
             freePlan.put("period", "forever");
             freePlan.put("features", new String[]{
-                "5 URLs per day",
-                "3 QR codes per day", 
-                "1 file upload per day",
-                "Basic QR codes (B&W)",
+                "75 URLs per month",
+                "30 QR codes per month", 
+                "5 file conversions per month",
+                "Basic QR codes",
                 "5MB file uploads",
                 "Basic analytics",
-                "7-day data retention"
+                "Community support"
             });
             
             // Premium Monthly
@@ -290,36 +290,38 @@ public class SubscriptionController {
                 "Priority support"
             });
             
-            // Premium Yearly
-            Map<String, Object> yearlyPlan = new HashMap<>();
-            yearlyPlan.put("name", "Premium Yearly");
-            yearlyPlan.put("price", 2499);
-            yearlyPlan.put("currency", "INR");
-            yearlyPlan.put("period", "year");
-            yearlyPlan.put("savings", 1089);
-            yearlyPlan.put("features", new String[]{
-                "Everything in Monthly",
-                "Save ₹1,089 per year",
-                "Best value for businesses"
+            // Update monthly plan to Pro
+            monthlyPlan.put("name", "Pro");
+            monthlyPlan.put("monthlyPrice", 349);
+            monthlyPlan.put("yearlyPrice", 2999);
+            monthlyPlan.put("features", new String[]{
+                "Unlimited URLs & QR codes",
+                "50 file conversions/month",
+                "Advanced analytics",
+                "1 custom domain",
+                "Up to 3 team members",
+                "Priority support",
+                "API access"
             });
             
-            // Lifetime
-            Map<String, Object> lifetimePlan = new HashMap<>();
-            lifetimePlan.put("name", "Lifetime");
-            lifetimePlan.put("price", 9999);
-            lifetimePlan.put("currency", "INR");
-            lifetimePlan.put("period", "lifetime");
-            lifetimePlan.put("features", new String[]{
-                "Everything in Premium",
-                "Pay once, use forever",
-                "Perfect for agencies",
-                "No recurring payments"
+            // Business Plan
+            Map<String, Object> businessPlan = new HashMap<>();
+            businessPlan.put("name", "Business");
+            businessPlan.put("monthlyPrice", 699);
+            businessPlan.put("yearlyPrice", 5999);
+            businessPlan.put("currency", "INR");
+            businessPlan.put("features", new String[]{
+                "Everything in Pro",
+                "200 file conversions/month",
+                "3 custom domains",
+                "Up to 10 team members",
+                "White-label branding",
+                "VIP support"
             });
             
             pricing.put("free", freePlan);
-            pricing.put("monthly", monthlyPlan);
-            pricing.put("yearly", yearlyPlan);
-            pricing.put("lifetime", lifetimePlan);
+            pricing.put("pro", monthlyPlan);
+            pricing.put("business", businessPlan);
             
             response.put("success", true);
             response.put("data", pricing);

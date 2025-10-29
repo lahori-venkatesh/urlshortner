@@ -327,12 +327,12 @@ public class SubscriptionService {
         
         // Set expiry date based on plan
         LocalDateTime expiry = null;
-        if (PREMIUM_MONTHLY.equals(planType)) {
+        if (PRO_MONTHLY.equals(planType) || BUSINESS_MONTHLY.equals(planType)) {
             expiry = LocalDateTime.now().plusMonths(1);
-        } else if (PREMIUM_YEARLY.equals(planType)) {
+        } else if (PRO_YEARLY.equals(planType) || BUSINESS_YEARLY.equals(planType)) {
             expiry = LocalDateTime.now().plusYears(1);
         }
-        // LIFETIME plan doesn't need expiry
+        // No lifetime plans in new structure
         
         user.setSubscriptionExpiry(expiry);
         user.setUpdatedAt(LocalDateTime.now());
@@ -385,21 +385,21 @@ public class SubscriptionService {
         resetDailyUsageIfNeeded(user);
         
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
+        int monthlyLimit;
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) ||
-            isInTrialPeriod(user)) {
+        // Pro and Business plans have unlimited URLs
+        if ((PRO_MONTHLY.equals(plan) || PRO_YEARLY.equals(plan) || 
+             BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
+            user.getSubscriptionExpiry() != null && 
+            user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
             return -1; // Unlimited
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-                   user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_URLS;
+        } else if (isInTrialPeriod(user)) {
+            return -1; // Unlimited during trial
         } else {
-            dailyLimit = FREE_DAILY_URLS;
+            monthlyLimit = FREE_MONTHLY_URLS;
         }
         
-        return Math.max(0, dailyLimit - user.getDailyUrlsCreated());
+        return Math.max(0, monthlyLimit - user.getMonthlyUrlsCreated());
     }
     
     /**
@@ -413,21 +413,21 @@ public class SubscriptionService {
         resetDailyUsageIfNeeded(user);
         
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
+        int monthlyLimit;
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) ||
-            isInTrialPeriod(user)) {
+        // Pro and Business plans have unlimited QR codes
+        if ((PRO_MONTHLY.equals(plan) || PRO_YEARLY.equals(plan) || 
+             BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
+            user.getSubscriptionExpiry() != null && 
+            user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
             return -1; // Unlimited
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-                   user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_QR_CODES;
+        } else if (isInTrialPeriod(user)) {
+            return -1; // Unlimited during trial
         } else {
-            dailyLimit = FREE_DAILY_QR_CODES;
+            monthlyLimit = FREE_MONTHLY_QR_CODES;
         }
         
-        return Math.max(0, dailyLimit - user.getDailyQrCodesCreated());
+        return Math.max(0, monthlyLimit - user.getMonthlyQrCodesCreated());
     }
     
     /**
@@ -441,21 +441,24 @@ public class SubscriptionService {
         resetDailyUsageIfNeeded(user);
         
         String plan = user.getSubscriptionPlan();
-        int dailyLimit;
+        int monthlyLimit;
         
-        if (LIFETIME.equals(plan) || 
-            (PREMIUM_YEARLY.equals(plan) && user.getSubscriptionExpiry() != null && 
-             user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) ||
-            isInTrialPeriod(user)) {
-            return -1; // Unlimited
-        } else if (PREMIUM_MONTHLY.equals(plan) && user.getSubscriptionExpiry() != null && 
+        // Check plan type and set appropriate file limits
+        if ((PRO_MONTHLY.equals(plan) || PRO_YEARLY.equals(plan)) && 
+            user.getSubscriptionExpiry() != null && 
+            user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
+            monthlyLimit = PRO_MONTHLY_FILES; // 50 files per month
+        } else if ((BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
+                   user.getSubscriptionExpiry() != null && 
                    user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            dailyLimit = MONTHLY_DAILY_FILES;
+            monthlyLimit = BUSINESS_MONTHLY_FILES; // 200 files per month
+        } else if (isInTrialPeriod(user)) {
+            monthlyLimit = PRO_MONTHLY_FILES; // Trial gets Pro limits
         } else {
-            dailyLimit = FREE_DAILY_FILES;
+            monthlyLimit = FREE_MONTHLY_FILES; // 5 files per month
         }
         
-        return Math.max(0, dailyLimit - user.getDailyFilesUploaded());
+        return Math.max(0, monthlyLimit - user.getMonthlyFilesUploaded());
     }
     
     /**
@@ -596,8 +599,8 @@ public class SubscriptionService {
         String currentPlan = user.getSubscriptionPlan();
         
         // Check if user has an active subscription to cancel
-        if (FREE_PLAN.equals(currentPlan) || LIFETIME.equals(currentPlan)) {
-            return false; // Nothing to cancel
+        if (FREE_PLAN.equals(currentPlan)) {
+            return false; // Nothing to cancel for free users
         }
         
         // Mark subscription as cancelled but keep access until expiry

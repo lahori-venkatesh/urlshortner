@@ -23,7 +23,7 @@ public class User {
     private String profilePicture;
     
     // Account details
-    private String subscriptionPlan = "FREE"; // FREE, PREMIUM_MONTHLY, PREMIUM_YEARLY, LIFETIME
+    private String subscriptionPlan = "FREE"; // FREE, PRO_MONTHLY, PRO_YEARLY, BUSINESS_MONTHLY, BUSINESS_YEARLY
     private LocalDateTime subscriptionExpiry;
     private boolean subscriptionCancelled = false; // Whether subscription is cancelled but still active
     private boolean isActive = true;

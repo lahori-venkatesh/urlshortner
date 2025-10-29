@@ -14,7 +14,7 @@ public class Subscription {
     @Indexed
     private String userId;
     
-    private String planType; // MONTHLY, YEARLY, LIFETIME
+    private String planType; // PRO_MONTHLY, PRO_YEARLY, BUSINESS_MONTHLY, BUSINESS_YEARLY
     private String paymentId; // Razorpay payment ID
     private String orderId; // Razorpay order ID
     

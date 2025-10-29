@@ -104,8 +104,10 @@ public class PaymentService {
             subscription.setExpiresAt(LocalDateTime.now().plusMonths(1));
         } else if ("YEARLY".equals(planType)) {
             subscription.setExpiresAt(LocalDateTime.now().plusYears(1));
-        } else if ("LIFETIME".equals(planType)) {
-            subscription.setExpiresAt(LocalDateTime.now().plusYears(100)); // Effectively lifetime
+        } else if ("BUSINESS_MONTHLY".equals(planType)) {
+            subscription.setExpiresAt(LocalDateTime.now().plusMonths(1));
+        } else if ("BUSINESS_YEARLY".equals(planType)) {
+            subscription.setExpiresAt(LocalDateTime.now().plusYears(1));
         }
         
         subscriptionRepository.save(subscription);
@@ -128,7 +130,7 @@ public class PaymentService {
             status.put("hasActiveSubscription", true);
             status.put("planType", sub.getPlanType());
             status.put("expiresAt", sub.getExpiresAt());
-            status.put("isLifetime", "LIFETIME".equals(sub.getPlanType()));
+            status.put("isBusiness", sub.getPlanType().contains("BUSINESS"));
         } else {
             status.put("hasActiveSubscription", false);
             status.put("planType", "FREE");
