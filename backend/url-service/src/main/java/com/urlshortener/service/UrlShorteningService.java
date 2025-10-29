@@ -42,6 +42,12 @@ public class UrlShorteningService {
     
     public ShortenedUrl createShortUrl(String originalUrl, String userId, String customAlias, 
                                      String password, Integer expirationDays, Integer maxClicks, String title, String description) {
+        return createShortUrl(originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, "USER", userId);
+    }
+    
+    public ShortenedUrl createShortUrl(String originalUrl, String userId, String customAlias, 
+                                     String password, Integer expirationDays, Integer maxClicks, String title, String description,
+                                     String scopeType, String scopeId) {
         
         // Validate URL
         if (!isValidUrl(originalUrl)) {
@@ -79,7 +85,7 @@ public class UrlShorteningService {
         }
         
         // Create shortened URL
-        ShortenedUrl shortenedUrl = new ShortenedUrl(originalUrl, shortCode, userId);
+        ShortenedUrl shortenedUrl = new ShortenedUrl(originalUrl, shortCode, userId, scopeType, scopeId);
         
         // Set the complete short URL with frontend domain
         String fullShortUrl = shortUrlDomain + "/" + shortCode;
@@ -137,6 +143,17 @@ public class UrlShorteningService {
     public List<ShortenedUrl> getUserUrls(String userId) {
         logger.debug("Fetching URLs for user: {}", userId);
         return shortenedUrlRepository.findByUserIdAndIsActiveTrue(userId);
+    }
+    
+    // Get URLs by scope (user or team)
+    public List<ShortenedUrl> getUrlsByScope(String scopeType, String scopeId) {
+        logger.debug("Fetching URLs for scope: {} - {}", scopeType, scopeId);
+        return shortenedUrlRepository.findByScopeTypeAndScopeIdAndIsActiveTrue(scopeType, scopeId);
+    }
+    
+    // Get team URLs (for team members)
+    public List<ShortenedUrl> getTeamUrls(String teamId) {
+        return getUrlsByScope("TEAM", teamId);
     }
     
     public ShortenedUrl updateUrl(String shortCode, String userId, ShortenedUrl updates) {

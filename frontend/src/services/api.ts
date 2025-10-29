@@ -326,6 +326,152 @@ export const recordQrScan = async (qrCodeId: string, data: {
   return response.data;
 };
 
+// Team Management API Functions
+export const createTeam = async (data: {
+  teamName: string;
+  description?: string;
+}): Promise<any> => {
+  const response = await apiClient.post('/v1/teams', data);
+  return response.data;
+};
+
+export const getUserTeams = async (): Promise<any> => {
+  const response = await apiClient.get('/v1/teams/my');
+  return response.data;
+};
+
+export const getTeam = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/${teamId}`);
+  return response.data;
+};
+
+export const updateTeam = async (teamId: string, data: {
+  teamName: string;
+  description?: string;
+}): Promise<any> => {
+  const response = await apiClient.put(`/v1/teams/${teamId}`, data);
+  return response.data;
+};
+
+export const deleteTeam = async (teamId: string): Promise<any> => {
+  const response = await apiClient.delete(`/v1/teams/${teamId}`);
+  return response.data;
+};
+
+export const inviteUserToTeam = async (teamId: string, data: {
+  email: string;
+  role: string;
+}): Promise<any> => {
+  const response = await apiClient.post(`/v1/teams/${teamId}/invite`, data);
+  return response.data;
+};
+
+export const acceptTeamInvite = async (inviteToken: string): Promise<any> => {
+  const response = await apiClient.post(`/v1/teams/invite/${inviteToken}/accept`);
+  return response.data;
+};
+
+export const getTeamMembers = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/${teamId}/members`);
+  return response.data;
+};
+
+export const removeTeamMember = async (teamId: string, memberUserId: string): Promise<any> => {
+  const response = await apiClient.delete(`/v1/teams/${teamId}/members/${memberUserId}`);
+  return response.data;
+};
+
+export const updateTeamMemberRole = async (teamId: string, memberUserId: string, data: {
+  role: string;
+}): Promise<any> => {
+  const response = await apiClient.put(`/v1/teams/${teamId}/members/${memberUserId}/role`, data);
+  return response.data;
+};
+
+export const getTeamInvites = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/${teamId}/invites`);
+  return response.data;
+};
+
+// Team-scoped content functions
+export const createTeamShortUrl = async (teamId: string, data: {
+  originalUrl: string;
+  customAlias?: string;
+  password?: string;
+  expirationDays?: number;
+  maxClicks?: number;
+  title?: string;
+  description?: string;
+}): Promise<any> => {
+  const response = await apiClient.post('/v1/urls', {
+    ...data,
+    scopeType: 'TEAM',
+    scopeId: teamId
+  });
+  return response.data;
+};
+
+export const getTeamUrls = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/urls/scope/TEAM/${teamId}`);
+  return response.data;
+};
+
+export const createTeamQrCode = async (teamId: string, data: {
+  content: string;
+  contentType?: string;
+  title?: string;
+  description?: string;
+  style?: string;
+  foregroundColor?: string;
+  backgroundColor?: string;
+  logoUrl?: string;
+  size?: number;
+}): Promise<any> => {
+  const response = await apiClient.post('/v1/qr', {
+    ...data,
+    scopeType: 'TEAM',
+    scopeId: teamId
+  });
+  return response.data;
+};
+
+export const getTeamQrCodes = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/qr/scope/TEAM/${teamId}`);
+  return response.data;
+};
+
+export const uploadTeamFile = async (teamId: string, file: File, options: {
+  title?: string;
+  description?: string;
+  password?: string;
+  expirationDays?: number;
+  isPublic?: boolean;
+}): Promise<any> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  if (options.title) formData.append('title', options.title);
+  if (options.description) formData.append('description', options.description);
+  if (options.password) formData.append('password', options.password);
+  if (options.expirationDays) formData.append('expirationDays', options.expirationDays.toString());
+  if (options.isPublic !== undefined) formData.append('isPublic', options.isPublic.toString());
+  
+  formData.append('scopeType', 'TEAM');
+  formData.append('scopeId', teamId);
+  
+  const response = await apiClient.post('/v1/files/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const getTeamFiles = async (teamId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/files/scope/TEAM/${teamId}`);
+  return response.data;
+};
+
 export default {
   // Legacy functions (keep for backward compatibility)
   shortenUrl,
@@ -363,4 +509,25 @@ export default {
   getRealtimeAnalytics,
   recordUrlClick,
   recordQrScan,
+  
+  // Team functions
+  createTeam,
+  getUserTeams,
+  getTeam,
+  updateTeam,
+  deleteTeam,
+  inviteUserToTeam,
+  acceptTeamInvite,
+  getTeamMembers,
+  removeTeamMember,
+  updateTeamMemberRole,
+  getTeamInvites,
+  
+  // Team-scoped content functions
+  createTeamShortUrl,
+  getTeamUrls,
+  createTeamQrCode,
+  getTeamQrCodes,
+  uploadTeamFile,
+  getTeamFiles,
 };

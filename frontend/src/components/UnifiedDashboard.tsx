@@ -11,21 +11,26 @@ import {
   Crown,
   Zap,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Users,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTeam } from '../context/TeamContext';
 import DashboardOverview from './dashboard/DashboardOverview';
+import TeamManagement from './TeamManagement';
 import CreateSection from './dashboard/CreateSection';
 import LinksManager from './dashboard/LinksManager';
 import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
 
-type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics';
+type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'team-members' | 'team-settings';
 type CreateMode = 'url' | 'qr' | 'file';
 
 const UnifiedDashboard: React.FC = () => {
   const { user } = useAuth();
+  const { currentScope } = useTeam();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState<SidebarSection>('dashboard');
@@ -95,7 +100,7 @@ const UnifiedDashboard: React.FC = () => {
       id: 'create' as SidebarSection,
       label: 'Create',
       icon: Plus,
-      description: 'New Links & QR Codes',
+      description: currentScope.type === 'TEAM' ? 'New Team Content' : 'New Links & QR Codes',
       primary: true,
       submenu: [
         { id: 'url', label: 'Short Link', icon: Link },
@@ -107,32 +112,47 @@ const UnifiedDashboard: React.FC = () => {
       id: 'dashboard' as SidebarSection,
       label: 'Dashboard',
       icon: LayoutDashboard,
-      description: 'Overview & Stats'
+      description: currentScope.type === 'TEAM' ? 'Team Overview & Stats' : 'Overview & Stats'
     },
     {
       id: 'links' as SidebarSection,
-      label: 'Links',
+      label: currentScope.type === 'TEAM' ? 'Team Links' : 'My Links',
       icon: Link,
-      description: 'Manage Short Links'
+      description: currentScope.type === 'TEAM' ? 'Manage Team Links' : 'Manage Short Links'
     },
     {
       id: 'qr-codes' as SidebarSection,
-      label: 'QR Codes',
+      label: currentScope.type === 'TEAM' ? 'Team QR Codes' : 'My QR Codes',
       icon: QrCode,
-      description: 'Manage QR Codes'
+      description: currentScope.type === 'TEAM' ? 'Manage Team QR Codes' : 'Manage QR Codes'
     },
     {
       id: 'file-to-url' as SidebarSection,
-      label: 'File Links',
+      label: currentScope.type === 'TEAM' ? 'Team Files' : 'My Files',
       icon: Upload,
-      description: 'File to URL Links'
+      description: currentScope.type === 'TEAM' ? 'Team File Links' : 'File to URL Links'
     },
     {
       id: 'analytics' as SidebarSection,
       label: 'Analytics',
       icon: BarChart3,
-      description: 'Performance Insights'
-    }
+      description: currentScope.type === 'TEAM' ? 'Team Performance' : 'Performance Insights'
+    },
+    // Team-specific sections
+    ...(currentScope.type === 'TEAM' ? [
+      {
+        id: 'team-members' as SidebarSection,
+        label: 'Members',
+        icon: Users,
+        description: 'Manage Team Members'
+      },
+      {
+        id: 'team-settings' as SidebarSection,
+        label: 'Team Settings',
+        icon: Settings,
+        description: 'Team Configuration'
+      }
+    ] : [])
   ];
 
   const handleCreateClick = (mode: CreateMode) => {
@@ -172,6 +192,10 @@ const UnifiedDashboard: React.FC = () => {
         }} />;
       case 'analytics':
         return <AnalyticsSection />;
+      case 'team-members':
+        return currentScope.type === 'TEAM' ? <TeamManagement teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
+      case 'team-settings':
+        return currentScope.type === 'TEAM' ? <div className="text-center py-8 text-gray-500">Team Settings - Coming Soon</div> : <DashboardOverview onCreateClick={handleCreateClick} />;
       default:
         return <DashboardOverview onCreateClick={handleCreateClick} />;
     }

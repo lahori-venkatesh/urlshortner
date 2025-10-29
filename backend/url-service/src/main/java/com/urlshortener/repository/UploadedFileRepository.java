@@ -81,4 +81,14 @@ public interface UploadedFileRepository extends MongoRepository<UploadedFile, St
     
     // Check if file code exists
     boolean existsByFileCode(String fileCode);
+    
+    // Team collaboration queries
+    List<UploadedFile> findByScopeTypeAndScopeIdAndIsActiveTrue(String scopeType, String scopeId);
+    
+    List<UploadedFile> findByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    long countByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    // Find files by scope and date range
+    List<UploadedFile> findByScopeTypeAndScopeIdAndUploadedAtBetween(String scopeType, String scopeId, LocalDateTime startDate, LocalDateTime endDate);
 }

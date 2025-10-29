@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Settings, LogOut, Crown, BarChart3 } from 'lucide-react';
+import { User, Settings, LogOut, Crown, BarChart3, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useTeam } from '../context/TeamContext';
 import { useNavigate } from 'react-router-dom';
+import TeamSwitcher from './TeamSwitcher';
 
 const ProfileDropdown: React.FC = () => {
   const { user, logout } = useAuth();
+  const { currentScope } = useTeam();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -69,7 +72,7 @@ const ProfileDropdown: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+            className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-[80vh] overflow-y-auto"
           >
             {/* User Info */}
             <div className="px-4 py-3 border-b border-gray-100">
@@ -82,19 +85,28 @@ const ProfileDropdown: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
-                  <div className="flex items-center mt-1">
-                    {(user.plan?.includes('PRO') || user.plan?.includes('BUSINESS')) && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
-                    <span className="text-xs font-medium text-blue-600 capitalize">
-                      {user.plan?.includes('BUSINESS') ? 'Business' : 
-                       user.plan?.includes('PRO') ? 'Pro' : 'Free'} Plan
-                    </span>
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center">
+                      {(user.plan?.includes('PRO') || user.plan?.includes('BUSINESS')) && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
+                      <span className="text-xs font-medium text-blue-600 capitalize">
+                        {user.plan?.includes('BUSINESS') ? 'Business' : 
+                         user.plan?.includes('PRO') ? 'Pro' : 'Free'} Plan
+                      </span>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Users className="w-3 h-3 mr-1" />
+                      {currentScope.name}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Team Switcher */}
+            <TeamSwitcher onClose={() => setIsOpen(false)} />
+
             {/* Menu Items */}
-            <div className="py-2">
+            <div className="py-2 border-t border-gray-100">
               <button 
                 onClick={handleProfileSettings}
                 className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

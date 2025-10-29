@@ -134,6 +134,8 @@ public class UrlController {
             Integer maxClicks = (Integer) request.get("maxClicks");
             String title = (String) request.get("title");
             String description = (String) request.get("description");
+            String scopeType = (String) request.getOrDefault("scopeType", "USER");
+            String scopeId = (String) request.getOrDefault("scopeId", userId);
             
             if (originalUrl == null || originalUrl.trim().isEmpty()) {
                 response.put("success", false);
@@ -142,7 +144,7 @@ public class UrlController {
             }
             
             ShortenedUrl shortenedUrl = urlShorteningService.createShortUrl(
-                originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description
+                originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, scopeType, scopeId
             );
             
             Map<String, Object> urlData = new HashMap<>();
@@ -325,6 +327,29 @@ public class UrlController {
             
             response.put("success", true);
             response.put("message", "Click recorded successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    // Team-scoped endpoints
+    @GetMapping("/scope/{scopeType}/{scopeId}")
+    public ResponseEntity<Map<String, Object>> getUrlsByScope(
+            @PathVariable String scopeType, 
+            @PathVariable String scopeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<ShortenedUrl> urls = urlShorteningService.getUrlsByScope(scopeType, scopeId);
+            
+            response.put("success", true);
+            response.put("urls", urls);
+            response.put("count", urls.size());
             
             return ResponseEntity.ok(response);
             

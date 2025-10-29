@@ -14,12 +14,15 @@ import {
   Activity,
   Clock,
   MousePointer,
-  MapPin
+  MapPin,
+  Users,
+  Crown
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { StatCardSkeleton, ChartSkeleton, ActivitySkeleton } from '../ui/Skeleton';
+import { useTeam } from '../../context/TeamContext';
 import LiveActivityFeed from './LiveActivityFeed';
 import LocationWidget from './LocationWidget';
 import WorldMapWidget from './WorldMapWidget';
@@ -46,8 +49,13 @@ interface DashboardStats {
 
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) => {
+  const { currentScope, teams } = useTeam();
+  
   // Use React Query hook for fast loading with caching
   const { stats, isLoading, isRefreshing, hasData, error, refetch } = useDashboardData();
+  
+  // Get current team if in team scope
+  const currentTeam = currentScope.type === 'TEAM' ? teams.find(t => t.id === currentScope.id) : null;
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -151,10 +159,39 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl sm:rounded-2xl p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
           <div className="min-w-0">
-            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Welcome back!</h2>
+            <div className="flex items-center space-x-3 mb-2">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                {currentScope.type === 'TEAM' ? `${currentScope.name}` : 'Welcome back!'}
+              </h2>
+              {currentScope.type === 'TEAM' && currentTeam && (
+                <div className="flex items-center space-x-2">
+                  {currentTeam.subscriptionPlan.includes('BUSINESS') && (
+                    <Crown className="w-5 h-5 text-yellow-300" />
+                  )}
+                  <span className="bg-white/20 text-white px-2 py-1 rounded-full text-xs font-medium">
+                    {currentScope.role}
+                  </span>
+                </div>
+              )}
+            </div>
             <p className="text-blue-100 text-sm sm:text-base">
-              Here's what's happening with your links today.
+              {currentScope.type === 'TEAM' 
+                ? `Here's what's happening with your team's content today.`
+                : "Here's what's happening with your links today."
+              }
             </p>
+            {currentScope.type === 'TEAM' && currentTeam && (
+              <div className="flex items-center space-x-4 mt-2 text-blue-100 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4" />
+                  <span>{currentTeam.members.length} members</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>{currentTeam.totalClicks} total clicks</span>
+                </div>
+              </div>
+            )}
           </div>
           <button
             onClick={handleRefresh}

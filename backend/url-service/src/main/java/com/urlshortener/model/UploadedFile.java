@@ -30,6 +30,10 @@ public class UploadedFile {
     private String userId; // Reference to User
     private String uploadedBy; // Email or name
     
+    // Scope information for team collaboration
+    private String scopeType = "USER"; // USER or TEAM
+    private String scopeId; // userId for USER scope, teamId for TEAM scope
+    
     // Access control
     private boolean isPublic = false;
     private boolean requiresPassword = false;
@@ -95,8 +99,20 @@ public class UploadedFile {
         this.fileType = fileType;
         this.fileSize = fileSize;
         this.userId = userId;
+        this.scopeType = "USER";
+        this.scopeId = userId;
         this.fileCode = generateFileCode();
         // fileUrl will be set by the service with proper domain
+    }
+    
+    public UploadedFile(String originalFileName, String fileType, long fileSize, String userId, String scopeType, String scopeId) {
+        this.originalFileName = originalFileName;
+        this.fileType = fileType;
+        this.fileSize = fileSize;
+        this.userId = userId;
+        this.scopeType = scopeType;
+        this.scopeId = scopeId;
+        this.fileCode = generateFileCode();
     }
     
     private String generateFileCode() {
@@ -238,4 +254,10 @@ public class UploadedFile {
     
     public LocalDateTime getScannedAt() { return scannedAt; }
     public void setScannedAt(LocalDateTime scannedAt) { this.scannedAt = scannedAt; }
+    
+    public String getScopeType() { return scopeType; }
+    public void setScopeType(String scopeType) { this.scopeType = scopeType; }
+    
+    public String getScopeId() { return scopeId; }
+    public void setScopeId(String scopeId) { this.scopeId = scopeId; }
 }

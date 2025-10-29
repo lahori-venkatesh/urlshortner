@@ -74,4 +74,14 @@ public interface QrCodeRepository extends MongoRepository<QrCode, String> {
     
     // Find QR codes with tracking enabled
     List<QrCode> findByTrackScansTrue();
+    
+    // Team collaboration queries
+    List<QrCode> findByScopeTypeAndScopeIdAndIsActiveTrue(String scopeType, String scopeId);
+    
+    List<QrCode> findByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    long countByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    // Find QR codes by scope and date range
+    List<QrCode> findByScopeTypeAndScopeIdAndCreatedAtBetween(String scopeType, String scopeId, LocalDateTime startDate, LocalDateTime endDate);
 }

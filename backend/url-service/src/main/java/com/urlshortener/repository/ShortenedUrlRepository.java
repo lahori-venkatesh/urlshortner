@@ -68,4 +68,14 @@ public interface ShortenedUrlRepository extends MongoRepository<ShortenedUrl, St
     
     // Check if custom alias exists
     boolean existsByCustomAlias(String customAlias);
+    
+    // Team collaboration queries
+    List<ShortenedUrl> findByScopeTypeAndScopeIdAndIsActiveTrue(String scopeType, String scopeId);
+    
+    List<ShortenedUrl> findByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    long countByScopeTypeAndScopeId(String scopeType, String scopeId);
+    
+    // Find URLs by scope and date range
+    List<ShortenedUrl> findByScopeTypeAndScopeIdAndCreatedAtBetween(String scopeType, String scopeId, LocalDateTime startDate, LocalDateTime endDate);
 }

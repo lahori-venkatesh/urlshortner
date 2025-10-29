@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { SupportProvider } from './context/SupportContext';
+import { TeamProvider } from './context/TeamContext';
 import { QueryProvider } from './providers/QueryProvider';
 import UpgradeModal from './components/UpgradeModal';
 import SupportWidget from './components/support/SupportWidget';
@@ -210,11 +211,13 @@ function App() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <SubscriptionProvider>
-          <SupportProvider>
-            <AppContent />
-          </SupportProvider>
-        </SubscriptionProvider>
+        <TeamProvider>
+          <SubscriptionProvider>
+            <SupportProvider>
+              <AppContent />
+            </SupportProvider>
+          </SubscriptionProvider>
+        </TeamProvider>
       </AuthProvider>
     </QueryProvider>
   );

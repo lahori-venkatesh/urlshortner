@@ -23,6 +23,10 @@ public class ShortenedUrl {
     private String userId; // Reference to User
     private String createdBy; // Email or name
     
+    // Scope information for team collaboration
+    private String scopeType = "USER"; // USER or TEAM
+    private String scopeId; // userId for USER scope, teamId for TEAM scope
+    
     // URL metadata
     private String title;
     private String description;
@@ -91,7 +95,18 @@ public class ShortenedUrl {
         this.originalUrl = originalUrl;
         this.shortCode = shortCode;
         this.userId = userId;
+        this.scopeType = "USER";
+        this.scopeId = userId;
         // Short URL will be set by the service with proper domain
+        this.shortUrl = shortCode; // Temporary, will be updated by service
+    }
+    
+    public ShortenedUrl(String originalUrl, String shortCode, String userId, String scopeType, String scopeId) {
+        this.originalUrl = originalUrl;
+        this.shortCode = shortCode;
+        this.userId = userId;
+        this.scopeType = scopeType;
+        this.scopeId = scopeId;
         this.shortUrl = shortCode; // Temporary, will be updated by service
     }
     
@@ -218,4 +233,10 @@ public class ShortenedUrl {
     
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    
+    public String getScopeType() { return scopeType; }
+    public void setScopeType(String scopeType) { this.scopeType = scopeType; }
+    
+    public String getScopeId() { return scopeId; }
+    public void setScopeId(String scopeId) { this.scopeId = scopeId; }
 }

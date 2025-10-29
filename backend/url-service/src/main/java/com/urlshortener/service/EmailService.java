@@ -74,6 +74,22 @@ public class EmailService {
     }
     
     /**
+     * Generic method to send email with subject and body
+     */
+    public void sendEmail(String toEmail, String subject, String body) {
+        try {
+            logger.info("Sending email to {} with subject: {}", toEmail, subject);
+            logger.debug("Email Body: {}", body);
+            
+            // TODO: Implement actual email sending (SMTP, SendGrid, etc.)
+            // For now, just log the email content
+            
+        } catch (Exception e) {
+            logger.error("Failed to send email to {}", toEmail, e);
+        }
+    }
+    
+    /**
      * Send new ticket notification to support team
      */
     public void sendNewTicketNotificationToSupport(SupportTicket ticket) {

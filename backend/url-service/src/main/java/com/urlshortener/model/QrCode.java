@@ -26,6 +26,10 @@ public class QrCode {
     private String userId; // Reference to User
     private String createdBy; // Email or name
     
+    // Scope information for team collaboration
+    private String scopeType = "USER"; // USER or TEAM
+    private String scopeId; // userId for USER scope, teamId for TEAM scope
+    
     // QR Code customization
     private String style = "STANDARD"; // STANDARD, CUSTOM, LOGO, ARTISTIC
     private String foregroundColor = "#000000";
@@ -92,8 +96,19 @@ public class QrCode {
         this.content = content;
         this.contentType = contentType;
         this.userId = userId;
+        this.scopeType = "USER";
+        this.scopeId = userId;
         this.qrCode = generateQrCode();
         // qrImageUrl will be set by the service with proper domain
+    }
+    
+    public QrCode(String content, String contentType, String userId, String scopeType, String scopeId) {
+        this.content = content;
+        this.contentType = contentType;
+        this.userId = userId;
+        this.scopeType = scopeType;
+        this.scopeId = scopeId;
+        this.qrCode = generateQrCode();
     }
     
     private String generateQrCode() {
@@ -235,4 +250,10 @@ public class QrCode {
     
     public LocalDateTime getLastScannedAt() { return lastScannedAt; }
     public void setLastScannedAt(LocalDateTime lastScannedAt) { this.lastScannedAt = lastScannedAt; }
+    
+    public String getScopeType() { return scopeType; }
+    public void setScopeType(String scopeType) { this.scopeType = scopeType; }
+    
+    public String getScopeId() { return scopeId; }
+    public void setScopeId(String scopeId) { this.scopeId = scopeId; }
 }
