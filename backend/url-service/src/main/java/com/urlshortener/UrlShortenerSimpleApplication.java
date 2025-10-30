@@ -84,7 +84,7 @@ public class UrlShortenerSimpleApplication {
             response.put("userCount", userCount);
             response.put("message", "✅ MongoDB Atlas connection successful!");
             response.put("status", "Connected and ready for user registration");
-            response.put("credentials", "Username: lahorivenkatesh709, Database: " + dbName);
+            response.put("credentials", "Database: " + dbName);
             
         } catch (Exception e) {
             response.put("success", false);

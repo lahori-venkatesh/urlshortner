@@ -30,6 +30,8 @@ sudo apt-get install -y mongodb-mongosh
 3. Click "Connect" → "Connect your application"
 4. Copy the connection string (format: `mongodb+srv://username:password@cluster.mongodb.net/database`)
 
+⚠️ **SECURITY WARNING**: Never commit your actual MongoDB credentials to Git! Always use environment variables.
+
 ### Step 3: Deploy Team Collaboration Features
 ```bash
 # Option 1: Set environment variable (recommended)

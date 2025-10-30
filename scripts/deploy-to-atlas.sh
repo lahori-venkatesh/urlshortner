@@ -35,7 +35,7 @@ if [ -z "$MONGODB_URI" ]; then
     echo -e "${YELLOW}📝 MongoDB Atlas Connection String Required${NC}"
     echo ""
     echo "Please provide your MongoDB Atlas connection string."
-    echo "Format: mongodb+srv://username:password@cluster.mongodb.net/database"
+    echo "Format: mongodb+srv://[username]:[password]@[cluster].mongodb.net/[database]"
     echo ""
     read -p "Enter your MongoDB Atlas URI: " MONGODB_URI
     
@@ -48,7 +48,7 @@ fi
 # Validate connection string format
 if [[ ! "$MONGODB_URI" =~ ^mongodb(\+srv)?:// ]]; then
     echo -e "${RED}❌ Invalid MongoDB URI format${NC}"
-    echo "Expected format: mongodb+srv://username:password@cluster.mongodb.net/database"
+    echo "Expected format: mongodb+srv://[username]:[password]@[cluster].mongodb.net/[database]"
     exit 1
 fi
 

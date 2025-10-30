@@ -10,7 +10,7 @@ services:
       - key: PORT
         value: 8080
       - key: MONGODB_URI
-        sync: false
+        sync: false  # Set this in Render dashboard with your actual MongoDB URI
       - key: MONGODB_DATABASE
         value: pebly-database
       - key: FRONTEND_URL
