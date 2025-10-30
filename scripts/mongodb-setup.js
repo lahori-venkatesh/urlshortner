@@ -1,8 +1,8 @@
 // MongoDB Database Setup and Optimization Script for Team Collaboration
 // Run this script in MongoDB shell or MongoDB Compass
 
-// Switch to the pebly database
-use pebly;
+// Switch to the pebly-database
+use('pebly-database');
 
 print("🚀 Setting up Pebly Database with Team Collaboration Support...");
 

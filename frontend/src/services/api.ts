@@ -88,6 +88,7 @@ export interface GoogleAuthRequest {
 export interface AuthResponse {
   success: boolean;
   message: string;
+  token?: string;
   user?: {
     id: string;
     email: string;
@@ -175,6 +176,7 @@ export const createShortUrl = async (data: {
   expirationDays?: number;
   title?: string;
   description?: string;
+  customDomain?: string;
 }): Promise<any> => {
   const response = await apiClient.post('/v1/urls', data);
   return response.data;

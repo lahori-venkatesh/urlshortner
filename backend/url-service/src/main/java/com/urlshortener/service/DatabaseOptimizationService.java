@@ -20,7 +20,6 @@ import com.urlshortener.repository.TeamInviteRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class DatabaseOptimizationService {
@@ -78,8 +77,7 @@ public class DatabaseOptimizationService {
      * Runs every 6 hours
      */
     @Scheduled(fixedRate = 21600000) // 6 hours
-    @Async
-    public CompletableFuture<Void> updateTeamStatistics() {
+    public void updateTeamStatistics() {
         logger.info("📊 Starting team statistics update...");
         
         try {
@@ -98,7 +96,7 @@ public class DatabaseOptimizationService {
             logger.error("❌ Error updating team statistics: {}", e.getMessage(), e);
         }
         
-        return CompletableFuture.completedFuture(null);
+        // Method completed
     }
     
     private void updateTeamUrlCounts() {

@@ -48,6 +48,12 @@ public class UrlShorteningService {
     public ShortenedUrl createShortUrl(String originalUrl, String userId, String customAlias, 
                                      String password, Integer expirationDays, Integer maxClicks, String title, String description,
                                      String scopeType, String scopeId) {
+        return createShortUrl(originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, scopeType, scopeId, null);
+    }
+    
+    public ShortenedUrl createShortUrl(String originalUrl, String userId, String customAlias, 
+                                     String password, Integer expirationDays, Integer maxClicks, String title, String description,
+                                     String scopeType, String scopeId, String customDomain) {
         
         // Validate URL
         if (!isValidUrl(originalUrl)) {
@@ -87,9 +93,15 @@ public class UrlShorteningService {
         // Create shortened URL
         ShortenedUrl shortenedUrl = new ShortenedUrl(originalUrl, shortCode, userId, scopeType, scopeId);
         
-        // Set the complete short URL with frontend domain
-        String fullShortUrl = shortUrlDomain + "/" + shortCode;
+        // Set the complete short URL with custom domain or default domain
+        String domainToUse = customDomain != null ? customDomain : shortUrlDomain;
+        String fullShortUrl = (domainToUse.startsWith("http") ? domainToUse : "https://" + domainToUse) + "/" + shortCode;
         shortenedUrl.setShortUrl(fullShortUrl);
+        
+        // Store the domain for multi-tenant support
+        if (customDomain != null) {
+            shortenedUrl.setDomain(customDomain);
+        }
         
         shortenedUrl.setCustomAlias(customAlias);
         shortenedUrl.setTitle(title);
@@ -137,6 +149,35 @@ public class UrlShorteningService {
     
     public Optional<ShortenedUrl> getByShortCode(String shortCode) {
         return shortenedUrlRepository.findByShortCode(shortCode);
+    }
+    
+    /**
+     * Find URL by shortCode and domain for multi-tenant support
+     */
+    @Cacheable(value = "short_urls", key = "#shortCode + ':' + #domain")
+    public Optional<ShortenedUrl> getByShortCodeAndDomain(String shortCode, String domain) {
+        // First try to find by shortCode and exact domain match
+        Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, domain);
+        
+        // If not found and domain is not the default, try default domain
+        if (urlOpt.isEmpty() && !domain.equals(extractDomainFromUrl(shortUrlDomain))) {
+            urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, null);
+            // Also try finding by shortCode only (for backward compatibility)
+            if (urlOpt.isEmpty()) {
+                urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
+            }
+        }
+        
+        return urlOpt;
+    }
+    
+    private String extractDomainFromUrl(String url) {
+        try {
+            java.net.URL parsedUrl = new java.net.URL(url);
+            return parsedUrl.getHost();
+        } catch (Exception e) {
+            return url;
+        }
     }
     
     @Cacheable(value = "userUrls", key = "#userId")

@@ -24,6 +24,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   setUser: (user: User | null) => void;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
@@ -45,27 +46,37 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Custom setUser function that also updates isAuthenticated
-  const setUserWithAuth = (newUser: User | null) => {
+  const setUserWithAuth = (newUser: User | null, authToken?: string | null) => {
     setUser(newUser);
     setIsAuthenticated(!!newUser);
+    
     if (newUser) {
       localStorage.setItem('user', JSON.stringify(newUser));
+      if (authToken) {
+        setToken(authToken);
+        localStorage.setItem('token', authToken);
+      }
     } else {
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      setToken(null);
     }
   };
 
   useEffect(() => {
     // Check if user is logged in from localStorage or Google OAuth
     const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token');
     const googleUserInfo = googleAuthService.getStoredUserInfo();
     
-    if (savedUser) {
+    if (savedUser && savedToken) {
       const parsedUser = JSON.parse(savedUser);
       setUser(parsedUser);
+      setToken(savedToken);
       setIsAuthenticated(true);
     } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
       // Authenticate with backend using Google info
@@ -98,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'google'
         };
         
-        setUserWithAuth(user);
+        setUserWithAuth(user, response.token);
       }
     } catch (error) {
       console.error('Google auth error:', error);
@@ -125,9 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'email'
         };
         
-        setUser(user);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(user));
+        setUserWithAuth(user, response.token);
       } else {
         throw new Error(response.message || 'Login failed');
       }
@@ -164,9 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'email'
         };
         
-        setUser(user);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(user));
+        setUserWithAuth(user, response.token);
       } else {
         throw new Error(response.message || 'Signup failed');
       }
@@ -198,6 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, 
+      token,
       setUser: setUserWithAuth, 
       login, 
       signup, 

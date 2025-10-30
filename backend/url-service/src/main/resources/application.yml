@@ -42,7 +42,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI}
-      database: ${MONGODB_DATABASE:pebly}
+      database: ${MONGODB_DATABASE:pebly-database}
       auto-index-creation: false
       # Connection pool settings for high performance
       options:
@@ -107,8 +107,15 @@ google:
 # Razorpay Payment Configuration
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID}
+    id: ${RAZORPAY_KEY_ID:}
     secret: ${RAZORPAY_KEY_SECRET:}
+
+# Cloudflare Configuration (for SSL provisioning)
+cloudflare:
+  api:
+    token: ${CLOUDFLARE_API_TOKEN:}
+  zone:
+    id: ${CLOUDFLARE_ZONE_ID:}
 
 # Application Configuration
 app:
@@ -116,6 +123,21 @@ app:
     url: ${FRONTEND_URL:http://localhost:3000}
   shorturl:
     domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
+  
+  # Custom Domain Configuration
+  domain:
+    verification:
+      subdomain: verify.bitaurl.com
+      max-attempts: 5
+      retry-interval: 300  # 5 minutes
+      cleanup-interval: 3600  # 1 hour
+    ssl:
+      provider: ${SSL_PROVIDER:CLOUDFLARE}  # CLOUDFLARE or LETS_ENCRYPT
+      auto-provision: true
+      renewal-threshold: 30  # days before expiry
+    rate-limit:
+      domain-add: 20  # per day
+      verification: 5  # per hour
   
   # Rate limiting configuration
   rate-limit:

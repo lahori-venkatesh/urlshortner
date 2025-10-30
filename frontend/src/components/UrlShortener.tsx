@@ -49,7 +49,7 @@ const UrlShortener: React.FC = () => {
     };
   }, []);
   
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [activeTab, setActiveTab] = useState<'url' | 'qr' | 'file'>('url');
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
@@ -155,13 +155,44 @@ const UrlShortener: React.FC = () => {
   const [securityCheck, setSecurityCheck] = useState<SecurityCheck | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
+  const [isLoadingDomains, setIsLoadingDomains] = useState(false);
 
-  // Custom domains configuration (removed localStorage dependency)
+  // Load custom domains from backend API
   React.useEffect(() => {
-    // Load custom domains from backend API in the future
-    // For now, use default domain
-    setCustomDomains(['pebly.vercel.app']);
-  }, []);
+    const loadCustomDomains = async () => {
+      if (!user || !token) return;
+
+      try {
+        setIsLoadingDomains(true);
+        const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+        
+        const response = await fetch(`${apiUrl}/api/v1/domains/verified`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.domains) {
+            const domainNames = data.domains.map((domain: any) => domain.domainName);
+            // Always include the default domain
+            const allDomains = ['pebly.vercel.app', ...domainNames];
+            setCustomDomains(Array.from(new Set(allDomains))); // Remove duplicates
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load custom domains:', error);
+        // Keep default domain on error
+        setCustomDomains(['pebly.vercel.app']);
+      } finally {
+        setIsLoadingDomains(false);
+      }
+    };
+
+    loadCustomDomains();
+  }, [user]);
 
   // AI-powered URL analysis
   React.useEffect(() => {
@@ -249,7 +280,8 @@ const UrlShortener: React.FC = () => {
           password: password || undefined,
           expirationDays: expirationDays ? parseInt(expirationDays.toString()) : undefined,
           title: `Short link for ${urlInput}`,
-          description: 'Created via URL Shortener'
+          description: 'Created via URL Shortener',
+          customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined
         });
 
         if (result.success) {
@@ -652,18 +684,41 @@ const UrlShortener: React.FC = () => {
                 exit={{ opacity: 0, height: 0 }}
               >
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Domain
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Custom Domain
+                    </label>
+                    {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) && (
+                      <button
+                        onClick={() => window.location.href = '/dashboard?section=domains'}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+                      >
+                        <Globe className="w-3 h-3 mr-1" />
+                        Manage Domains
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={selectedDomain}
                     onChange={(e) => setSelectedDomain(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoadingDomains}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                   >
-                    {customDomains.map(domain => (
-                      <option key={domain} value={domain}>{domain}</option>
-                    ))}
+                    {isLoadingDomains ? (
+                      <option>Loading domains...</option>
+                    ) : (
+                      customDomains.map(domain => (
+                        <option key={domain} value={domain}>
+                          {domain} {domain === 'pebly.vercel.app' ? '(Default)' : ''}
+                        </option>
+                      ))
+                    )}
                   </select>
+                  {!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS') && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Custom domains available with Pro/Business plans
+                    </p>
+                  )}
                 </div>
 
                 <div>

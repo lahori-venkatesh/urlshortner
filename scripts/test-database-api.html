@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Atlas Database Initialization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .section h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .response.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .response.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .response.info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .loading {
+            display: none;
+            color: #007bff;
+            font-style: italic;
+        }
+        .config {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .config input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .config label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
+        .status-info { background-color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MongoDB Atlas Database Initialization</h1>
+        
+        <div class="config">
+            <label for="apiUrl">API Base URL:</label>
+            <input type="text" id="apiUrl" value="http://localhost:8080" placeholder="http://localhost:8080">
+            <small>Make sure your Spring Boot application is running on this URL</small>
+        </div>
+
+        <div class="section">
+            <h2>📊 Database Status</h2>
+            <p>Check the current status of your MongoDB Atlas database</p>
+            <div class="button-group">
+                <button class="btn-info" onclick="getDatabaseStatus()">Get Database Status</button>
+            </div>
+            <div class="loading" id="status-loading">Checking database status...</div>
+            <div class="response" id="status-response"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Database Initialization</h2>
+            <p>Initialize the complete custom domain feature in MongoDB Atlas</p>
+            <div class="button-group">
+                <button class="btn-primary" onclick="initializeDatabase()">Initialize Database</button>
+            </div>
+            <div class="loading" id="init-loading">Initializing database...</div>
+            <div class="response" id="init-response"></div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Database Testing</h2>
+            <p>Run comprehensive tests to verify the database setup</p>
+            <div class="button-group">
+                <button class="btn-success" onclick="testDatabase()">Run Tests</button>
+            </div>
+            <div class="loading" id="test-loading">Running tests...</div>
+            <div class="response" id="test-response"></div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Sample Data</h2>
+            <p>Create sample domains and URLs for testing</p>
+            <div class="button-group">
+                <button class="btn-warning" onclick="createSampleData()">Create Sample Data</button>
+                <button class="btn-danger" onclick="cleanupTestData()">Cleanup Test Data</button>
+            </div>
+            <div class="loading" id="sample-loading">Managing sample data...</div>
+            <div class="response" id="sample-response"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔄 URL Migration</h2>
+            <p>Migrate existing URLs to support custom domains</p>
+            <div class="button-group">
+                <button class="btn-info" onclick="migrateUrls()">Migrate URLs</button>
+            </div>
+            <div class="loading" id="migrate-loading">Migrating URLs...</div>
+            <div class="response" id="migrate-response"></div>
+        </div>
+    </div>
+
+    <script>
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim();
+        }
+
+        function showLoading(elementId) {
+            document.getElementById(elementId).style.display = 'block';
+        }
+
+        function hideLoading(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+
+        function showResponse(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.className = `response ${isSuccess ? 'success' : 'error'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function makeApiCall(endpoint, method = 'GET', body = null) {
+            const url = `${getApiUrl()}/api/v1/admin/database${endpoint}`;
+            
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                return { success: response.ok, data };
+            } catch (error) {
+                return { 
+                    success: false, 
+                    data: { 
+                        error: 'Network Error', 
+                        message: error.message,
+                        url: url
+                    } 
+                };
+            }
+        }
+
+        async function getDatabaseStatus() {
+            showLoading('status-loading');
+            const result = await makeApiCall('/status');
+            hideLoading('status-loading');
+            showResponse('status-response', result.data, result.success);
+        }
+
+        async function initializeDatabase() {
+            showLoading('init-loading');
+            const result = await makeApiCall('/initialize', 'POST');
+            hideLoading('init-loading');
+            showResponse('init-response', result.data, result.success);
+        }
+
+        async function testDatabase() {
+            showLoading('test-loading');
+            const result = await makeApiCall('/test', 'POST');
+            hideLoading('test-loading');
+            showResponse('test-response', result.data, result.success);
+        }
+
+        async function createSampleData() {
+            showLoading('sample-loading');
+            const result = await makeApiCall('/sample-data', 'POST');
+            hideLoading('sample-loading');
+            showResponse('sample-response', result.data, result.success);
+        }
+
+        async function cleanupTestData() {
+            if (!confirm('Are you sure you want to cleanup test data? This will delete sample domains.')) {
+                return;
+            }
+            
+            showLoading('sample-loading');
+            const result = await makeApiCall('/cleanup-test-data', 'DELETE');
+            hideLoading('sample-loading');
+            showResponse('sample-response', result.data, result.success);
+        }
+
+        async function migrateUrls() {
+            showLoading('migrate-loading');
+            const result = await makeApiCall('/migrate-urls', 'POST');
+            hideLoading('migrate-loading');
+            showResponse('migrate-response', result.data, result.success);
+        }
+
+        // Auto-check status on page load
+        window.addEventListener('load', function() {
+            setTimeout(getDatabaseStatus, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -78,4 +78,13 @@ public interface ShortenedUrlRepository extends MongoRepository<ShortenedUrl, St
     
     // Find URLs by scope and date range
     List<ShortenedUrl> findByScopeTypeAndScopeIdAndCreatedAtBetween(String scopeType, String scopeId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Custom domain support - find by shortCode and domain
+    Optional<ShortenedUrl> findByShortCodeAndDomain(String shortCode, String domain);
+    
+    // Find URLs by domain (for domain analytics)
+    List<ShortenedUrl> findByDomain(String domain);
+    
+    // Count URLs by domain
+    long countByDomain(String domain);
 }

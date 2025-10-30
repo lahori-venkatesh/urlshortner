@@ -24,7 +24,11 @@ public class RedirectController {
     @GetMapping("/{shortCode}")
     public RedirectView redirect(@PathVariable String shortCode, HttpServletRequest request) {
         try {
-            Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCode(shortCode);
+            // Get the host domain from the request
+            String hostDomain = request.getServerName();
+            
+            // Find URL by shortCode and domain for multi-tenant support
+            Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
             
             if (urlOpt.isEmpty()) {
                 // Redirect to a 404 page or error page

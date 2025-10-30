@@ -1,0 +1,16 @@
+{
+  "name": "mongodb-atlas-setup",
+  "version": "1.0.0",
+  "description": "MongoDB Atlas setup script for custom domain feature",
+  "main": "mongodb-direct-setup.js",
+  "scripts": {
+    "setup": "node mongodb-direct-setup.js",
+    "test": "node test-mongodb-setup.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

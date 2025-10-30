@@ -136,6 +136,7 @@ public class UrlController {
             String description = (String) request.get("description");
             String scopeType = (String) request.getOrDefault("scopeType", "USER");
             String scopeId = (String) request.getOrDefault("scopeId", userId);
+            String customDomain = (String) request.get("customDomain"); // New: custom domain support
             
             if (originalUrl == null || originalUrl.trim().isEmpty()) {
                 response.put("success", false);
@@ -144,7 +145,7 @@ public class UrlController {
             }
             
             ShortenedUrl shortenedUrl = urlShorteningService.createShortUrl(
-                originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, scopeType, scopeId
+                originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, scopeType, scopeId, customDomain
             );
             
             Map<String, Object> urlData = new HashMap<>();

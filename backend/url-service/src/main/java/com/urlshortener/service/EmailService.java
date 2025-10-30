@@ -337,4 +337,145 @@ public class EmailService {
             ticket.getId()
         );
     }
+
+    /**
+     * Send domain transfer notification email
+     */
+    public void sendDomainTransferNotification(String userEmail, String domainName, String reason) {
+        try {
+            String emailSubject = "Domain Transfer Notification - " + domainName;
+            String emailBody = buildDomainTransferEmailBody(domainName, reason);
+            
+            logger.info("Sending domain transfer notification to {} for domain {}", userEmail, domainName);
+            logger.debug("Email Subject: {}", emailSubject);
+            logger.debug("Email Body: {}", emailBody);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send domain transfer notification to {}", userEmail, e);
+        }
+    }
+    
+    /**
+     * Send domain verification success email
+     */
+    public void sendDomainVerificationSuccess(String userEmail, String domainName) {
+        try {
+            String emailSubject = "Domain Verified Successfully - " + domainName;
+            String emailBody = buildDomainVerificationSuccessEmailBody(domainName);
+            
+            logger.info("Sending domain verification success email to {} for domain {}", userEmail, domainName);
+            logger.debug("Email Subject: {}", emailSubject);
+            logger.debug("Email Body: {}", emailBody);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send domain verification success email to {}", userEmail, e);
+        }
+    }
+    
+    /**
+     * Send domain verification failure email
+     */
+    public void sendDomainVerificationFailure(String userEmail, String domainName, String error) {
+        try {
+            String emailSubject = "Domain Verification Failed - " + domainName;
+            String emailBody = buildDomainVerificationFailureEmailBody(domainName, error);
+            
+            logger.info("Sending domain verification failure email to {} for domain {}", userEmail, domainName);
+            logger.debug("Email Subject: {}", emailSubject);
+            logger.debug("Email Body: {}", emailBody);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send domain verification failure email to {}", userEmail, e);
+        }
+    }
+    
+    /**
+     * Send SSL certificate renewal failure alert
+     */
+    public void sendSslRenewalFailureAlert(String userEmail, String domainName) {
+        try {
+            String emailSubject = "SSL Certificate Renewal Failed - " + domainName;
+            String emailBody = buildSslRenewalFailureEmailBody(domainName);
+            
+            logger.info("Sending SSL renewal failure alert to {} for domain {}", userEmail, domainName);
+            logger.debug("Email Subject: {}", emailSubject);
+            logger.debug("Email Body: {}", emailBody);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send SSL renewal failure alert to {}", userEmail, e);
+        }
+    }
+    
+    // Private helper methods for building email bodies
+    
+    private String buildDomainTransferEmailBody(String domainName, String reason) {
+        return String.format("""
+            Hello,
+            
+            Your custom domain %s has been successfully transferred.
+            
+            Transfer Reason: %s
+            Transfer Date: %s
+            
+            If you have any questions about this transfer, please contact our support team.
+            
+            Best regards,
+            The Pebly Team
+            """, domainName, reason, java.time.LocalDateTime.now().toString());
+    }
+    
+    private String buildDomainVerificationSuccessEmailBody(String domainName) {
+        return String.format("""
+            Congratulations!
+            
+            Your custom domain %s has been successfully verified and is now active.
+            
+            ✅ Domain verified
+            🔒 SSL certificate provisioned
+            🚀 Ready to use for short links
+            
+            You can now create short links using your custom domain in the Advanced Settings.
+            
+            Best regards,
+            The Pebly Team
+            """, domainName);
+    }
+    
+    private String buildDomainVerificationFailureEmailBody(String domainName, String error) {
+        return String.format("""
+            Domain Verification Update
+            
+            We were unable to verify your custom domain %s.
+            
+            Error: %s
+            
+            Please check your DNS configuration and ensure the CNAME record is correctly set up:
+            
+            Type: CNAME
+            Name: %s
+            Value: verify.bitaurl.com
+            
+            Once you've updated your DNS settings, you can retry verification in your dashboard.
+            
+            Need help? Contact our support team.
+            
+            Best regards,
+            The Pebly Team
+            """, domainName, error, domainName);
+    }
+    
+    private String buildSslRenewalFailureEmailBody(String domainName) {
+        return String.format("""
+            SSL Certificate Renewal Alert
+            
+            We were unable to renew the SSL certificate for your custom domain %s.
+            
+            Your domain will continue to work, but the SSL certificate may expire soon.
+            
+            We will continue attempting to renew the certificate automatically. If the issue persists, please contact our support team.
+            
+            Best regards,
+            The Pebly Team
+            """, domainName);
+    }
 }

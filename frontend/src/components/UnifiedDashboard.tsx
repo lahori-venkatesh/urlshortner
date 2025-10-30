@@ -13,7 +13,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Users,
-  Settings
+  Settings,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
@@ -24,8 +25,9 @@ import LinksManager from './dashboard/LinksManager';
 import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
+import CustomDomainManager from './CustomDomainManager';
 
-type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'team-members' | 'team-settings';
+type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'domains' | 'team-members' | 'team-settings';
 type CreateMode = 'url' | 'qr' | 'file';
 
 const UnifiedDashboard: React.FC = () => {
@@ -57,6 +59,8 @@ const UnifiedDashboard: React.FC = () => {
       setActiveSection('file-to-url');
     } else if (path === '/dashboard/analytics') {
       setActiveSection('analytics');
+    } else if (path === '/dashboard/domains') {
+      setActiveSection('domains');
     }
   }, [location.pathname]);
 
@@ -138,6 +142,15 @@ const UnifiedDashboard: React.FC = () => {
       icon: BarChart3,
       description: currentScope.type === 'TEAM' ? 'Team Performance' : 'Performance Insights'
     },
+    // Custom Domains (Pro/Business only)
+    ...((user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) ? [
+      {
+        id: 'domains' as SidebarSection,
+        label: 'Custom Domains',
+        icon: Globe,
+        description: currentScope.type === 'TEAM' ? 'Team Custom Domains' : 'Your Custom Domains'
+      }
+    ] : []),
     // Team-specific sections
     ...(currentScope.type === 'TEAM' ? [
       {
@@ -192,6 +205,11 @@ const UnifiedDashboard: React.FC = () => {
         }} />;
       case 'analytics':
         return <AnalyticsSection />;
+      case 'domains':
+        return <CustomDomainManager 
+          ownerType={currentScope.type} 
+          ownerId={currentScope.type === 'TEAM' ? currentScope.id : user?.id} 
+        />;
       case 'team-members':
         return currentScope.type === 'TEAM' ? <TeamManagement teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
       case 'team-settings':
@@ -271,6 +289,8 @@ const UnifiedDashboard: React.FC = () => {
                         navigate('/dashboard/file-links');
                       } else if (item.id === 'analytics') {
                         navigate('/dashboard/analytics');
+                      } else if (item.id === 'domains') {
+                        navigate('/dashboard/domains');
                       }
                     }}
                     className={`
