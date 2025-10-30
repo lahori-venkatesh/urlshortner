@@ -292,6 +292,9 @@ const ContactForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log('Creating support ticket with user:', user);
+      console.log('Form data:', formData);
+      
       await createTicket({
         category: formData.category as any,
         subject: formData.subject,
@@ -308,9 +311,10 @@ const ContactForm: React.FC = () => {
         message: '',
         priority: 'medium'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating support ticket:', error);
-      toast.error('Failed to create support ticket. Please try again.');
+      const errorMessage = error?.message || 'Failed to create support ticket. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

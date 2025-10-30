@@ -75,16 +75,27 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...ticketData,
           userId: user.id,
+          category: ticketData.category.toUpperCase(),
+          subject: ticketData.subject,
+          message: ticketData.message,
+          priority: ticketData.priority.toUpperCase(),
+          currentPage: window.location.pathname
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create support ticket');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to create support ticket');
+      }
+      
       const newTicket = result.data;
 
       setTickets(prev => [newTicket, ...prev]);
