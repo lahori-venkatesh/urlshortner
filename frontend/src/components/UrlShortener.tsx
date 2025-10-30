@@ -692,61 +692,63 @@ const UrlShortener: React.FC = () => {
                       Custom Domain
                     </label>
                     <div className="flex items-center space-x-2">
-                      {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) ? (
-                        <>
-                          <button
-                            onClick={() => window.location.href = '/dashboard?section=domains'}
-                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
-                          >
-                            <Globe className="w-3 h-3 mr-1" />
-                            Manage Domains
-                          </button>
-                          <button
-                            onClick={() => {
-                              // Navigate to custom domain onboarding
-                              window.location.href = '/dashboard?section=domains&action=onboard';
-                            }}
-                            className="text-xs text-green-600 hover:text-green-800 flex items-center"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Add Domain
-                          </button>
-                        </>
-                      ) : (
+                      {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) && (
                         <button
-                          onClick={() => {
-                            setUpgradeFeature('Custom Domains');
-                            setShowUpgradeModal(true);
-                          }}
-                          className="text-xs text-purple-600 hover:text-purple-800 flex items-center"
+                          onClick={() => window.location.href = '/dashboard?section=domains'}
+                          className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
                         >
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          Upgrade for Custom Domains
+                          <Globe className="w-3 h-3 mr-1" />
+                          Manage Domains
                         </button>
                       )}
                     </div>
                   </div>
                   <select
                     value={selectedDomain}
-                    onChange={(e) => setSelectedDomain(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === 'ADD_CUSTOM_DOMAIN') {
+                        // Handle add custom domain action
+                        if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
+                          // Pro user - open onboarding
+                          window.location.href = '/dashboard?section=domains&action=onboard';
+                        } else {
+                          // Free user - show upgrade modal
+                          setUpgradeFeature('Custom Domains');
+                          setShowUpgradeModal(true);
+                        }
+                        // Reset selection to default
+                        setSelectedDomain('pebly.vercel.app');
+                      } else {
+                        setSelectedDomain(e.target.value);
+                      }
+                    }}
                     disabled={isLoadingDomains}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                   >
                     {isLoadingDomains ? (
                       <option>Loading domains...</option>
                     ) : (
-                      customDomains.map(domain => (
-                        <option key={domain} value={domain}>
-                          {domain} {domain === 'pebly.vercel.app' ? '(Default)' : ''}
+                      <>
+                        {/* Default and custom domains */}
+                        {customDomains.map(domain => (
+                          <option key={domain} value={domain}>
+                            {domain} {domain === 'pebly.vercel.app' ? '(Default)' : ''}
+                          </option>
+                        ))}
+                        
+                        {/* Add Custom Domain option for all users */}
+                        <option value="ADD_CUSTOM_DOMAIN" className="text-blue-600 font-medium">
+                          + Add Custom Domain {!(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) ? '(Pro)' : ''}
                         </option>
-                      ))
+                      </>
                     )}
                   </select>
-                  {!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS') && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Custom domains available with Pro/Business plans
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS') 
+                      ? 'Select a domain or add a new custom domain from the dropdown'
+                      : 'Select "Add Custom Domain" to upgrade and use your own branded domains'
+                    }
+                  </p>
                 </div>
 
                 <div>

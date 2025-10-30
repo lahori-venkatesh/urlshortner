@@ -1952,12 +1952,31 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     </label>
                     <select
                       value={selectedDomain}
-                      onChange={(e) => setSelectedDomain(e.target.value)}
+                      onChange={(e) => {
+                        if (e.target.value === 'ADD_CUSTOM_DOMAIN') {
+                          // Handle add custom domain action
+                          // Note: CreateSection doesn't have access to user/auth context directly
+                          // So we'll navigate to the domains page which will handle the upgrade check
+                          window.location.href = '/dashboard?section=domains&action=onboard';
+                          // Reset selection to default
+                          setSelectedDomain('pebly.vercel.app');
+                        } else {
+                          setSelectedDomain(e.target.value);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
+                      {/* Default and custom domains */}
                       {customDomains.map(domain => (
-                        <option key={domain} value={domain}>{domain}</option>
+                        <option key={domain} value={domain}>
+                          {domain} {domain === 'pebly.vercel.app' ? '(Default)' : ''}
+                        </option>
                       ))}
+                      
+                      {/* Add Custom Domain option */}
+                      <option value="ADD_CUSTOM_DOMAIN" className="text-blue-600 font-medium">
+                        + Add Custom Domain
+                      </option>
                     </select>
                   </div>
 
