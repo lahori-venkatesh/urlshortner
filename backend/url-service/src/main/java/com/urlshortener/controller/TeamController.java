@@ -114,9 +114,16 @@ public class TeamController {
             @PathVariable String teamId,
             @RequestBody Map<String, String> request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = request.get("userId");
             String teamName = request.get("teamName");
             String description = request.get("description");
+            
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
             
             Team team = teamService.updateTeam(teamId, teamName, description, userId);
             
@@ -136,10 +143,16 @@ public class TeamController {
     
     // Delete team
     @DeleteMapping("/{teamId}")
-    public ResponseEntity<Map<String, Object>> deleteTeam(@PathVariable String teamId) {
+    public ResponseEntity<Map<String, Object>> deleteTeam(@PathVariable String teamId, @RequestParam String userId) {
         try {
-            String userId = getCurrentUserId();
-            teamService.deleteTeam(teamId, userId);
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
+            
+            teamService.deleteTeam(teamId, userId.trim());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -160,9 +173,16 @@ public class TeamController {
             @PathVariable String teamId,
             @RequestBody Map<String, String> request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = request.get("userId");
             String email = request.get("email");
             String roleStr = request.get("role");
+            
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
             
             if (email == null || email.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -178,7 +198,7 @@ public class TeamController {
                 role = TeamRole.MEMBER;
             }
             
-            TeamInvite invite = teamService.inviteUserToTeam(teamId, email.trim(), role, userId);
+            TeamInvite invite = teamService.inviteUserToTeam(teamId, email.trim(), role, userId.trim());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -217,10 +237,16 @@ public class TeamController {
     
     // Get team members
     @GetMapping("/{teamId}/members")
-    public ResponseEntity<Map<String, Object>> getTeamMembers(@PathVariable String teamId) {
+    public ResponseEntity<Map<String, Object>> getTeamMembers(@PathVariable String teamId, @RequestParam String userId) {
         try {
-            String userId = getCurrentUserId();
-            List<Map<String, Object>> members = teamService.getTeamMembersWithDetails(teamId, userId);
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
+            
+            List<Map<String, Object>> members = teamService.getTeamMembersWithDetails(teamId, userId.trim());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,

@@ -360,6 +360,7 @@ export const deleteTeam = async (teamId: string): Promise<any> => {
 };
 
 export const inviteUserToTeam = async (teamId: string, data: {
+  userId: string;
   email: string;
   role: string;
 }): Promise<any> => {
@@ -372,8 +373,8 @@ export const acceptTeamInvite = async (inviteToken: string): Promise<any> => {
   return response.data;
 };
 
-export const getTeamMembers = async (teamId: string): Promise<any> => {
-  const response = await apiClient.get(`/v1/teams/${teamId}/members`);
+export const getTeamMembers = async (teamId: string, userId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/${teamId}/members?userId=${userId}`);
   return response.data;
 };
 

@@ -177,8 +177,16 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const inviteUser = async (teamId: string, email: string, role: 'ADMIN' | 'MEMBER' | 'VIEWER'): Promise<void> => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      const response = await api.inviteUserToTeam(teamId, { email, role });
+      const response = await api.inviteUserToTeam(teamId, { 
+        userId: user.id,
+        email, 
+        role 
+      });
       if (!response.success) {
         throw new Error(response.message || 'Failed to invite user');
       }
@@ -237,8 +245,12 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const getTeamMembers = async (teamId: string): Promise<TeamMember[]> => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      const response = await api.getTeamMembers(teamId);
+      const response = await api.getTeamMembers(teamId, user.id);
       if (response.success) {
         return response.members || [];
       } else {
