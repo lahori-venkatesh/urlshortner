@@ -104,13 +104,13 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isAuthenticated, user]);
 
   const refreshTeams = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.id) return;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await api.getUserTeams();
+      const response = await api.getUserTeams(user.id);
       if (response.success) {
         setTeams(response.teams || []);
       } else {
@@ -124,8 +124,16 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const createTeam = async (teamName: string, description?: string): Promise<Team> => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      const response = await api.createTeam({ teamName, description });
+      const response = await api.createTeam({ 
+        userId: user.id,
+        teamName, 
+        description 
+      });
       if (response.success) {
         await refreshTeams();
         return response.team;

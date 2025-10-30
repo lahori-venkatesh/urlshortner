@@ -22,9 +22,16 @@ public class TeamController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> createTeam(@RequestBody Map<String, String> request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = request.get("userId");
             String teamName = request.get("teamName");
             String description = request.get("description");
+            
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
             
             if (teamName == null || teamName.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -33,7 +40,7 @@ public class TeamController {
                 ));
             }
             
-            Team team = teamService.createTeam(teamName.trim(), userId, description);
+            Team team = teamService.createTeam(teamName.trim(), userId.trim(), description);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -51,10 +58,16 @@ public class TeamController {
     
     // Get user's teams
     @GetMapping("/my")
-    public ResponseEntity<Map<String, Object>> getUserTeams() {
+    public ResponseEntity<Map<String, Object>> getUserTeams(@RequestParam String userId) {
         try {
-            String userId = getCurrentUserId();
-            List<Team> teams = teamService.getUserTeams(userId);
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
+            
+            List<Team> teams = teamService.getUserTeams(userId.trim());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -71,10 +84,16 @@ public class TeamController {
     
     // Get team details
     @GetMapping("/{teamId}")
-    public ResponseEntity<Map<String, Object>> getTeam(@PathVariable String teamId) {
+    public ResponseEntity<Map<String, Object>> getTeam(@PathVariable String teamId, @RequestParam String userId) {
         try {
-            String userId = getCurrentUserId();
-            Team team = teamService.getTeam(teamId, userId);
+            if (userId == null || userId.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User ID is required"
+                ));
+            }
+            
+            Team team = teamService.getTeam(teamId, userId.trim());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,

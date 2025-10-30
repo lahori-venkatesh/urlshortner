@@ -328,6 +328,7 @@ export const recordQrScan = async (qrCodeId: string, data: {
 
 // Team Management API Functions
 export const createTeam = async (data: {
+  userId: string;
   teamName: string;
   description?: string;
 }): Promise<any> => {
@@ -335,13 +336,13 @@ export const createTeam = async (data: {
   return response.data;
 };
 
-export const getUserTeams = async (): Promise<any> => {
-  const response = await apiClient.get('/v1/teams/my');
+export const getUserTeams = async (userId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/my?userId=${userId}`);
   return response.data;
 };
 
-export const getTeam = async (teamId: string): Promise<any> => {
-  const response = await apiClient.get(`/v1/teams/${teamId}`);
+export const getTeam = async (teamId: string, userId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/teams/${teamId}?userId=${userId}`);
   return response.data;
 };
 
@@ -394,7 +395,7 @@ export const getTeamInvites = async (teamId: string): Promise<any> => {
 };
 
 // Team-scoped content functions
-export const createTeamShortUrl = async (teamId: string, data: {
+export const createTeamShortUrl = async (teamId: string, userId: string, data: {
   originalUrl: string;
   customAlias?: string;
   password?: string;
@@ -405,6 +406,7 @@ export const createTeamShortUrl = async (teamId: string, data: {
 }): Promise<any> => {
   const response = await apiClient.post('/v1/urls', {
     ...data,
+    userId,
     scopeType: 'TEAM',
     scopeId: teamId
   });
@@ -416,7 +418,7 @@ export const getTeamUrls = async (teamId: string): Promise<any> => {
   return response.data;
 };
 
-export const createTeamQrCode = async (teamId: string, data: {
+export const createTeamQrCode = async (teamId: string, userId: string, data: {
   content: string;
   contentType?: string;
   title?: string;
@@ -429,6 +431,7 @@ export const createTeamQrCode = async (teamId: string, data: {
 }): Promise<any> => {
   const response = await apiClient.post('/v1/qr', {
     ...data,
+    userId,
     scopeType: 'TEAM',
     scopeId: teamId
   });
