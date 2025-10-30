@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, X, Send, Paperclip, Phone, Mail, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useSupportContext } from '../../context/SupportContext';
 import toast from 'react-hot-toast';
 
 interface SupportWidgetProps {
@@ -264,12 +265,14 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
 // Contact Form Component
 const ContactForm: React.FC = () => {
   const { user } = useAuth();
+  const { createTicket } = useSupportContext();
   const [formData, setFormData] = useState({
     category: '',
     subject: '',
     message: '',
     priority: 'medium'
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = [
     { value: 'payment', label: '💳 Payment Support', desc: 'Razorpay issues, failed payments, subscriptions' },
@@ -278,10 +281,39 @@ const ContactForm: React.FC = () => {
     { value: 'general', label: '💬 General Inquiry', desc: 'Questions, feedback, suggestions' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Submit to backend
-    toast.success('Support ticket created! We\'ll get back to you soon.');
+    
+    if (!user?.id) {
+      toast.error('Please log in to submit a support ticket');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await createTicket({
+        category: formData.category as any,
+        subject: formData.subject,
+        message: formData.message,
+        priority: formData.priority as any
+      });
+      
+      toast.success('Support ticket created successfully! We\'ll get back to you soon.');
+      
+      // Reset form
+      setFormData({
+        category: '',
+        subject: '',
+        message: '',
+        priority: 'medium'
+      });
+    } catch (error) {
+      console.error('Error creating support ticket:', error);
+      toast.error('Failed to create support ticket. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -351,9 +383,17 @@ const ContactForm: React.FC = () => {
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+        disabled={isSubmitting}
+        className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
       >
-        Submit Ticket
+        {isSubmitting ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Creating Ticket...
+          </>
+        ) : (
+          'Submit Ticket'
+        )}
       </button>
     </form>
   );
