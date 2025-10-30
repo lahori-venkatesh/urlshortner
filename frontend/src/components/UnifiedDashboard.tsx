@@ -142,15 +142,14 @@ const UnifiedDashboard: React.FC = () => {
       icon: BarChart3,
       description: currentScope.type === 'TEAM' ? 'Team Performance' : 'Performance Insights'
     },
-    // Custom Domains (Pro/Business only)
-    ...((user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) ? [
-      {
-        id: 'domains' as SidebarSection,
-        label: 'Custom Domains',
-        icon: Globe,
-        description: currentScope.type === 'TEAM' ? 'Team Custom Domains' : 'Your Custom Domains'
-      }
-    ] : []),
+    // Custom Domains (Available for all users, with upgrade prompts for free users)
+    {
+      id: 'domains' as SidebarSection,
+      label: 'Custom Domains',
+      icon: Globe,
+      description: currentScope.type === 'TEAM' ? 'Team Custom Domains' : 'Your Custom Domains',
+      badge: !(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) ? 'PRO' : undefined
+    },
     // Team-specific sections
     ...(currentScope.type === 'TEAM' ? [
       {
@@ -316,6 +315,11 @@ const UnifiedDashboard: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="font-medium truncate">{item.label}</span>
+                          {(item as any).badge && (
+                            <span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                              {(item as any).badge}
+                            </span>
+                          )}
                         </div>
                         <p className={`text-xs truncate mt-0.5 ${
                           item.primary 

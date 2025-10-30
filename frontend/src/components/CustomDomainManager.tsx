@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw } from 'lucide-react';
+import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
@@ -46,6 +46,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   ownerId 
 }) => {
   const { user, token } = useAuth();
+  
+  // Check if user has access to custom domains
+  const hasCustomDomainAccess = user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS');
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
   const [newDomain, setNewDomain] = useState('');
@@ -313,6 +316,48 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Upgrade Prompt for Free Users */}
+      {!hasCustomDomainAccess && (
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl shadow-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <Globe className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Unlock Custom Domains</h3>
+                <p className="text-purple-100 mt-1">
+                  Use your own branded domains like go.yourbrand.com for professional short links
+                </p>
+                <div className="flex items-center space-x-4 mt-3 text-sm">
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Professional branding</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>SSL certificates included</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Advanced analytics</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <button
+                onClick={() => window.location.href = '/pricing'}
+                className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Upgrade to Pro
+              </button>
+              <p className="text-purple-100 text-sm mt-2">Starting at $9/month</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
@@ -320,22 +365,37 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
             <h2 className="text-2xl font-bold text-gray-900 flex items-center">
               <Globe className="w-6 h-6 mr-2" />
               Custom Domains
+              {!hasCustomDomainAccess && (
+                <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full ml-2 font-medium">
+                  PRO FEATURE
+                </span>
+              )}
             </h2>
             <p className="text-gray-600 mt-1">
               Use your own branded domains for short links
             </p>
           </div>
-          <button
-            onClick={() => setIsAddingDomain(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Domain
-          </button>
+          {hasCustomDomainAccess ? (
+            <button
+              onClick={() => setIsAddingDomain(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Domain
+            </button>
+          ) : (
+            <button
+              onClick={() => window.location.href = '/pricing'}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Upgrade to Add Domains
+            </button>
+          )}
         </div>
 
         {/* Add Domain Form */}
-        {isAddingDomain && (
+        {isAddingDomain && hasCustomDomainAccess && (
           <div className="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
             <h3 className="font-semibold text-gray-900 mb-4">Add New Domain</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -396,7 +456,19 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           <div className="text-center py-12">
             <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No custom domains</h3>
-            <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
+            {hasCustomDomainAccess ? (
+              <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
+            ) : (
+              <div>
+                <p className="text-gray-500 mb-4">Custom domains are available with Pro and Business plans</p>
+                <button
+                  onClick={() => window.location.href = '/pricing'}
+                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  View Plans
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

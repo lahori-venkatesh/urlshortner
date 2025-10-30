@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, QrCode, Upload, Copy, ExternalLink, Settings, Calendar, Lock, Eye, EyeOff, Zap, Sparkles, Shield, Globe } from 'lucide-react';
+import { Link, QrCode, Upload, Copy, ExternalLink, Settings, Calendar, Lock, Eye, EyeOff, Zap, Sparkles, Shield, Globe, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import QRCodeGenerator from './QRCodeGenerator';
@@ -688,15 +688,46 @@ const UrlShortener: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700">
                       Custom Domain
                     </label>
-                    {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) && (
-                      <button
-                        onClick={() => window.location.href = '/dashboard?section=domains'}
-                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
-                      >
-                        <Globe className="w-3 h-3 mr-1" />
-                        Manage Domains
-                      </button>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) ? (
+                        <>
+                          <button
+                            onClick={() => window.location.href = '/dashboard?section=domains'}
+                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+                          >
+                            <Globe className="w-3 h-3 mr-1" />
+                            Manage Domains
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Open add domain modal or navigate to add domain
+                              const newDomain = prompt('Enter your custom domain (e.g., go.yourbrand.com):');
+                              if (newDomain && newDomain.trim()) {
+                                // Navigate to domains page with add action
+                                window.location.href = `/dashboard?section=domains&action=add&domain=${encodeURIComponent(newDomain.trim())}`;
+                              }
+                            }}
+                            className="text-xs text-green-600 hover:text-green-800 flex items-center"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Add Domain
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            // Show upgrade modal or navigate to pricing
+                            if (window.confirm('Custom domains are available with Pro and Business plans. Would you like to upgrade?')) {
+                              window.location.href = '/pricing';
+                            }
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-800 flex items-center"
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Upgrade for Custom Domains
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <select
                     value={selectedDomain}
