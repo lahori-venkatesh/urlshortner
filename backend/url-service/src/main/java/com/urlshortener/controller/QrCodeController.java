@@ -41,6 +41,8 @@ public class QrCodeController {
             String backgroundColor = (String) request.get("backgroundColor");
             Integer size = (Integer) request.get("size");
             String format = (String) request.get("format");
+            String scopeType = (String) request.getOrDefault("scopeType", "USER");
+            String scopeId = (String) request.getOrDefault("scopeId", userId);
             
             if (content == null || content.trim().isEmpty()) {
                 response.put("success", false);
@@ -72,7 +74,8 @@ public class QrCodeController {
             QrCode qrCode = qrCodeService.createQrCode(
                 content, contentType != null ? contentType : "TEXT", userId,
                 title, description, style, foregroundColor, backgroundColor,
-                size != null ? size : 300, format != null ? format : "PNG"
+                size != null ? size : 300, format != null ? format : "PNG",
+                scopeType, scopeId
             );
             
             Map<String, Object> qrData = new HashMap<>();
@@ -370,6 +373,29 @@ public class QrCodeController {
             response.put("success", false);
             response.put("message", "Internal server error: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    // Team-scoped endpoints
+    @GetMapping("/scope/{scopeType}/{scopeId}")
+    public ResponseEntity<Map<String, Object>> getQrCodesByScope(
+            @PathVariable String scopeType, 
+            @PathVariable String scopeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<QrCode> qrCodes = qrCodeService.getQrCodesByScope(scopeType, scopeId);
+            
+            response.put("success", true);
+            response.put("qrCodes", qrCodes);
+            response.put("count", qrCodes.size());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 }

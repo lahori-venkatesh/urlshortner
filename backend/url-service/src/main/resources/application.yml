@@ -38,12 +38,23 @@ spring:
       exposed-headers:
         - "Authorization"
   
-  # MongoDB Configuration - Production Ready
+  # MongoDB Configuration - Production Ready with Team Collaboration
   data:
     mongodb:
       uri: ${MONGODB_URI}
-      database: ${MONGODB_DATABASE:pebly-database}
+      database: ${MONGODB_DATABASE:pebly}
       auto-index-creation: false
+      # Connection pool settings for high performance
+      options:
+        max-connection-pool-size: 100
+        min-connection-pool-size: 10
+        max-connection-idle-time: 600000  # 10 minutes
+        max-connection-life-time: 1800000  # 30 minutes
+        connect-timeout: 10000  # 10 seconds
+        socket-timeout: 30000   # 30 seconds
+        server-selection-timeout: 30000  # 30 seconds
+        max-wait-time: 30000    # 30 seconds
+        heartbeat-frequency: 10000  # 10 seconds
     
     # Redis Configuration - Production Ready (Optional)
     redis:

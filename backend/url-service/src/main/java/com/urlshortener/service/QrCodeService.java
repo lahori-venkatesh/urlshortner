@@ -43,6 +43,14 @@ public class QrCodeService {
                               String title, String description, String style,
                               String foregroundColor, String backgroundColor, 
                               int size, String format) {
+        return createQrCode(content, contentType, userId, title, description, style, 
+                           foregroundColor, backgroundColor, size, format, "USER", userId);
+    }
+    
+    public QrCode createQrCode(String content, String contentType, String userId, 
+                              String title, String description, String style,
+                              String foregroundColor, String backgroundColor, 
+                              int size, String format, String scopeType, String scopeId) {
         
         // Validate content
         if (content == null || content.trim().isEmpty()) {
@@ -50,7 +58,7 @@ public class QrCodeService {
         }
         
         // Create QR code
-        QrCode qrCode = new QrCode(content, contentType, userId);
+        QrCode qrCode = new QrCode(content, contentType, userId, scopeType, scopeId);
         
         // Set the complete QR image URL with frontend domain
         String fullQrImageUrl = shortUrlDomain + "/qr/" + qrCode.getQrCode() + ".png";
@@ -105,6 +113,12 @@ public class QrCodeService {
     public List<QrCode> getUserQrCodes(String userId) {
         logger.debug("Fetching QR codes for user: {}", userId);
         return qrCodeRepository.findByUserIdAndIsActiveTrue(userId);
+    }
+    
+    // Get QR codes by scope (user or team)
+    public List<QrCode> getQrCodesByScope(String scopeType, String scopeId) {
+        logger.debug("Fetching QR codes for scope: {} - {}", scopeType, scopeId);
+        return qrCodeRepository.findByScopeTypeAndScopeIdAndIsActiveTrue(scopeType, scopeId);
     }
     
     public QrCode updateQrCode(String qrCodeId, String userId, QrCode updates) {

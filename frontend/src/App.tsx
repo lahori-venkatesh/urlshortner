@@ -27,6 +27,7 @@ import QRAnalyticsPage from './pages/QRAnalyticsPage';
 
 import FileAnalyticsPage from './pages/FileAnalyticsPage';
 import ContactUs from './pages/ContactUs';
+import TeamInvite from './pages/TeamInvite';
 import About from './pages/About';
 import ShippingPolicy from './pages/ShippingPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
@@ -185,6 +186,13 @@ const AppContent: React.FC = () => {
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/cancellation-refund" element={<CancellationRefund />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            
+            {/* Team Invite Route */}
+            <Route path="/invite/:inviteToken" element={
+              <AuthRedirect requireAuth={true}>
+                <TeamInvite />
+              </AuthRedirect>
+            } />
             
             <Route path="/file/:fileId" element={<FileViewer />} />
             <Route path="/:shortCode" element={<RedirectPage />} />
