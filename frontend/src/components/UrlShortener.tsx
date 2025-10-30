@@ -7,6 +7,7 @@ import { aiService, AliasSuggestion, SecurityCheck } from '../services/aiService
 import toast from 'react-hot-toast';
 import { uploadFileToBackend, createShortUrl, createQrCode, getUserUrls, getUserFiles, getUserQrCodes } from '../services/api';
 import SimpleFileUpload from './SimpleFileUpload';
+import UpgradeModal from './UpgradeModal';
 
 interface ShortenedLink {
   id: string;
@@ -156,6 +157,8 @@ const UrlShortener: React.FC = () => {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
   const [isLoadingDomains, setIsLoadingDomains] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<string>('');
 
   // Load custom domains from backend API
   React.useEffect(() => {
@@ -700,12 +703,8 @@ const UrlShortener: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
-                              // Open add domain modal or navigate to add domain
-                              const newDomain = prompt('Enter your custom domain (e.g., go.yourbrand.com):');
-                              if (newDomain && newDomain.trim()) {
-                                // Navigate to domains page with add action
-                                window.location.href = `/dashboard?section=domains&action=add&domain=${encodeURIComponent(newDomain.trim())}`;
-                              }
+                              // Navigate to custom domain onboarding
+                              window.location.href = '/dashboard?section=domains&action=onboard';
                             }}
                             className="text-xs text-green-600 hover:text-green-800 flex items-center"
                           >
@@ -716,10 +715,8 @@ const UrlShortener: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => {
-                            // Show upgrade modal or navigate to pricing
-                            if (window.confirm('Custom domains are available with Pro and Business plans. Would you like to upgrade?')) {
-                              window.location.href = '/pricing';
-                            }
+                            setUpgradeFeature('Custom Domains');
+                            setShowUpgradeModal(true);
                           }}
                           className="text-xs text-purple-600 hover:text-purple-800 flex items-center"
                         >
@@ -1007,6 +1004,14 @@ const UrlShortener: React.FC = () => {
           </div>
         </motion.div>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature={upgradeFeature}
+        message="Unlock custom domains and professional branding for your links"
+      />
     </div>
   );
 };

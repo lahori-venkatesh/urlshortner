@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import CustomDomainOnboarding from './CustomDomainOnboarding';
 
 interface CustomDomain {
   id: string;
@@ -56,6 +57,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [showVerificationModal, setShowVerificationModal] = useState<CustomDomain | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -64,7 +66,13 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     if (user && token) {
       loadDomainsFromBackend();
     }
-  }, [user, token, ownerType, ownerId]);
+    
+    // Check for onboarding trigger from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'onboard' && hasCustomDomainAccess) {
+      setShowOnboarding(true);
+    }
+  }, [user, token, ownerType, ownerId, hasCustomDomainAccess]);
 
   const loadDomainsFromBackend = async () => {
     try {
@@ -377,7 +385,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           </div>
           {hasCustomDomainAccess ? (
             <button
-              onClick={() => setIsAddingDomain(true)}
+              onClick={() => setShowOnboarding(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -669,6 +677,18 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Custom Domain Onboarding Modal */}
+      <CustomDomainOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={() => {
+          loadDomainsFromBackend();
+          setShowOnboarding(false);
+        }}
+        context={ownerType === 'TEAM' ? 'team' : 'individual'}
+        teamId={ownerType === 'TEAM' ? ownerId : undefined}
+      />
     </div>
   );
 };

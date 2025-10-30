@@ -26,6 +26,7 @@ import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
 import CustomDomainManager from './CustomDomainManager';
+import UpgradeModal from './UpgradeModal';
 
 type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'domains' | 'team-members' | 'team-settings';
 type CreateMode = 'url' | 'qr' | 'file';
@@ -40,6 +41,8 @@ const UnifiedDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isPro] = useState(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS') || false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<string>('');
 
   // Close sidebar on mobile when section changes
   useEffect(() => {
@@ -276,6 +279,18 @@ const UnifiedDashboard: React.FC = () => {
                 <div className="group">
                   <button
                     onClick={() => {
+                      // Handle custom domains with upgrade check
+                      if (item.id === 'domains') {
+                        if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
+                          setActiveSection(item.id);
+                          navigate('/dashboard/domains');
+                        } else {
+                          setUpgradeFeature('Custom Domains');
+                          setShowUpgradeModal(true);
+                        }
+                        return;
+                      }
+                      
                       setActiveSection(item.id);
                       // Navigate to the appropriate route
                       if (item.id === 'dashboard') {
@@ -288,8 +303,6 @@ const UnifiedDashboard: React.FC = () => {
                         navigate('/dashboard/file-links');
                       } else if (item.id === 'analytics') {
                         navigate('/dashboard/analytics');
-                      } else if (item.id === 'domains') {
-                        navigate('/dashboard/domains');
                       }
                     }}
                     className={`
@@ -416,6 +429,14 @@ const UnifiedDashboard: React.FC = () => {
           {renderContent()}
         </main>
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature={upgradeFeature}
+        message="Unlock custom domains and advanced features for your team"
+      />
     </div>
   );
 };
