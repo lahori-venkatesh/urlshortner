@@ -87,10 +87,14 @@ const AuthCallback: React.FC = () => {
         }
         
         // Add more specific error messages
-        if (errorMessage.includes('Failed to exchange code')) {
+        if (errorMessage.includes('503') || errorMessage.includes('Service unavailable')) {
+          errorMessage = 'Server is currently unavailable. Please try again later.';
+        } else if (errorMessage.includes('Failed to exchange code')) {
           errorMessage = 'Failed to verify with Google. Please check your internet connection and try again.';
         } else if (errorMessage.includes('Authentication failed')) {
           errorMessage = 'Google authentication failed. Please ensure you have the correct permissions and try again.';
+        } else if (errorMessage.includes('Network')) {
+          errorMessage = 'Unable to connect to server. Please check your internet connection and try again.';
         }
         
         setMessage(errorMessage);

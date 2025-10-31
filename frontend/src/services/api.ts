@@ -65,7 +65,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
     
-    // Handle 401 unauthorized errors
+    // Handle different types of errors
     if (error.response?.status === 401) {
       console.warn('Unauthorized request - clearing invalid auth');
       // Clear invalid authentication
@@ -75,6 +75,13 @@ apiClient.interceptors.response.use(
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
+    } else if (error.response?.status === 503) {
+      console.error('Service unavailable - backend may be suspended');
+      error.message = 'Server is currently unavailable. Please try again later.';
+    } else if (!error.response) {
+      console.error('Network error - no response from server');
+      error.code = 'NETWORK_ERROR';
+      error.message = 'Unable to connect to server. Please check your internet connection.';
     }
     
     return Promise.reject(error);

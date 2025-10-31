@@ -1,4 +1,4 @@
-const API_URL = 'https://urlshortner-mrrl.onrender.com/api';
+const API_URL = 'https://urlshortner-1-hpyu.onrender.com/api';
 
 async function testBackendAuth() {
     console.log('=== Testing Backend Authentication ===\n');

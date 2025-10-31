@@ -89,12 +89,20 @@ public class UserService {
         return userRepository.save(user);
     }
     
+    public Optional<User> findById(String id) {
+        return userRepository.findById(id);
+    }
+    
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
     
     public Optional<User> findByGoogleId(String googleId) {
         return userRepository.findByGoogleId(googleId);
+    }
+    
+    public java.util.List<User> findAllUsers() {
+        return (java.util.List<User>) userRepository.findAll();
     }
     
     public User updateUser(User user) {

@@ -28,7 +28,7 @@ public class AuthController {
     @Autowired
     private UserService userService;
     
-    @Value("${jwt.secret:mySecretKey}")
+    @Value("${jwt.secret:mySecretKeyForJWTTokenGenerationAndValidationThatIsLongEnoughForHS512AlgorithmAndMeetsSecurityRequirements}")
     private String jwtSecret;
     
     @Value("${jwt.expiration:86400000}")
@@ -341,7 +341,7 @@ public class AuthController {
             System.out.println("Token validated for user: " + email + " (ID: " + userId + ")");
             
             // Get user from database to ensure they still exist
-            var userOpt = userService.userRepository.findById(userId);
+            var userOpt = userService.findById(userId);
             if (userOpt.isEmpty()) {
                 System.out.println("User not found in database: " + userId);
                 response.put("success", false);
@@ -390,7 +390,7 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            var users = userService.userRepository.findAll();
+            var users = userService.findAllUsers();
             
             response.put("success", true);
             response.put("count", users.size());

@@ -98,7 +98,7 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidation123456789}
+  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidationThatIsLongEnoughForHS512Algorithm}
   expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
 
 # Google OAuth Configuration

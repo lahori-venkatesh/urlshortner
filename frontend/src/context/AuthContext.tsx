@@ -156,6 +156,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleGoogleAuth = async (googleUserInfo: GoogleUserInfo) => {
     try {
+      console.log('=== Google Auth attempt ===');
+      console.log('Google user info:', googleUserInfo);
+      
       const response = await api.googleAuth({
         email: googleUserInfo.email,
         googleId: googleUserInfo.id,
@@ -164,7 +167,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profilePicture: googleUserInfo.picture
       });
       
-      if (response.success && response.user) {
+      console.log('Google auth response:', response);
+      
+      if (response.success && response.user && response.token) {
         const user: User = {
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
@@ -179,20 +184,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'google'
         };
         
+        console.log('Setting Google user with token:', user.email);
         setUserWithAuth(user, response.token);
+      } else {
+        console.error('Google auth failed - invalid response:', response);
+        throw new Error('Google authentication failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Google auth error:', error);
-      // If backend auth fails, clear Google auth
+    } catch (error: any) {
+      console.error('Google auth error details:', error);
+      
+      // Clear Google auth state
       googleAuthService.logout();
+      
+      // Throw a user-friendly error
+      if (error.message.includes('503') || error.code === 'NETWORK_ERROR') {
+        throw new Error('Server is currently unavailable. Please try again later.');
+      } else {
+        throw new Error('Google authentication failed. Please ensure you have the correct permissions and try again.');
+      }
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('=== Login attempt ===');
+      console.log('Email:', email);
+      console.log('API URL:', process.env.REACT_APP_API_URL);
+      
       const response = await api.login({ email, password });
       
-      if (response.success && response.user) {
+      console.log('Login response:', response);
+      
+      if (response.success && response.user && response.token) {
         const user: User = {
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
@@ -206,13 +229,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           authProvider: 'email'
         };
         
+        console.log('Setting user with token:', user.email);
         setUserWithAuth(user, response.token);
       } else {
-        throw new Error(response.message || 'Login failed');
+        console.error('Login failed - invalid response:', response);
+        throw new Error(response.message || 'Login failed - invalid credentials');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Login failed');
+      console.error('Login error details:', error);
+      
+      // Handle different types of errors
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('503')) {
+        throw new Error('Server is currently unavailable. Please try again later.');
+      } else if (error.response?.status === 401) {
+        throw new Error('Invalid email or password. Please check your credentials.');
+      } else if (error.response?.status === 404) {
+        throw new Error('User not found. Please check your email or sign up.');
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error(error.message || 'Login failed. Please try again.');
+      }
     }
   };
 
