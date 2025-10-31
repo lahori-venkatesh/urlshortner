@@ -3,6 +3,7 @@ import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, E
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService, UserPlanInfo } from '../services/subscriptionService';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import CustomDomainOnboarding from './CustomDomainOnboarding';
 import UpgradeModal from './UpgradeModal';
 
@@ -92,10 +93,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     if (user?.plan === 'BUSINESS' || user?.plan === 'BUSINESS_TRIAL') {
       if (verifiedDomainCount >= 3) {
         console.log('✅ BUSINESS user at domain limit - showing limit message');
-        // Use toast directly since it's already imported at the top
-        import('react-hot-toast').then(({ toast }) => {
-          toast.error('You have reached the 3 domain limit for your Business plan. Please contact support for more domains.');
-        });
+        toast.error('You have reached the 3 domain limit for your Business plan. Please contact support for more domains.');
         return;
       } else {
         console.log('✅ BUSINESS user under limit - redirecting to onboarding');
@@ -167,7 +165,6 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     } catch (error) {
       console.error('Failed to load domains from backend:', error);
       setDomains([]);
-      const { toast } = await import('react-hot-toast');
       toast.error('Failed to load custom domains');
     } finally {
       setIsLoading(false);
@@ -181,14 +178,12 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     
     // Validate domain format
     if (!isValidDomain(domainName)) {
-      const { toast } = await import('react-hot-toast');
       toast.error('Please enter a valid domain name');
       return;
     }
 
     // Check if domain already exists
     if (domains.some(d => d.domainName === domainName)) {
-      const { toast } = await import('react-hot-toast');
       toast.error('Domain already exists');
       return;
     }
@@ -214,15 +209,12 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         setIsAddingDomain(false);
         setShowVerificationModal(newCustomDomain);
 
-        const { toast } = await import('react-hot-toast');
         toast.success('Domain reserved! Please complete DNS verification.');
       } else {
-        const { toast } = await import('react-hot-toast');
         toast.error(response.data.message || 'Failed to add domain');
       }
     } catch (error: any) {
       console.error('Failed to add domain:', error);
-      const { toast } = await import('react-hot-toast');
       const errorMessage = error.response?.data?.message || 'Failed to add domain. Please try again.';
       toast.error(errorMessage);
     }
@@ -255,7 +247,6 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           d.id === domainId ? { ...d, ...response.data.domain } : d
         ));
 
-        const { toast } = await import('react-hot-toast');
         if (response.data.verified) {
           toast.success('Domain verified successfully! SSL certificate is being provisioned.');
         } else {
@@ -265,12 +256,10 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           });
         }
       } else {
-        const { toast } = await import('react-hot-toast');
         toast.error(response.data.message || 'Verification failed');
       }
     } catch (error: any) {
       console.error('Failed to verify domain:', error);
-      const { toast } = await import('react-hot-toast');
       const errorMessage = error.response?.data?.message || 'Verification failed. Please try again.';
       toast.error(errorMessage);
     } finally {
@@ -283,7 +272,6 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     if (!domain) return;
 
     if (domain.totalRedirects > 0) {
-      const { toast } = await import('react-hot-toast');
       toast.error(`Cannot delete domain with ${domain.totalRedirects} active redirects`);
       return;
     }
@@ -297,11 +285,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       // For now, we'll just remove from local state
       setDomains(prev => prev.filter(d => d.id !== domainId));
 
-      const { toast } = await import('react-hot-toast');
       toast.success('Domain deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete domain:', error);
-      const { toast } = await import('react-hot-toast');
       toast.error('Failed to delete domain. Please try again.');
     }
   };
@@ -328,7 +314,6 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      const { toast } = await import('react-hot-toast');
       toast.success('Copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy:', err);
