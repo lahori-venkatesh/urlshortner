@@ -707,17 +707,26 @@ const UrlShortener: React.FC = () => {
                     value={selectedDomain}
                     onChange={(e) => {
                       if (e.target.value === 'ADD_CUSTOM_DOMAIN') {
-                        // Handle add custom domain action
-                        if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
-                          // Pro user - open onboarding
-                          window.location.href = '/dashboard?section=domains&action=onboard';
-                        } else {
-                          // Free user - show upgrade modal
-                          setUpgradeFeature('Custom Domains');
-                          setShowUpgradeModal(true);
-                        }
-                        // Reset selection to default
-                        setSelectedDomain('pebly.vercel.app');
+                        // Prevent any default behavior
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        console.log('ADD_CUSTOM_DOMAIN clicked');
+                        console.log('User:', user);
+                        console.log('User plan:', user?.plan);
+                        
+                        // Always show upgrade modal first to prevent redirect issues
+                        // We can enhance this later once we confirm it works
+                        console.log('Opening upgrade modal');
+                        setUpgradeFeature('Custom Domains');
+                        setShowUpgradeModal(true);
+                        
+                        // Reset selection to default immediately
+                        setTimeout(() => {
+                          setSelectedDomain('pebly.vercel.app');
+                        }, 100);
+                        
+                        return false; // Prevent any further processing
                       } else {
                         setSelectedDomain(e.target.value);
                       }
@@ -749,6 +758,18 @@ const UrlShortener: React.FC = () => {
                       : 'Select "Add Custom Domain" to upgrade and use your own branded domains'
                     }
                   </p>
+                  
+                  {/* Debug button to test upgrade modal */}
+                  <button
+                    onClick={() => {
+                      console.log('Debug button clicked');
+                      setUpgradeFeature('Custom Domains');
+                      setShowUpgradeModal(true);
+                    }}
+                    className="mt-2 text-xs bg-red-500 text-white px-2 py-1 rounded"
+                  >
+                    🐛 Test Upgrade Modal
+                  </button>
                 </div>
 
                 <div>
