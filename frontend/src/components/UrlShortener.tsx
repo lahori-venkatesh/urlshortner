@@ -159,6 +159,7 @@ const UrlShortener: React.FC = () => {
   const [isLoadingDomains, setIsLoadingDomains] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<string>('');
+  const [showOnlyBusiness, setShowOnlyBusiness] = useState(false);
 
   // Load custom domains from backend API
   React.useEffect(() => {
@@ -712,28 +713,57 @@ const UrlShortener: React.FC = () => {
                         e.stopPropagation();
                         
                         console.log('🔍 Add Custom Domain selected - User Plan:', user?.plan);
+                        console.log('🔍 Available domains:', customDomains);
                         
-                        // Check if user has access to custom domains
-                        const hasCustomDomainAccess = user?.plan?.includes('PRO') || 
-                                                     user?.plan?.includes('BUSINESS') ||
-                                                     user?.plan === 'PRO' ||
-                                                     user?.plan === 'BUSINESS' ||
-                                                     user?.plan === 'BUSINESS_TRIAL';
+                        // Determine user plan type
+                        const userPlan = user?.plan;
+                        const isFreeUser = !userPlan || userPlan === 'FREE' || userPlan === 'free';
+                        const isProUser = userPlan === 'PRO' || userPlan?.includes('PRO');
+                        const isBusinessUser = userPlan === 'BUSINESS' || userPlan?.includes('BUSINESS') || userPlan === 'BUSINESS_TRIAL';
                         
-                        // Check if user is on free plan
-                        const isFreeUser = !hasCustomDomainAccess || 
-                                          user?.plan === 'FREE' || 
-                                          user?.plan === 'free' || 
-                                          (!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS'));
+                        // Count only VERIFIED custom domains (exclude default domain)
+                        const verifiedCustomDomains = customDomains.filter(domain => 
+                          domain !== 'pebly.vercel.app' && domain !== 'localhost:3000'
+                        );
+                        const verifiedDomainCount = verifiedCustomDomains.length;
+                        
+                        console.log('🔍 Plan Analysis:', {
+                          userPlan,
+                          isFreeUser,
+                          isProUser,
+                          isBusinessUser,
+                          verifiedDomainCount,
+                          verifiedCustomDomains
+                        });
                         
                         if (isFreeUser) {
-                          console.log('✅ Free user detected - showing upgrade modal');
+                          console.log('✅ FREE user - showing upgrade modal');
                           setUpgradeFeature('Custom Domains');
+                          setShowOnlyBusiness(false); // Show both PRO and BUSINESS
                           setShowUpgradeModal(true);
+                        } else if (isProUser) {
+                          if (verifiedDomainCount >= 1) {
+                            console.log('✅ PRO user with 1+ domains - showing BUSINESS upgrade modal');
+                            setUpgradeFeature('Upgrade to Business for more domains');
+                            setShowOnlyBusiness(true); // Show only BUSINESS plan
+                            setShowUpgradeModal(true);
+                          } else {
+                            console.log('✅ PRO user with no domains - redirecting to onboarding');
+                            window.location.href = '/dashboard?tab=domains&action=onboard';
+                          }
+                        } else if (isBusinessUser) {
+                          if (verifiedDomainCount >= 3) {
+                            console.log('✅ BUSINESS user at domain limit - showing limit message');
+                            toast.error('You have reached the 3 domain limit for your Business plan. Please contact support for more domains.');
+                          } else {
+                            console.log('✅ BUSINESS user under limit - redirecting to onboarding');
+                            window.location.href = '/dashboard?tab=domains&action=onboard';
+                          }
                         } else {
-                          console.log('✅ Pro user detected - redirecting to custom domain management');
-                          // For PRO users, redirect to custom domain management
-                          window.location.href = '/dashboard?tab=domains&action=add';
+                          console.log('✅ Unknown plan - showing upgrade modal');
+                          setUpgradeFeature('Custom Domains');
+                          setShowOnlyBusiness(false); // Show both plans
+                          setShowUpgradeModal(true);
                         }
                         
                         // Reset selection to default
@@ -1036,9 +1066,13 @@ const UrlShortener: React.FC = () => {
       {/* Upgrade Modal */}
       <UpgradeModal
         isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
+        onClose={() => {
+          setShowUpgradeModal(false);
+          setShowOnlyBusiness(false); // Reset the business-only flag
+        }}
         feature={upgradeFeature}
         message="Unlock custom domains and professional branding for your links"
+        showOnlyBusiness={showOnlyBusiness}
       />
     </div>
   );

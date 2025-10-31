@@ -71,7 +71,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
   // Handle Add Custom Domain button click with proper flow
-  const handleAddCustomDomain = () => {
+  const handleAddCustomDomain = async () => {
     console.log('🔍 Add Custom Domain clicked - User Plan:', userPlan, 'User:', user?.plan, 'Has Access:', hasCustomDomainAccess);
     
     // Check if user is on free plan
@@ -84,6 +84,20 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       console.log('✅ Free user detected - showing upgrade modal');
       setShowUpgradeModal(true);
       return;
+    }
+    
+    // User is PRO/BUSINESS - check domain limits
+    const verifiedDomainCount = domains.filter(d => d.status === 'VERIFIED').length;
+    
+    if (user?.plan === 'BUSINESS' || user?.plan === 'BUSINESS_TRIAL') {
+      if (verifiedDomainCount >= 3) {
+        console.log('✅ BUSINESS user at domain limit - showing limit message');
+        const { toast } = await import('react-hot-toast');
+        toast.error('You have reached the 3 domain limit for your Business plan. Please contact support for more domains.');
+        return;
+      } else {
+        console.log('✅ BUSINESS user under limit - redirecting to onboarding');
+      }
     }
     
     // User is PRO/BUSINESS - check if they have completed onboarding

@@ -10,9 +10,10 @@ interface UpgradeModalProps {
   onClose: () => void;
   feature?: string;
   message?: string;
+  showOnlyBusiness?: boolean; // New prop to show only business plan
 }
 
-const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, message }) => {
+const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, message, showOnlyBusiness = false }) => {
   const { user } = useAuth();
   const [pricing, setPricing] = useState<PricingData | null>(null);
   const [isYearly, setIsYearly] = useState(true);
@@ -157,43 +158,45 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                 </div>
 
                 {/* Pricing cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-8">
-                  {/* Pro Plan */}
-                  <div className="relative p-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl transition-all hover:shadow-xl">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                      <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                        {isYearly ? 'Best Value 💎' : 'Most Popular 🔥'}
-                      </span>
-                    </div>
-                    <div className="text-center pt-2">
-                      <h4 className="text-xl font-bold text-gray-900 mb-4">
-                        Pro {isYearly ? 'Yearly' : 'Monthly'}
-                      </h4>
-                      <div className="mb-2">
-                        <span className="text-4xl font-bold text-gray-900">
-                          ₹{isYearly ? '2,999' : '349'}
-                        </span>
-                        <span className="text-lg text-gray-600">
-                          /{isYearly ? 'year' : 'month'}
+                <div className={`grid grid-cols-1 ${showOnlyBusiness ? '' : 'md:grid-cols-2'} gap-6 lg:gap-8 mb-8`}>
+                  {/* Pro Plan - Only show if not showOnlyBusiness */}
+                  {!showOnlyBusiness && (
+                    <div className="relative p-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl transition-all hover:shadow-xl">
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                        <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                          {isYearly ? 'Best Value 💎' : 'Most Popular 🔥'}
                         </span>
                       </div>
-                      {isYearly && (
-                        <div className="mb-6">
-                          <span className="text-sm text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full">
-                            Save ₹1,189 per year
+                      <div className="text-center pt-2">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">
+                          Pro {isYearly ? 'Yearly' : 'Monthly'}
+                        </h4>
+                        <div className="mb-2">
+                          <span className="text-4xl font-bold text-gray-900">
+                            ₹{isYearly ? '2,999' : '349'}
+                          </span>
+                          <span className="text-lg text-gray-600">
+                            /{isYearly ? 'year' : 'month'}
                           </span>
                         </div>
-                      )}
-                      {!isYearly && <div className="mb-6"></div>}
-                      <button
-                        onClick={() => handleUpgrade(isYearly ? 'PRO_YEARLY' : 'PRO_MONTHLY')}
-                        disabled={isLoading}
-                        className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
-                      >
-                        {isLoading ? 'Processing Payment...' : `Upgrade to Pro - ₹${isYearly ? '2,999' : '349'}`}
-                      </button>
+                        {isYearly && (
+                          <div className="mb-6">
+                            <span className="text-sm text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full">
+                              Save ₹1,189 per year
+                            </span>
+                          </div>
+                        )}
+                        {!isYearly && <div className="mb-6"></div>}
+                        <button
+                          onClick={() => handleUpgrade(isYearly ? 'PRO_YEARLY' : 'PRO_MONTHLY')}
+                          disabled={isLoading}
+                          className="w-full py-4 px-6 rounded-xl text-lg font-bold transition-all bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 shadow-lg hover:shadow-xl"
+                        >
+                          {isLoading ? 'Processing Payment...' : `Upgrade to Pro - ₹${isYearly ? '2,999' : '349'}`}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Business Plan */}
                   <div className="relative p-8 border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl transition-all hover:shadow-xl">
