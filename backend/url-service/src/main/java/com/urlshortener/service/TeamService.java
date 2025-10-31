@@ -224,28 +224,46 @@ public class TeamService {
     // Update team details
     @Transactional
     public Team updateTeam(String teamId, String teamName, String description, String userId) {
+        logger.info("🔍 Attempting to update team - TeamId: {}, UserId: {}, NewName: {}", 
+                   teamId, userId, teamName);
+        
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> {
+                    logger.error("❌ Team not found: {}", teamId);
+                    return new RuntimeException("Team not found");
+                });
+        
+        logger.info("✅ Found team - CurrentName: {}, Owner: {}", team.getTeamName(), team.getOwnerId());
         
         // Check permissions (only owner and admin can update team details)
         TeamRole userRole = team.getUserRole(userId);
+        logger.info("🔍 User role in team: {}", userRole);
+        
         if (userRole != TeamRole.OWNER && userRole != TeamRole.ADMIN) {
-            throw new RuntimeException("Insufficient permissions to update team");
+            logger.error("❌ Insufficient permissions - User: {}, Role: {}", userId, userRole);
+            throw new RuntimeException("Only team owners and admins can update team settings");
         }
         
         // Check team name uniqueness if changed
         if (!team.getTeamName().equals(teamName)) {
+            logger.info("🔍 Checking team name uniqueness: {} -> {}", team.getTeamName(), teamName);
             Optional<Team> existingTeam = teamRepository.findByTeamNameIgnoreCaseAndIsActiveTrue(teamName);
             if (existingTeam.isPresent() && !existingTeam.get().getId().equals(teamId)) {
-                throw new RuntimeException("Team name already exists");
+                logger.error("❌ Team name already exists: {}", teamName);
+                throw new RuntimeException("Team name '" + teamName + "' is already taken");
             }
             team.setTeamName(teamName);
+            logger.info("✅ Team name updated: {}", teamName);
         }
         
-        team.setDescription(description);
+        team.setDescription(description != null ? description : "");
         team.setUpdatedAt(LocalDateTime.now());
         
-        return teamRepository.save(team);
+        Team savedTeam = teamRepository.save(team);
+        logger.info("✅ Team updated successfully - Name: {}, Description: {}", 
+                   savedTeam.getTeamName(), savedTeam.getDescription());
+        
+        return savedTeam;
     }
     
     // Delete team (only owner)

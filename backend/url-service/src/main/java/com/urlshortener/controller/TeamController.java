@@ -113,20 +113,29 @@ public class TeamController {
     @PutMapping("/{teamId}")
     public ResponseEntity<Map<String, Object>> updateTeam(
             @PathVariable String teamId,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
         try {
-            String userId = request.get("userId");
-            String teamName = request.get("teamName");
-            String description = request.get("description");
+            String userId = getCurrentUserId(httpRequest);
             
-            if (userId == null || userId.trim().isEmpty()) {
+            if (userId == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "User ID is required"
+                    "message", "User not authenticated"
                 ));
             }
             
-            Team team = teamService.updateTeam(teamId, teamName, description, userId);
+            String teamName = request.get("teamName");
+            String description = request.get("description");
+            
+            if (teamName == null || teamName.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Team name is required"
+                ));
+            }
+            
+            Team team = teamService.updateTeam(teamId, teamName.trim(), description != null ? description.trim() : "", userId);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -276,9 +285,18 @@ public class TeamController {
     @DeleteMapping("/{teamId}/members/{memberUserId}")
     public ResponseEntity<Map<String, Object>> removeMember(
             @PathVariable String teamId,
-            @PathVariable String memberUserId) {
+            @PathVariable String memberUserId,
+            HttpServletRequest request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = getCurrentUserId(request);
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User not authenticated"
+                ));
+            }
+            
             teamService.removeMember(teamId, memberUserId, userId);
             
             return ResponseEntity.ok(Map.of(
@@ -299,10 +317,26 @@ public class TeamController {
     public ResponseEntity<Map<String, Object>> updateMemberRole(
             @PathVariable String teamId,
             @PathVariable String memberUserId,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest) {
         try {
-            String userId = getCurrentUserId();
+            String userId = getCurrentUserId(httpRequest);
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User not authenticated"
+                ));
+            }
+            
             String roleStr = request.get("role");
+            
+            if (roleStr == null || roleStr.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Role is required"
+                ));
+            }
             
             TeamRole role;
             try {
@@ -331,9 +365,19 @@ public class TeamController {
     
     // Get pending invites
     @GetMapping("/{teamId}/invites")
-    public ResponseEntity<Map<String, Object>> getPendingInvites(@PathVariable String teamId) {
+    public ResponseEntity<Map<String, Object>> getPendingInvites(
+            @PathVariable String teamId,
+            HttpServletRequest request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = getCurrentUserId(request);
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User not authenticated"
+                ));
+            }
+            
             List<TeamInvite> invites = teamService.getPendingInvites(teamId, userId);
             
             return ResponseEntity.ok(Map.of(
