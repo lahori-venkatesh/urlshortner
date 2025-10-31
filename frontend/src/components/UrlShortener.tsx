@@ -711,13 +711,8 @@ const UrlShortener: React.FC = () => {
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        console.log('ADD_CUSTOM_DOMAIN clicked');
-                        console.log('User:', user);
-                        console.log('User plan:', user?.plan);
-                        
                         // Always show upgrade modal first to prevent redirect issues
                         // We can enhance this later once we confirm it works
-                        console.log('Opening upgrade modal');
                         setUpgradeFeature('Custom Domains');
                         setShowUpgradeModal(true);
                         
@@ -759,17 +754,7 @@ const UrlShortener: React.FC = () => {
                     }
                   </p>
                   
-                  {/* Debug button to test upgrade modal */}
-                  <button
-                    onClick={() => {
-                      console.log('Debug button clicked');
-                      setUpgradeFeature('Custom Domains');
-                      setShowUpgradeModal(true);
-                    }}
-                    className="mt-2 text-xs bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    🐛 Test Upgrade Modal
-                  </button>
+
                 </div>
 
                 <div>

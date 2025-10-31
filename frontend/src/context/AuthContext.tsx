@@ -51,16 +51,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Custom setUser function that also updates isAuthenticated
   const setUserWithAuth = (newUser: User | null, authToken?: string | null) => {
+    console.log('=== setUserWithAuth called ===');
+    console.log('New user:', newUser ? newUser.email : 'null');
+    console.log('Auth token:', authToken ? 'provided' : 'not provided');
+    
     setUser(newUser);
     setIsAuthenticated(!!newUser);
     
     if (newUser) {
-      localStorage.setItem('user', JSON.stringify(newUser));
-      if (authToken) {
-        setToken(authToken);
-        localStorage.setItem('token', authToken);
+      try {
+        localStorage.setItem('user', JSON.stringify(newUser));
+        console.log('User saved to localStorage');
+        
+        if (authToken) {
+          setToken(authToken);
+          localStorage.setItem('token', authToken);
+          console.log('Token saved to localStorage');
+        }
+      } catch (error) {
+        console.error('Failed to save to localStorage:', error);
       }
     } else {
+      console.log('Clearing authentication data');
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       setToken(null);
@@ -68,19 +80,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('=== AuthContext useEffect - Checking stored auth ===');
+    
     // Check if user is logged in from localStorage or Google OAuth
     const savedUser = localStorage.getItem('user');
     const savedToken = localStorage.getItem('token');
     const googleUserInfo = googleAuthService.getStoredUserInfo();
     
+    console.log('Saved user:', savedUser ? 'exists' : 'null');
+    console.log('Saved token:', savedToken ? 'exists' : 'null');
+    console.log('Google user info:', googleUserInfo ? 'exists' : 'null');
+    
     if (savedUser && savedToken) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-      setToken(savedToken);
-      setIsAuthenticated(true);
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        console.log('Restoring user from localStorage:', parsedUser.email);
+        setUser(parsedUser);
+        setToken(savedToken);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Failed to parse saved user, clearing localStorage:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
     } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
+      console.log('Authenticating with Google info');
       // Authenticate with backend using Google info
       handleGoogleAuth(googleUserInfo);
+    } else {
+      console.log('No valid authentication found');
     }
   }, []);
 

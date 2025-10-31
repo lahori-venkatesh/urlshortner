@@ -20,11 +20,57 @@ const fileClient = axios.create({
   timeout: 30000, // Longer timeout for file uploads
 });
 
-// Request/Response interceptors
+// Add auth interceptors to all clients
+[analyticsClient, fileClient].forEach(client => {
+  client.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      console.error('API Error:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        console.warn('Unauthorized request - token may be expired');
+      }
+      return Promise.reject(error);
+    }
+  );
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
+    
+    // Handle 401 unauthorized errors
+    if (error.response?.status === 401) {
+      console.warn('Unauthorized request - token may be expired');
+      // Don't automatically logout here, let the component handle it
+    }
+    
     return Promise.reject(error);
   }
 );
