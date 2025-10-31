@@ -1,22 +1,45 @@
 package com.urlshortener.service;
 
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import com.urlshortener.model.SupportTicket;
 import com.urlshortener.model.SupportResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 @Service
 public class EmailService {
     
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     
+    @Autowired
+    private SendGrid sendGrid;
+    
     @Value("${app.frontend.url:https://pebly.vercel.app}")
     private String frontendUrl;
     
     @Value("${app.support.email:support@pebly.com}")
     private String supportEmail;
+    
+    @Value("${sendgrid.api.key:}")
+    private String sendGridApiKey;
+    
+    @Value("${sendgrid.from.email:noreply@pebly.com}")
+    private String fromEmail;
+    
+    @Value("${sendgrid.from.name:Pebly Team}")
+    private String fromName;
     
     /**
      * Send ticket created confirmation email to user
@@ -78,14 +101,87 @@ public class EmailService {
      */
     public void sendEmail(String toEmail, String subject, String body) {
         try {
-            logger.info("Sending email to {} with subject: {}", toEmail, subject);
-            logger.debug("Email Body: {}", body);
+            logger.info("Attempting to send email to {} with subject: {}", toEmail, subject);
             
-            // TODO: Implement actual email sending (SMTP, SendGrid, etc.)
-            // For now, just log the email content
+            // Check if SendGrid is properly configured
+            if (!StringUtils.hasText(sendGridApiKey) || "mock-api-key".equals(sendGridApiKey)) {
+                logger.warn("SendGrid API key not configured. Email will be logged instead of sent.");
+                logger.info("EMAIL CONTENT - To: {}, Subject: {}", toEmail, subject);
+                logger.info("EMAIL BODY: {}", body);
+                return;
+            }
             
+            // Create SendGrid email
+            Email from = new Email(fromEmail, fromName);
+            Email to = new Email(toEmail);
+            Content content = new Content("text/plain", body);
+            Mail mail = new Mail(from, subject, to, content);
+            
+            // Send email via SendGrid
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            
+            Response response = sendGrid.api(request);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                logger.info("✅ Email sent successfully to {} (Status: {})", toEmail, response.getStatusCode());
+            } else {
+                logger.error("❌ Failed to send email to {}. Status: {}, Body: {}", 
+                           toEmail, response.getStatusCode(), response.getBody());
+            }
+            
+        } catch (IOException e) {
+            logger.error("❌ SendGrid API error when sending email to {}: {}", toEmail, e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Failed to send email to {}", toEmail, e);
+            logger.error("❌ Unexpected error when sending email to {}: {}", toEmail, e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send HTML email with both plain text and HTML content
+     */
+    public void sendHtmlEmail(String toEmail, String subject, String plainTextBody, String htmlBody) {
+        try {
+            logger.info("Attempting to send HTML email to {} with subject: {}", toEmail, subject);
+            
+            // Check if SendGrid is properly configured
+            if (!StringUtils.hasText(sendGridApiKey) || "mock-api-key".equals(sendGridApiKey)) {
+                logger.warn("SendGrid API key not configured. Email will be logged instead of sent.");
+                logger.info("HTML EMAIL CONTENT - To: {}, Subject: {}", toEmail, subject);
+                logger.info("HTML EMAIL BODY: {}", htmlBody);
+                return;
+            }
+            
+            // Create SendGrid email with HTML content
+            Email from = new Email(fromEmail, fromName);
+            Email to = new Email(toEmail);
+            Content plainContent = new Content("text/plain", plainTextBody);
+            Content htmlContent = new Content("text/html", htmlBody);
+            
+            Mail mail = new Mail(from, subject, to, plainContent);
+            mail.addContent(htmlContent);
+            
+            // Send email via SendGrid
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            
+            Response response = sendGrid.api(request);
+            
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                logger.info("✅ HTML email sent successfully to {} (Status: {})", toEmail, response.getStatusCode());
+            } else {
+                logger.error("❌ Failed to send HTML email to {}. Status: {}, Body: {}", 
+                           toEmail, response.getStatusCode(), response.getBody());
+            }
+            
+        } catch (IOException e) {
+            logger.error("❌ SendGrid API error when sending HTML email to {}: {}", toEmail, e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error when sending HTML email to {}: {}", toEmail, e.getMessage(), e);
         }
     }
     

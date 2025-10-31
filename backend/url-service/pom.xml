@@ -153,6 +153,13 @@
             <version>1.4.3</version>
         </dependency>
         
+        <!-- SendGrid Email Service -->
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.10.2</version>
+        </dependency>
+        
         <!-- Async processing -->
         <dependency>
             <groupId>org.springframework</groupId>

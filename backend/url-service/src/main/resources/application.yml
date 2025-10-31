@@ -115,6 +115,14 @@ razorpay:
     id: ${RAZORPAY_KEY_ID:}
     secret: ${RAZORPAY_KEY_SECRET:}
 
+# SendGrid Email Configuration
+sendgrid:
+  api:
+    key: ${SENDGRID_API_KEY:}
+  from:
+    email: ${SENDGRID_FROM_EMAIL:noreply@pebly.com}
+    name: ${SENDGRID_FROM_NAME:Pebly Team}
+
 # Cloudflare Configuration (for SSL provisioning)
 cloudflare:
   api:

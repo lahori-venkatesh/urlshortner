@@ -2,6 +2,8 @@ package com.urlshortener.service;
 
 import com.urlshortener.model.*;
 import com.urlshortener.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class TeamService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
     
     private final TeamRepository teamRepository;
     private final TeamInviteRepository teamInviteRepository;
@@ -314,28 +318,169 @@ public class TeamService {
         try {
             User inviter = userRepository.findById(invitedBy).orElse(null);
             String inviterName = inviter != null ? 
-                    inviter.getFirstName() + " " + inviter.getLastName() : "Someone";
+                    (inviter.getFirstName() + " " + inviter.getLastName()).trim() : "Someone";
             
-            String subject = "You're invited to join " + team.getTeamName() + " on Pebly";
-            String inviteUrl = "https://pebly.com/invite/" + invite.getInviteToken();
+            if (inviterName.isEmpty()) {
+                inviterName = inviter != null ? inviter.getEmail() : "Someone";
+            }
             
-            String body = String.format(
-                    "Hi there!\n\n" +
-                    "%s has invited you to join the team '%s' on Pebly.\n\n" +
-                    "Role: %s\n\n" +
-                    "Click the link below to accept the invitation:\n" +
-                    "%s\n\n" +
-                    "This invitation will expire in 7 days.\n\n" +
-                    "Best regards,\n" +
-                    "The Pebly Team",
-                    inviterName, team.getTeamName(), invite.getRole().getDisplayName(), inviteUrl
-            );
+            String subject = "🎉 You're invited to join " + team.getTeamName() + " on Pebly";
+            String inviteUrl = "https://pebly.vercel.app/invite/" + invite.getInviteToken();
             
-            emailService.sendEmail(invite.getEmail(), subject, body);
+            // Create plain text email
+            String plainTextBody = buildPlainTextInviteEmail(inviterName, team.getTeamName(), 
+                                                           invite.getRole().getDisplayName(), inviteUrl);
+            
+            // Create HTML email
+            String htmlBody = buildHtmlInviteEmail(inviterName, team.getTeamName(), 
+                                                 invite.getRole().getDisplayName(), inviteUrl);
+            
+            // Send HTML email with plain text fallback
+            emailService.sendHtmlEmail(invite.getEmail(), subject, plainTextBody, htmlBody);
+            
+            logger.info("✅ Team invite email sent to {} for team {} by {}", 
+                       invite.getEmail(), team.getTeamName(), inviterName);
+            
         } catch (Exception e) {
             // Log error but don't fail the invite creation
-            System.err.println("Failed to send invite email: " + e.getMessage());
+            logger.error("❌ Failed to send invite email to {}: {}", invite.getEmail(), e.getMessage(), e);
         }
+    }
+    
+    private String buildPlainTextInviteEmail(String inviterName, String teamName, String role, String inviteUrl) {
+        return String.format("""
+            Hi there!
+            
+            %s has invited you to join the team '%s' on Pebly.
+            
+            Team Details:
+            • Team Name: %s
+            • Your Role: %s
+            • Invited by: %s
+            
+            To accept this invitation, click the link below:
+            %s
+            
+            What you can do as a %s:
+            %s
+            
+            Important Notes:
+            • This invitation will expire in 7 days
+            • You'll need to create a Pebly account if you don't have one
+            • Once you join, you'll have access to team features and shared resources
+            
+            About Pebly:
+            Pebly is a powerful URL shortening and link management platform that helps teams 
+            create, manage, and track short links, QR codes, and file sharing.
+            
+            Questions? Visit our help center: https://pebly.vercel.app/help
+            
+            Best regards,
+            The Pebly Team
+            
+            ---
+            This invitation was sent to %s. If you weren't expecting this invitation, 
+            you can safely ignore this email.
+            """, 
+            inviterName, teamName, teamName, role, inviterName, inviteUrl, role, 
+            getRoleDescription(role), inviteUrl.split("/invite/")[1]
+        );
+    }
+    
+    private String buildHtmlInviteEmail(String inviterName, String teamName, String role, String inviteUrl) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Team Invitation - Pebly</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f8fafc; }
+                    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+                    .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 40px 30px; text-align: center; }
+                    .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+                    .header p { margin: 10px 0 0; opacity: 0.9; font-size: 16px; }
+                    .content { padding: 40px 30px; }
+                    .invite-card { background: #f8fafc; border-radius: 8px; padding: 24px; margin: 24px 0; border-left: 4px solid #667eea; }
+                    .invite-card h3 { margin: 0 0 16px; color: #1a202c; font-size: 18px; }
+                    .invite-details { list-style: none; padding: 0; margin: 0; }
+                    .invite-details li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+                    .invite-details li:last-child { border-bottom: none; }
+                    .invite-details .label { font-weight: 600; color: #4a5568; }
+                    .invite-details .value { color: #1a202c; }
+                    .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 24px 0; text-align: center; transition: transform 0.2s; }
+                    .cta-button:hover { transform: translateY(-2px); }
+                    .role-info { background: #e6fffa; border: 1px solid #81e6d9; border-radius: 8px; padding: 16px; margin: 20px 0; }
+                    .role-info h4 { margin: 0 0 8px; color: #234e52; }
+                    .role-info p { margin: 0; color: #2d3748; font-size: 14px; }
+                    .footer { background: #f7fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+                    .footer p { margin: 0; color: #718096; font-size: 14px; }
+                    .footer a { color: #667eea; text-decoration: none; }
+                    .expiry-notice { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 16px; margin: 20px 0; }
+                    .expiry-notice p { margin: 0; color: #c53030; font-size: 14px; font-weight: 500; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🎉 Team Invitation</h1>
+                        <p>You've been invited to join a team on Pebly</p>
+                    </div>
+                    
+                    <div class="content">
+                        <p>Hi there!</p>
+                        <p><strong>%s</strong> has invited you to join their team on Pebly.</p>
+                        
+                        <div class="invite-card">
+                            <h3>Invitation Details</h3>
+                            <ul class="invite-details">
+                                <li><span class="label">Team Name:</span> <span class="value">%s</span></li>
+                                <li><span class="label">Your Role:</span> <span class="value">%s</span></li>
+                                <li><span class="label">Invited by:</span> <span class="value">%s</span></li>
+                            </ul>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <a href="%s" class="cta-button">Accept Invitation</a>
+                        </div>
+                        
+                        <div class="role-info">
+                            <h4>As a %s, you'll be able to:</h4>
+                            <p>%s</p>
+                        </div>
+                        
+                        <div class="expiry-notice">
+                            <p>⏰ This invitation expires in 7 days</p>
+                        </div>
+                        
+                        <p><strong>About Pebly:</strong><br>
+                        Pebly is a powerful URL shortening and link management platform that helps teams create, manage, and track short links, QR codes, and file sharing.</p>
+                        
+                        <p>If you don't have a Pebly account yet, you'll be able to create one when you accept the invitation.</p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Questions? <a href="https://pebly.vercel.app/help">Visit our help center</a></p>
+                        <p style="margin-top: 16px;">This invitation was sent to your email address. If you weren't expecting this, you can safely ignore this email.</p>
+                        <p style="margin-top: 16px; color: #a0aec0;">© 2024 Pebly. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """, 
+            inviterName, teamName, role, inviterName, inviteUrl, role, getRoleDescription(role)
+        );
+    }
+    
+    private String getRoleDescription(String role) {
+        return switch (role.toUpperCase()) {
+            case "OWNER" -> "Full access to all team features, settings, billing, and member management";
+            case "ADMIN" -> "Manage team members, create and edit all content, access team analytics";
+            case "MEMBER" -> "Create and manage your own links, QR codes, and files within the team";
+            case "VIEWER" -> "View team content and analytics, but cannot create or edit content";
+            default -> "Access team features based on your assigned permissions";
+        };
     }
     
     // Clean up expired invites (scheduled task)
