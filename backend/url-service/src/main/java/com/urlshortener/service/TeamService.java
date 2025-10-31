@@ -121,22 +121,49 @@ public class TeamService {
     // Accept team invite
     @Transactional
     public Team acceptInvite(String inviteToken, String userId) {
+        logger.info("🔍 Attempting to accept invite - Token: {}, UserId: {}", 
+                   inviteToken != null ? inviteToken.substring(0, Math.min(8, inviteToken.length())) + "..." : "null", 
+                   userId);
+        
         TeamInvite invite = teamInviteRepository.findByInviteToken(inviteToken)
-                .orElseThrow(() -> new RuntimeException("Invalid invite token"));
+                .orElseThrow(() -> {
+                    logger.error("❌ Invalid invite token: {}", inviteToken);
+                    return new RuntimeException("Invalid invite token");
+                });
+        
+        logger.info("✅ Found invite - Email: {}, Team: {}, Accepted: {}, Expired: {}, ExpiresAt: {}", 
+                   invite.getEmail(), invite.getTeamId(), invite.isAccepted(), invite.isExpired(), invite.getExpiresAt());
         
         if (!invite.isValid()) {
+            logger.error("❌ Invite is not valid - Accepted: {}, Expired: {}, ExpiresAt: {}, Now: {}", 
+                        invite.isAccepted(), invite.isExpired(), invite.getExpiresAt(), LocalDateTime.now());
             throw new RuntimeException("Invite has expired or already been used");
         }
         
         Team team = teamRepository.findById(invite.getTeamId())
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> {
+                    logger.error("❌ Team not found: {}", invite.getTeamId());
+                    return new RuntimeException("Team not found");
+                });
         
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("❌ User not found: {}", userId);
+                    return new RuntimeException("User not found");
+                });
+        
+        logger.info("✅ Found user - Email: {}, InviteEmail: {}", user.getEmail(), invite.getEmail());
         
         // Verify email matches
         if (!user.getEmail().equals(invite.getEmail())) {
-            throw new RuntimeException("Email mismatch");
+            logger.error("❌ Email mismatch - User: {}, Invite: {}", user.getEmail(), invite.getEmail());
+            throw new RuntimeException("This invitation was sent to " + invite.getEmail() + " but you are logged in as " + user.getEmail());
+        }
+        
+        // Check if user is already a member
+        if (team.isMember(userId)) {
+            logger.warn("⚠️ User {} is already a member of team {}", userId, team.getTeamName());
+            throw new RuntimeException("You are already a member of this team");
         }
         
         // Add user to team
@@ -147,6 +174,9 @@ public class TeamService {
         invite.setAccepted(true);
         invite.setAcceptedAt(LocalDateTime.now());
         teamInviteRepository.save(invite);
+        
+        logger.info("✅ Successfully accepted invite - User {} joined team {} as {}", 
+                   user.getEmail(), team.getTeamName(), invite.getRole());
         
         return savedTeam;
     }

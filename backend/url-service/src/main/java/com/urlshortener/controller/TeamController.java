@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @RestController
@@ -216,9 +217,19 @@ public class TeamController {
     
     // Accept team invite
     @PostMapping("/invite/{inviteToken}/accept")
-    public ResponseEntity<Map<String, Object>> acceptInvite(@PathVariable String inviteToken) {
+    public ResponseEntity<Map<String, Object>> acceptInvite(
+            @PathVariable String inviteToken,
+            HttpServletRequest request) {
         try {
-            String userId = getCurrentUserId();
+            String userId = getCurrentUserId(request);
+            
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "User not authenticated"
+                ));
+            }
+            
             Team team = teamService.acceptInvite(inviteToken, userId);
             
             return ResponseEntity.ok(Map.of(
@@ -338,7 +349,24 @@ public class TeamController {
         }
     }
     
-    // Helper method to get current user ID from security context
+    // Helper method to get current user ID from request attribute
+    private String getCurrentUserId(HttpServletRequest request) {
+        // First try to get from request attribute (set by JWT filter)
+        com.urlshortener.model.User currentUser = (com.urlshortener.model.User) request.getAttribute("currentUser");
+        if (currentUser != null) {
+            return currentUser.getId();
+        }
+        
+        // Fallback: try to get from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof String) {
+            return (String) authentication.getPrincipal();
+        }
+        
+        return null;
+    }
+    
+    // Legacy method for backward compatibility
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof String) {

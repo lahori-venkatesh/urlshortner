@@ -51,6 +51,27 @@ public class EmailTestController {
     }
 
     /**
+     * Debug endpoint to check invite token details
+     */
+    @GetMapping("/debug-invite/{inviteToken}")
+    public ResponseEntity<Map<String, Object>> debugInvite(@PathVariable String inviteToken) {
+        try {
+            // This is a debug endpoint - remove in production
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Debug endpoint - check server logs for invite details",
+                "inviteToken", inviteToken.substring(0, Math.min(8, inviteToken.length())) + "..."
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Debug failed: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
      * Test endpoint to send a test HTML email
      */
     @PostMapping("/test-html")
