@@ -154,7 +154,7 @@ class FileService {
   async getUserFiles(): Promise<{ success: boolean; data: FileInfo[] }> {
     try {
       const userId = this.getUserId();
-      const response = await fetch(`${API_BASE_URL}/files/user/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/dashboard/files/${userId}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });

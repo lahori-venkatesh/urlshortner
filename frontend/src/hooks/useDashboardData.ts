@@ -22,13 +22,25 @@ const fetchUserUrls = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
+  if (!token) {
+    throw new Error('Authentication token not found. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${apiUrl}/v1/urls/user/${userId}`, {
+    const response = await fetch(`${apiUrl}/v1/dashboard/urls/${userId}`, {
       headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
+    
+    if (response.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    
+    if (response.status === 404) {
+      throw new Error('API endpoint not found. Please check if the backend server is updated.');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to fetch URLs: ${response.status} ${response.statusText}`);
@@ -38,6 +50,9 @@ const fetchUserUrls = async (userId: string) => {
     return data.success ? data.data : [];
   } catch (error) {
     console.error('Error fetching user URLs:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error(`Unable to load URLs. Please check if the backend server is running.`);
   }
 };
@@ -46,13 +61,25 @@ const fetchUserQRCodes = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
+  if (!token) {
+    throw new Error('Authentication token not found. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${apiUrl}/v1/qr/user/${userId}`, {
+    const response = await fetch(`${apiUrl}/v1/dashboard/qr/${userId}`, {
       headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
+    
+    if (response.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    
+    if (response.status === 404) {
+      throw new Error('API endpoint not found. Please check if the backend server is updated.');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to fetch QR codes: ${response.status} ${response.statusText}`);
@@ -62,6 +89,9 @@ const fetchUserQRCodes = async (userId: string) => {
     return data.success ? data.data : [];
   } catch (error) {
     console.error('Error fetching user QR codes:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error(`Unable to load QR codes. Please check if the backend server is running.`);
   }
 };
@@ -70,13 +100,25 @@ const fetchUserFiles = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
+  if (!token) {
+    throw new Error('Authentication token not found. Please log in again.');
+  }
+  
   try {
-    const response = await fetch(`${apiUrl}/v1/files/user/${userId}`, {
+    const response = await fetch(`${apiUrl}/v1/dashboard/files/${userId}`, {
       headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
+    
+    if (response.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    }
+    
+    if (response.status === 404) {
+      throw new Error('API endpoint not found. Please check if the backend server is updated.');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to fetch files: ${response.status} ${response.statusText}`);
@@ -86,6 +128,9 @@ const fetchUserFiles = async (userId: string) => {
     return data.success ? data.data : [];
   } catch (error) {
     console.error('Error fetching user files:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error(`Unable to load files. Please check if the backend server is running.`);
   }
 };
@@ -176,7 +221,10 @@ const processDashboardData = (links: any[], qrCodes: any[], files: any[]): Dashb
 
 // Custom hooks
 export const useDashboardData = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  
+  // Check if we have both user and token before making API calls
+  const isAuthenticated = !!user?.id && !!token;
   
   // Use parallel queries for better performance
   const queries = useQueries({
@@ -184,20 +232,26 @@ export const useDashboardData = () => {
       {
         queryKey: ['user-urls', user?.id],
         queryFn: () => fetchUserUrls(user!.id),
-        enabled: !!user?.id,
+        enabled: isAuthenticated,
         staleTime: 3 * 60 * 1000, // 3 minutes for URLs (more dynamic)
+        retry: 2, // Retry failed requests twice
+        retryDelay: 1000, // Wait 1 second between retries
       },
       {
         queryKey: ['user-qrcodes', user?.id],
         queryFn: () => fetchUserQRCodes(user!.id),
-        enabled: !!user?.id,
+        enabled: isAuthenticated,
         staleTime: 5 * 60 * 1000, // 5 minutes for QR codes
+        retry: 2,
+        retryDelay: 1000,
       },
       {
         queryKey: ['user-files', user?.id],
         queryFn: () => fetchUserFiles(user!.id),
-        enabled: !!user?.id,
+        enabled: isAuthenticated,
         staleTime: 5 * 60 * 1000, // 5 minutes for files
+        retry: 2,
+        retryDelay: 1000,
       }
     ]
   });
@@ -234,34 +288,43 @@ export const useDashboardData = () => {
 
 // Hook for individual data types (for specific components)
 export const useUserUrls = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user?.id && !!token;
   
   return useQuery({
     queryKey: ['user-urls', user?.id],
     queryFn: () => fetchUserUrls(user!.id),
-    enabled: !!user?.id,
+    enabled: isAuthenticated,
     staleTime: 3 * 60 * 1000, // 3 minutes
+    retry: 2,
+    retryDelay: 1000,
   });
 };
 
 export const useUserQRCodes = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user?.id && !!token;
   
   return useQuery({
     queryKey: ['user-qrcodes', user?.id],
     queryFn: () => fetchUserQRCodes(user!.id),
-    enabled: !!user?.id,
+    enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
   });
 };
 
 export const useUserFiles = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const isAuthenticated = !!user?.id && !!token;
   
   return useQuery({
     queryKey: ['user-files', user?.id],
     queryFn: () => fetchUserFiles(user!.id),
-    enabled: !!user?.id,
+    enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
   });
 };

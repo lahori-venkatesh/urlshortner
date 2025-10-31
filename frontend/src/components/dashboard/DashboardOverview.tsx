@@ -74,18 +74,46 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
   // Handle error state
   if (error) {
     console.error('Dashboard data loading error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const isAuthError = errorMessage.includes('Authentication') || errorMessage.includes('token');
+    const isEndpointError = errorMessage.includes('endpoint not found') || errorMessage.includes('404');
+    
     return (
       <div className="p-6 text-center">
         <div className="text-red-600 mb-4">Failed to load dashboard data</div>
         <div className="text-sm text-gray-600 mb-4">
-          {error instanceof Error ? error.message : 'Unknown error occurred'}
+          {errorMessage}
         </div>
-        <button 
-          onClick={handleRefresh}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Try Again
-        </button>
+        {isAuthError && (
+          <div className="text-xs text-orange-600 mb-4 p-3 bg-orange-50 rounded-lg">
+            Please try logging out and logging back in to refresh your authentication.
+          </div>
+        )}
+        {isEndpointError && (
+          <div className="text-xs text-blue-600 mb-4 p-3 bg-blue-50 rounded-lg">
+            The backend API endpoints may need to be updated. Please contact support if this persists.
+          </div>
+        )}
+        <div className="flex justify-center space-x-3">
+          <button 
+            onClick={handleRefresh}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+          {isAuthError && (
+            <button 
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+              }}
+              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+            >
+              Re-login
+            </button>
+          )}
+        </div>
       </div>
     );
   }

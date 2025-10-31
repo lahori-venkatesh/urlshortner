@@ -267,7 +267,7 @@ export const createShortUrl = async (data: {
 };
 
 export const getUserUrls = async (userId: string): Promise<any> => {
-  const response = await apiClient.get(`/v1/urls/user/${userId}`);
+  const response = await apiClient.get(`/v1/dashboard/urls/${userId}`);
   return response.data;
 };
 
@@ -325,7 +325,7 @@ export const uploadFileToBackend = async (file: File, options: {
 };
 
 export const getUserFiles = async (userId: string): Promise<any> => {
-  const response = await apiClient.get(`/v1/files/user/${userId}`);
+  const response = await apiClient.get(`/v1/dashboard/files/${userId}`);
   return response.data;
 };
 
@@ -357,7 +357,7 @@ export const createQrCode = async (data: {
 };
 
 export const getUserQrCodes = async (userId: string): Promise<any> => {
-  const response = await apiClient.get(`/v1/qr/user/${userId}`);
+  const response = await apiClient.get(`/v1/dashboard/qr/${userId}`);
   return response.data;
 };
 
