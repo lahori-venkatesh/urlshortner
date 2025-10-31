@@ -31,6 +31,7 @@ interface AuthContextType {
   loginWithGoogle: () => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean; // Add loading state to interface
   redirectAfterAuth: () => void;
 }
 
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   // Custom setUser function that also updates isAuthenticated
   const setUserWithAuth = (newUser: User | null, authToken?: string | null) => {
@@ -82,34 +84,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('=== AuthContext useEffect - Checking stored auth ===');
     
-    // Check if user is logged in from localStorage or Google OAuth
-    const savedUser = localStorage.getItem('user');
-    const savedToken = localStorage.getItem('token');
-    const googleUserInfo = googleAuthService.getStoredUserInfo();
-    
-    console.log('Saved user:', savedUser ? 'exists' : 'null');
-    console.log('Saved token:', savedToken ? 'exists' : 'null');
-    console.log('Google user info:', googleUserInfo ? 'exists' : 'null');
-    
-    if (savedUser && savedToken) {
+    const initializeAuth = async () => {
       try {
-        const parsedUser = JSON.parse(savedUser);
-        console.log('Restoring user from localStorage:', parsedUser.email);
-        setUser(parsedUser);
-        setToken(savedToken);
-        setIsAuthenticated(true);
+        // Check if user is logged in from localStorage or Google OAuth
+        const savedUser = localStorage.getItem('user');
+        const savedToken = localStorage.getItem('token');
+        const googleUserInfo = googleAuthService.getStoredUserInfo();
+        
+        console.log('Saved user:', savedUser ? 'exists' : 'null');
+        console.log('Saved token:', savedToken ? 'exists' : 'null');
+        console.log('Google user info:', googleUserInfo ? 'exists' : 'null');
+        
+        if (savedUser && savedToken) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            console.log('Restoring user from localStorage:', parsedUser.email);
+            setUser(parsedUser);
+            setToken(savedToken);
+            setIsAuthenticated(true);
+            console.log('Authentication restored successfully');
+          } catch (error) {
+            console.error('Failed to parse saved user, clearing localStorage:', error);
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          }
+        } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
+          console.log('Authenticating with Google info');
+          // Authenticate with backend using Google info
+          await handleGoogleAuth(googleUserInfo);
+        } else {
+          console.log('No valid authentication found');
+        }
       } catch (error) {
-        console.error('Failed to parse saved user, clearing localStorage:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false); // Always set loading to false
       }
-    } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
-      console.log('Authenticating with Google info');
-      // Authenticate with backend using Google info
-      handleGoogleAuth(googleUserInfo);
-    } else {
-      console.log('No valid authentication found');
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const handleGoogleAuth = async (googleUserInfo: GoogleUserInfo) => {
@@ -239,7 +252,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signup, 
       loginWithGoogle, 
       logout, 
-      isAuthenticated, 
+      isAuthenticated,
+      isLoading, 
       redirectAfterAuth 
     }}>
       {children}

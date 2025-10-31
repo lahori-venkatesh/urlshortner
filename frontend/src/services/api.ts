@@ -67,8 +67,9 @@ apiClient.interceptors.response.use(
     
     // Handle 401 unauthorized errors
     if (error.response?.status === 401) {
-      console.warn('Unauthorized request - token may be expired');
+      console.warn('Unauthorized request - but not clearing auth automatically');
       // Don't automatically logout here, let the component handle it
+      // The backend doesn't use JWT tokens, so 401 might be for other reasons
     }
     
     return Promise.reject(error);
