@@ -49,12 +49,28 @@ const fileClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Debug logging for invite requests
+    if (config.url?.includes('/invite')) {
+      console.log('🔍 API Request Debug:', {
+        url: config.url,
+        method: config.method,
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'None',
+        hasUser: !!user,
+        data: config.data
+      });
+    }
+    
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -434,8 +450,38 @@ export const inviteUserToTeam = async (teamId: string, data: {
   email: string;
   role: string;
 }): Promise<any> => {
-  const response = await apiClient.post(`/v1/teams/${teamId}/invite`, data);
-  return response.data;
+  try {
+    console.log('🔍 Invite API Call:', {
+      teamId,
+      data,
+      url: `/v1/teams/${teamId}/invite`
+    });
+    
+    const response = await apiClient.post(`/v1/teams/${teamId}/invite`, data);
+    
+    console.log('✅ Invite API Response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Invite API Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    // Re-throw with more specific error information
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response?.status === 400) {
+      throw new Error('Invalid request data. Please check your input and try again.');
+    } else if (error.response?.status === 403) {
+      throw new Error('You do not have permission to invite members to this team.');
+    } else if (error.response?.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    } else {
+      throw new Error(error.message || 'Failed to send invitation. Please try again.');
+    }
+  }
 };
 
 export const acceptTeamInvite = async (inviteToken: string): Promise<any> => {

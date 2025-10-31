@@ -16,6 +16,7 @@ import {
 import { useTeam } from '../context/TeamContext';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { validateInviteRequest, debugInviteContext } from '../utils/inviteValidation';
 
 interface TeamManagementProps {
   teamId: string;
@@ -52,20 +53,68 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamId }) => {
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inviteForm.email.trim()) {
-      toast.error('Email is required');
+    // Debug current context
+    debugInviteContext();
+    
+    console.log('🔍 Invite form submission:', { 
+      teamId, 
+      email: inviteForm.email, 
+      role: inviteForm.role,
+      userId: user?.id 
+    });
+    
+    // Comprehensive validation
+    const validation = validateInviteRequest(
+      teamId,
+      inviteForm.email,
+      inviteForm.role,
+      user?.id
+    );
+    
+    // Show warnings
+    validation.warnings.forEach(warning => {
+      console.warn('⚠️ Invite warning:', warning);
+    });
+    
+    // Handle validation errors
+    if (!validation.isValid) {
+      const errorMessage = validation.errors.join(', ');
+      console.error('❌ Validation failed:', validation.errors);
+      toast.error(errorMessage);
       return;
     }
 
     setIsInviting(true);
     
     try {
+      console.log('🚀 Calling inviteUser with validated data...');
       await inviteUser(teamId, inviteForm.email.trim(), inviteForm.role as any);
+      
+      console.log('✅ Invite successful');
       toast.success('Invitation sent successfully!');
       setInviteForm({ email: '', role: 'MEMBER' });
       setShowInviteModal(false);
+      
+      // Reload members to show any updates
+      loadMembers();
+      
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send invitation');
+      console.error('❌ Invite failed:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = error.message || 'Failed to send invitation';
+      
+      if (errorMessage.includes('already a team member')) {
+        errorMessage = 'This user is already a member of the team.';
+      } else if (errorMessage.includes('Invite already sent')) {
+        errorMessage = 'An invitation has already been sent to this email address.';
+      } else if (errorMessage.includes('Insufficient permissions')) {
+        errorMessage = 'You do not have permission to invite members to this team.';
+      } else if (errorMessage.includes('Team not found')) {
+        errorMessage = 'Team not found. Please refresh the page and try again.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsInviting(false);
     }
@@ -134,13 +183,29 @@ const TeamManagement: React.FC<TeamManagementProps> = ({ teamId }) => {
         </div>
         
         {canManageMembers && (
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Invite Member</span>
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Invite Member</span>
+            </button>
+            
+            {/* Debug button - remove in production */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={() => {
+                  debugInviteContext();
+                  console.log('🔍 Team Context:', { teamId, team, userRole, canManageMembers });
+                }}
+                className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm"
+                title="Debug invite context"
+              >
+                Debug
+              </button>
+            )}
+          </div>
         )}
       </div>
 

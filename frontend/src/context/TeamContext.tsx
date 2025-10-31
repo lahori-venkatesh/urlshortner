@@ -177,20 +177,45 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const inviteUser = async (teamId: string, email: string, role: 'ADMIN' | 'MEMBER' | 'VIEWER'): Promise<void> => {
+    console.log('🔍 TeamContext inviteUser called:', { teamId, email, role, userId: user?.id });
+    
     if (!user?.id) {
-      throw new Error('User not authenticated');
+      console.error('❌ User not authenticated:', user);
+      throw new Error('User not authenticated. Please log in again.');
+    }
+    
+    if (!teamId || teamId.trim() === '') {
+      console.error('❌ Invalid team ID:', teamId);
+      throw new Error('Invalid team ID. Please refresh the page and try again.');
+    }
+    
+    if (!email || email.trim() === '') {
+      console.error('❌ Invalid email:', email);
+      throw new Error('Email address is required.');
     }
     
     try {
-      const response = await api.inviteUserToTeam(teamId, { 
-        userId: user.id,
-        email, 
-        role 
-      });
+      const inviteData = { 
+        userId: user.id.trim(),
+        email: email.trim(), 
+        role: role.toUpperCase()
+      };
+      
+      console.log('🚀 Sending invite request:', inviteData);
+      
+      const response = await api.inviteUserToTeam(teamId.trim(), inviteData);
+      
+      console.log('✅ Invite response:', response);
+      
       if (!response.success) {
         throw new Error(response.message || 'Failed to invite user');
       }
+      
+      // Refresh teams to get updated data
+      await refreshTeams();
+      
     } catch (err: any) {
+      console.error('❌ Invite error:', err);
       throw new Error(err.message || 'Failed to invite user');
     }
   };
