@@ -52,7 +52,12 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [userPlan, setUserPlan] = useState<UserPlanInfo | null>(null);
   
   // Check if user has access to custom domains
-  const hasCustomDomainAccess = userPlan?.canUseCustomDomain || user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS');
+  const hasCustomDomainAccess = userPlan?.canUseCustomDomain || 
+                                (user?.plan?.includes('PRO')) || 
+                                (user?.plan?.includes('BUSINESS')) ||
+                                user?.plan === 'PRO' ||
+                                user?.plan === 'BUSINESS' ||
+                                user?.plan === 'BUSINESS_TRIAL';
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
   const [newDomain, setNewDomain] = useState('');
@@ -64,6 +69,35 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+  // Handle Add Custom Domain button click with proper flow
+  const handleAddCustomDomain = () => {
+    console.log('🔍 Add Custom Domain clicked - User Plan:', userPlan, 'User:', user?.plan, 'Has Access:', hasCustomDomainAccess);
+    
+    // Check if user is on free plan
+    const isFreeUser = !hasCustomDomainAccess || 
+                      user?.plan === 'FREE' || 
+                      user?.plan === 'free' || 
+                      (!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS'));
+    
+    if (isFreeUser) {
+      console.log('✅ Free user detected - showing upgrade modal');
+      setShowUpgradeModal(true);
+      return;
+    }
+    
+    // User is PRO/BUSINESS - check if they have completed onboarding
+    const hasExistingDomains = domains && domains.length > 0;
+    
+    if (!hasExistingDomains) {
+      console.log('✅ Pro user with no domains - showing onboarding');
+      setShowOnboarding(true);
+    } else {
+      console.log('✅ Pro user with existing domains - showing domain management');
+      // Show the add domain form for users who already have domains
+      setIsAddingDomain(true);
+    }
+  };
 
   // Load user plan and domains from backend API
   useEffect(() => {
@@ -401,23 +435,13 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               Use your own branded domains for short links
             </p>
           </div>
-          {hasCustomDomainAccess ? (
-            <button
-              onClick={() => setShowOnboarding(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Domain
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowUpgradeModal(true)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Upgrade to Add Domains
-            </button>
-          )}
+          <button
+            onClick={handleAddCustomDomain}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Custom Domain
+          </button>
         </div>
 
         {/* Add Domain Form */}
@@ -483,7 +507,15 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
             <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No custom domains</h3>
             {hasCustomDomainAccess ? (
-              <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
+              <div>
+                <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
+                <button
+                  onClick={() => setShowOnboarding(true)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Your First Domain
+                </button>
+              </div>
             ) : (
               <div>
                 <p className="text-gray-500 mb-4">Custom domains are available with Pro and Business plans</p>
