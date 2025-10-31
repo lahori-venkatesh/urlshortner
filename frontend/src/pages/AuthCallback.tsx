@@ -34,7 +34,7 @@ const AuthCallback: React.FC = () => {
         setMessage('Setting up your account...');
         
         // The response now contains both user info and tokens
-        if (authResponse.user) {
+        if (authResponse.user && authResponse.token) {
           // Store user info
           googleAuthService.storeUserInfo(authResponse.user);
           
@@ -46,7 +46,7 @@ const AuthCallback: React.FC = () => {
             plan: authResponse.user.subscriptionPlan || 'free',
             avatar: authResponse.user.profilePicture,
             picture: authResponse.user.profilePicture,
-            createdAt: new Date().toISOString(),
+            createdAt: authResponse.user.createdAt || new Date().toISOString(),
             timezone: 'Asia/Kolkata',
             language: 'en',
             isAuthenticated: true,
@@ -54,6 +54,14 @@ const AuthCallback: React.FC = () => {
           };
           
           console.log('Setting user data:', userData);
+          console.log('Setting token:', authResponse.token ? 'provided' : 'missing');
+          
+          // Store token first
+          if (authResponse.token) {
+            localStorage.setItem('token', authResponse.token);
+          }
+          
+          // Set user
           setUser(userData);
 
           setStatus('success');
@@ -66,7 +74,7 @@ const AuthCallback: React.FC = () => {
           navigate('/dashboard', { replace: true });
 
         } else {
-          throw new Error('Invalid response from authentication server');
+          throw new Error('Invalid response from authentication server - missing user or token');
         }
 
       } catch (error) {

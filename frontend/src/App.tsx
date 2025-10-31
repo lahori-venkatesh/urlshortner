@@ -33,6 +33,7 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import TermsAndConditions from './pages/TermsAndConditions';
 import CancellationRefund from './pages/CancellationRefund';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AuthTest from './pages/AuthTest';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -178,6 +179,7 @@ const AppContent: React.FC = () => {
               </AuthRedirect>
             } />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/test" element={<AuthTest />} />
             
             {/* Policy Pages */}
             <Route path="/contact" element={<ContactUs />} />

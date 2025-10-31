@@ -96,6 +96,11 @@ spring:
         keep-alive: 60s
       thread-name-prefix: "async-"
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidation123456789}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
+
 # Google OAuth Configuration
 google:
   client:

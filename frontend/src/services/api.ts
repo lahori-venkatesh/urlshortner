@@ -67,9 +67,14 @@ apiClient.interceptors.response.use(
     
     // Handle 401 unauthorized errors
     if (error.response?.status === 401) {
-      console.warn('Unauthorized request - but not clearing auth automatically');
-      // Don't automatically logout here, let the component handle it
-      // The backend doesn't use JWT tokens, so 401 might be for other reasons
+      console.warn('Unauthorized request - clearing invalid auth');
+      // Clear invalid authentication
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Redirect to login page
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
     
     return Promise.reject(error);
@@ -206,6 +211,15 @@ export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
 
 export const googleAuth = async (data: GoogleAuthRequest): Promise<AuthResponse> => {
   const response = await apiClient.post('/v1/auth/google', data);
+  return response.data;
+};
+
+export const validateToken = async (token: string): Promise<AuthResponse> => {
+  const response = await apiClient.post('/v1/auth/validate', {}, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
   return response.data;
 };
 

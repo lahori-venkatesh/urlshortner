@@ -14,6 +14,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import java.util.Map;
 import java.util.HashMap;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -22,6 +27,31 @@ public class AuthController {
     
     @Autowired
     private UserService userService;
+    
+    @Value("${jwt.secret:mySecretKey}")
+    private String jwtSecret;
+    
+    @Value("${jwt.expiration:86400000}")
+    private int jwtExpiration; // 24 hours in milliseconds
+    
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
+    
+    private String generateToken(User user) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        
+        return Jwts.builder()
+                .setSubject(user.getId())
+                .claim("email", user.getEmail())
+                .claim("firstName", user.getFirstName())
+                .claim("lastName", user.getLastName())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
     
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> request) {
@@ -53,9 +83,13 @@ public class AuthController {
             userData.put("createdAt", user.getCreatedAt());
             userData.put("apiKey", user.getApiKey());
             
+            // Generate JWT token
+            String token = generateToken(user);
+            
             response.put("success", true);
             response.put("message", "User registered successfully");
             response.put("user", userData);
+            response.put("token", token);
             
             return ResponseEntity.ok(response);
             
@@ -97,9 +131,13 @@ public class AuthController {
             userData.put("lastLoginAt", user.getLastLoginAt());
             userData.put("apiKey", user.getApiKey());
             
+            // Generate JWT token
+            String token = generateToken(user);
+            
             response.put("success", true);
             response.put("message", "Login successful");
             response.put("user", userData);
+            response.put("token", token);
             
             return ResponseEntity.ok(response);
             
@@ -159,10 +197,14 @@ public class AuthController {
             userData.put("authProvider", user.getAuthProvider());
             userData.put("apiKey", user.getApiKey());
             
+            // Generate JWT token for our application
+            String jwtToken = generateToken(user);
+            
             response.put("success", true);
             response.put("message", "Google authentication successful");
             response.put("user", userData);
-            response.putAll(tokenData);
+            response.put("token", jwtToken);
+            response.put("google_access_token", accessToken);
             
             return ResponseEntity.ok(response);
             
@@ -208,9 +250,13 @@ public class AuthController {
             userData.put("authProvider", user.getAuthProvider());
             userData.put("apiKey", user.getApiKey());
             
+            // Generate JWT token
+            String token = generateToken(user);
+            
             response.put("success", true);
             response.put("message", "Google authentication successful");
             response.put("user", userData);
+            response.put("token", token);
             
             return ResponseEntity.ok(response);
             
@@ -260,6 +306,81 @@ public class AuthController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/validate")
+    public ResponseEntity<Map<String, Object>> validateToken(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            System.out.println("=== Token Validation Request ===");
+            System.out.println("Auth Header: " + (authHeader != null ? authHeader.substring(0, Math.min(20, authHeader.length())) + "..." : "null"));
+            
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                System.out.println("Invalid authorization header format");
+                response.put("success", false);
+                response.put("message", "Invalid authorization header");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String token = authHeader.substring(7);
+            System.out.println("Extracted token length: " + token.length());
+            
+            // Parse and validate JWT token
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            String userId = claims.getSubject();
+            String email = claims.get("email", String.class);
+            
+            System.out.println("Token validated for user: " + email + " (ID: " + userId + ")");
+            
+            // Get user from database to ensure they still exist
+            var userOpt = userService.userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                System.out.println("User not found in database: " + userId);
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            User user = userOpt.get();
+            System.out.println("User found and validated: " + user.getEmail());
+            
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("email", user.getEmail());
+            userData.put("firstName", user.getFirstName());
+            userData.put("lastName", user.getLastName());
+            userData.put("profilePicture", user.getProfilePicture());
+            userData.put("subscriptionPlan", user.getSubscriptionPlan());
+            userData.put("emailVerified", user.isEmailVerified());
+            userData.put("totalUrls", user.getTotalUrls());
+            userData.put("totalQrCodes", user.getTotalQrCodes());
+            userData.put("totalFiles", user.getTotalFiles());
+            userData.put("totalClicks", user.getTotalClicks());
+            userData.put("authProvider", user.getAuthProvider());
+            userData.put("apiKey", user.getApiKey());
+            userData.put("createdAt", user.getCreatedAt());
+            userData.put("lastLoginAt", user.getLastLoginAt());
+            
+            response.put("success", true);
+            response.put("user", userData);
+            response.put("token", token);
+            
+            System.out.println("Token validation successful");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.out.println("Token validation failed: " + e.getMessage());
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Invalid or expired token: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

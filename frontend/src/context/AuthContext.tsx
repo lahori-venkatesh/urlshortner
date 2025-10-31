@@ -97,16 +97,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (savedUser && savedToken) {
           try {
-            const parsedUser = JSON.parse(savedUser);
-            console.log('Restoring user from localStorage:', parsedUser.email);
-            setUser(parsedUser);
-            setToken(savedToken);
-            setIsAuthenticated(true);
-            console.log('Authentication restored successfully');
+            // Validate token with backend
+            const data = await api.validateToken(savedToken);
+            
+            if (data.success && data.user) {
+              console.log('Token validated successfully, restoring user:', data.user.email);
+              const user: User = {
+                id: data.user.id,
+                name: `${data.user.firstName} ${data.user.lastName}`.trim() || data.user.email.split('@')[0],
+                email: data.user.email,
+                plan: data.user.subscriptionPlan || 'free',
+                avatar: data.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.firstName || data.user.email.split('@')[0])}&background=3b82f6&color=fff`,
+                picture: data.user.profilePicture,
+                createdAt: data.user.createdAt,
+                timezone: 'Asia/Kolkata',
+                language: 'en',
+                isAuthenticated: true,
+                authProvider: data.user.authProvider === 'GOOGLE' ? 'google' : 'email'
+              };
+              
+              setUser(user);
+              setToken(savedToken);
+              setIsAuthenticated(true);
+              console.log('Authentication restored successfully');
+            } else {
+              throw new Error('Token validation failed');
+            }
           } catch (error) {
-            console.error('Failed to parse saved user, clearing localStorage:', error);
+            console.error('Token validation failed, clearing localStorage:', error);
             localStorage.removeItem('user');
             localStorage.removeItem('token');
+            setUser(null);
+            setToken(null);
+            setIsAuthenticated(false);
           }
         } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
           console.log('Authenticating with Google info');
@@ -117,6 +140,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
+        // Clear any invalid auth state
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        setUser(null);
+        setToken(null);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false); // Always set loading to false
       }
