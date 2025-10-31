@@ -48,8 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Once we get the token validate it.
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Check if user exists
-            var userOpt = userService.userRepository.findById(userId);
+            try {
+                // Check if user exists
+                var userOpt = userService.findById(userId);
             if (userOpt.isPresent() && jwtUtil.validateToken(jwtToken, userId)) {
                 
                 com.urlshortener.model.User user = userOpt.get();
@@ -69,6 +70,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 request.setAttribute("currentUser", user);
                 
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            }
+            } catch (Exception e) {
+                logger.warn("Error validating user: " + e.getMessage());
             }
         }
         chain.doFilter(request, response);

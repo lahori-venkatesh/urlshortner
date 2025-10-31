@@ -22,17 +22,21 @@ public class DashboardService {
     
     private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
     
-    @Autowired
-    private ShortenedUrlRepository shortenedUrlRepository;
+    private final ShortenedUrlRepository shortenedUrlRepository;
+    private final QrCodeRepository qrCodeRepository;
+    private final UploadedFileRepository uploadedFileRepository;
+    private final AnalyticsService analyticsService;
     
     @Autowired
-    private QrCodeRepository qrCodeRepository;
-    
-    @Autowired
-    private UploadedFileRepository uploadedFileRepository;
-    
-    @Autowired
-    private AnalyticsService analyticsService;
+    public DashboardService(ShortenedUrlRepository shortenedUrlRepository,
+                           QrCodeRepository qrCodeRepository,
+                           UploadedFileRepository uploadedFileRepository,
+                           AnalyticsService analyticsService) {
+        this.shortenedUrlRepository = shortenedUrlRepository;
+        this.qrCodeRepository = qrCodeRepository;
+        this.uploadedFileRepository = uploadedFileRepository;
+        this.analyticsService = analyticsService;
+    }
     
     /**
      * Get comprehensive dashboard overview with caching

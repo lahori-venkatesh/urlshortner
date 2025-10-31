@@ -13,8 +13,12 @@ import java.security.NoSuchAlgorithmException;
 @Service
 public class UserService {
     
+    private final UserRepository userRepository;
+    
     @Autowired
-    public UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
     
     public User registerUser(String email, String password, String firstName, String lastName) {
         // Check if user already exists

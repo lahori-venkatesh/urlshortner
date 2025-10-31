@@ -22,17 +22,21 @@ public class UrlShorteningService {
     
     private static final Logger logger = LoggerFactory.getLogger(UrlShorteningService.class);
     
-    @Autowired
-    private ShortenedUrlRepository shortenedUrlRepository;
+    private final ShortenedUrlRepository shortenedUrlRepository;
+    private final UserRepository userRepository;
+    private final CacheService cacheService;
+    private final SubscriptionService subscriptionService;
     
     @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private CacheService cacheService;
-    
-    @Autowired
-    private SubscriptionService subscriptionService;
+    public UrlShorteningService(ShortenedUrlRepository shortenedUrlRepository,
+                               UserRepository userRepository,
+                               CacheService cacheService,
+                               SubscriptionService subscriptionService) {
+        this.shortenedUrlRepository = shortenedUrlRepository;
+        this.userRepository = userRepository;
+        this.cacheService = cacheService;
+        this.subscriptionService = subscriptionService;
+    }
     
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;

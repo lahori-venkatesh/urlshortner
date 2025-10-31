@@ -35,23 +35,27 @@ public class FileUploadService {
     
     private static final Logger logger = LoggerFactory.getLogger(FileUploadService.class);
     
-    @Autowired
-    private UploadedFileRepository uploadedFileRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired(required = false)
-    private GridFsTemplate gridFsTemplate;
-    
-    @Autowired
-    private CacheService cacheService;
-    
-    @Autowired
-    private SubscriptionService subscriptionService;
+    private final UploadedFileRepository uploadedFileRepository;
+    private final UserRepository userRepository;
+    private final GridFsTemplate gridFsTemplate;
+    private final CacheService cacheService;
+    private final SubscriptionService subscriptionService;
     
     @Value("${app.shorturl.domain:https://pebly.vercel.app}")
     private String shortUrlDomain;
+    
+    @Autowired
+    public FileUploadService(UploadedFileRepository uploadedFileRepository,
+                            UserRepository userRepository,
+                            GridFsTemplate gridFsTemplate,
+                            CacheService cacheService,
+                            SubscriptionService subscriptionService) {
+        this.uploadedFileRepository = uploadedFileRepository;
+        this.userRepository = userRepository;
+        this.gridFsTemplate = gridFsTemplate;
+        this.cacheService = cacheService;
+        this.subscriptionService = subscriptionService;
+    }
     
     private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     private static final String[] ALLOWED_TYPES = {
