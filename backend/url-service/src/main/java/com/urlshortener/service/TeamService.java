@@ -12,17 +12,21 @@ import java.util.stream.Collectors;
 @Service
 public class TeamService {
     
-    @Autowired
-    private TeamRepository teamRepository;
+    private final TeamRepository teamRepository;
+    private final TeamInviteRepository teamInviteRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
     
     @Autowired
-    private TeamInviteRepository teamInviteRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private EmailService emailService;
+    public TeamService(TeamRepository teamRepository,
+                      TeamInviteRepository teamInviteRepository,
+                      UserRepository userRepository,
+                      EmailService emailService) {
+        this.teamRepository = teamRepository;
+        this.teamInviteRepository = teamInviteRepository;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+    }
     
     // Create a new team
     @Transactional

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { subscriptionService, UserPlanInfo } from '../services/subscriptionService';
 import axios from 'axios';
 import CustomDomainOnboarding from './CustomDomainOnboarding';
+import UpgradeModal from './UpgradeModal';
 
 interface CustomDomain {
   id: string;
@@ -47,9 +49,10 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   ownerId 
 }) => {
   const { user, token } = useAuth();
+  const [userPlan, setUserPlan] = useState<UserPlanInfo | null>(null);
   
   // Check if user has access to custom domains
-  const hasCustomDomainAccess = user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS');
+  const hasCustomDomainAccess = userPlan?.canUseCustomDomain || user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS');
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
   const [newDomain, setNewDomain] = useState('');
@@ -58,12 +61,14 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-  // Load domains from backend API
+  // Load user plan and domains from backend API
   useEffect(() => {
     if (user && token) {
+      loadUserPlan();
       loadDomainsFromBackend();
     }
     
@@ -73,6 +78,19 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       setShowOnboarding(true);
     }
   }, [user, token, ownerType, ownerId, hasCustomDomainAccess]);
+
+  const loadUserPlan = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const planInfo = await subscriptionService.getUserPlan(user.id);
+      setUserPlan(planInfo);
+    } catch (error) {
+      console.error('Failed to load user plan:', error);
+      // Fallback to checking subscription plan from user object
+      setUserPlan(null);
+    }
+  };
 
   const loadDomainsFromBackend = async () => {
     try {
@@ -393,7 +411,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
             </button>
           ) : (
             <button
-              onClick={() => window.location.href = '/pricing'}
+              onClick={() => setShowUpgradeModal(true)}
               className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
             >
               <Sparkles className="w-4 h-4 mr-2" />
@@ -470,7 +488,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               <div>
                 <p className="text-gray-500 mb-4">Custom domains are available with Pro and Business plans</p>
                 <button
-                  onClick={() => window.location.href = '/pricing'}
+                  onClick={() => setShowUpgradeModal(true)}
                   className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   View Plans
@@ -688,6 +706,14 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         }}
         context={ownerType === 'TEAM' ? 'team' : 'individual'}
         teamId={ownerType === 'TEAM' ? ownerId : undefined}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature="Custom Domains"
+        message="Use your own branded domains for professional short links with SSL certificates included."
       />
     </div>
   );

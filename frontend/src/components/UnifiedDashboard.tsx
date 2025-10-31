@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
 import DashboardOverview from './dashboard/DashboardOverview';
 import TeamManagement from './TeamManagement';
+import TeamSettings from './TeamSettings';
 import CreateSection from './dashboard/CreateSection';
 import LinksManager from './dashboard/LinksManager';
 import QRManageSection from './dashboard/QRManageSection';
@@ -215,7 +216,7 @@ const UnifiedDashboard: React.FC = () => {
       case 'team-members':
         return currentScope.type === 'TEAM' ? <TeamManagement teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
       case 'team-settings':
-        return currentScope.type === 'TEAM' ? <div className="text-center py-8 text-gray-500">Team Settings - Coming Soon</div> : <DashboardOverview onCreateClick={handleCreateClick} />;
+        return currentScope.type === 'TEAM' ? <TeamSettings teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
       default:
         return <DashboardOverview onCreateClick={handleCreateClick} />;
     }
