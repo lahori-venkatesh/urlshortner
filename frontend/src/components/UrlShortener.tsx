@@ -711,12 +711,32 @@ const UrlShortener: React.FC = () => {
                         e.preventDefault();
                         e.stopPropagation();
                         
-                        // Always show upgrade modal first to prevent redirect issues
-                        // We can enhance this later once we confirm it works
-                        setUpgradeFeature('Custom Domains');
-                        setShowUpgradeModal(true);
+                        console.log('🔍 Add Custom Domain selected - User Plan:', user?.plan);
                         
-                        // Reset selection to default immediately
+                        // Check if user has access to custom domains
+                        const hasCustomDomainAccess = user?.plan?.includes('PRO') || 
+                                                     user?.plan?.includes('BUSINESS') ||
+                                                     user?.plan === 'PRO' ||
+                                                     user?.plan === 'BUSINESS' ||
+                                                     user?.plan === 'BUSINESS_TRIAL';
+                        
+                        // Check if user is on free plan
+                        const isFreeUser = !hasCustomDomainAccess || 
+                                          user?.plan === 'FREE' || 
+                                          user?.plan === 'free' || 
+                                          (!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS'));
+                        
+                        if (isFreeUser) {
+                          console.log('✅ Free user detected - showing upgrade modal');
+                          setUpgradeFeature('Custom Domains');
+                          setShowUpgradeModal(true);
+                        } else {
+                          console.log('✅ Pro user detected - redirecting to custom domain management');
+                          // For PRO users, redirect to custom domain management
+                          window.location.href = '/dashboard?tab=domains&action=add';
+                        }
+                        
+                        // Reset selection to default
                         setTimeout(() => {
                           setSelectedDomain('pebly.vercel.app');
                         }, 100);
