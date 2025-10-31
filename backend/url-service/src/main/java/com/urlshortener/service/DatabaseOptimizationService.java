@@ -117,25 +117,30 @@ public class DatabaseOptimizationService {
                                   .aggregate(pipeline)
                                   .into(new java.util.ArrayList<>());
         
-        // Bulk update teams
-        BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
-        
-        for (var result : results) {
-            String teamId = result.getString("_id");
-            Integer totalUrls = result.getInteger("totalUrls", 0);
-            Integer totalClicks = result.getInteger("totalClicks", 0);
+        // Only perform bulk update if there are results
+        if (!results.isEmpty()) {
+            // Bulk update teams
+            BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
             
-            Query query = new Query(Criteria.where("id").is(teamId));
-            Update update = new Update()
-                .set("totalUrls", totalUrls)
-                .set("totalClicks", totalClicks)
-                .set("updatedAt", LocalDateTime.now());
+            for (var result : results) {
+                String teamId = result.getString("_id");
+                Integer totalUrls = result.getInteger("totalUrls", 0);
+                Integer totalClicks = result.getInteger("totalClicks", 0);
+                
+                Query query = new Query(Criteria.where("id").is(teamId));
+                Update update = new Update()
+                    .set("totalUrls", totalUrls)
+                    .set("totalClicks", totalClicks)
+                    .set("updatedAt", LocalDateTime.now());
+                
+                bulkOps.updateOne(query, update);
+            }
             
-            bulkOps.updateOne(query, update);
+            var bulkResult = bulkOps.execute();
+            logger.info("📈 Updated URL statistics for {} teams", bulkResult.getModifiedCount());
+        } else {
+            logger.info("📈 No team URL statistics to update");
         }
-        
-        var bulkResult = bulkOps.execute();
-        logger.info("📈 Updated URL statistics for {} teams", bulkResult.getModifiedCount());
     }
     
     private void updateTeamQrCodeCounts() {
@@ -155,22 +160,27 @@ public class DatabaseOptimizationService {
                                   .aggregate(pipeline)
                                   .into(new java.util.ArrayList<>());
         
-        BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
-        
-        for (var result : results) {
-            String teamId = result.getString("_id");
-            Integer totalQrCodes = result.getInteger("totalQrCodes", 0);
+        // Only perform bulk update if there are results
+        if (!results.isEmpty()) {
+            BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
             
-            Query query = new Query(Criteria.where("id").is(teamId));
-            Update update = new Update()
-                .set("totalQrCodes", totalQrCodes)
-                .set("updatedAt", LocalDateTime.now());
+            for (var result : results) {
+                String teamId = result.getString("_id");
+                Integer totalQrCodes = result.getInteger("totalQrCodes", 0);
+                
+                Query query = new Query(Criteria.where("id").is(teamId));
+                Update update = new Update()
+                    .set("totalQrCodes", totalQrCodes)
+                    .set("updatedAt", LocalDateTime.now());
+                
+                bulkOps.updateOne(query, update);
+            }
             
-            bulkOps.updateOne(query, update);
+            var bulkResult = bulkOps.execute();
+            logger.info("📈 Updated QR code statistics for {} teams", bulkResult.getModifiedCount());
+        } else {
+            logger.info("📈 No team QR code statistics to update");
         }
-        
-        var bulkResult = bulkOps.execute();
-        logger.info("📈 Updated QR code statistics for {} teams", bulkResult.getModifiedCount());
     }
     
     private void updateTeamFileCounts() {
@@ -190,22 +200,27 @@ public class DatabaseOptimizationService {
                                   .aggregate(pipeline)
                                   .into(new java.util.ArrayList<>());
         
-        BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
-        
-        for (var result : results) {
-            String teamId = result.getString("_id");
-            Integer totalFiles = result.getInteger("totalFiles", 0);
+        // Only perform bulk update if there are results
+        if (!results.isEmpty()) {
+            BulkOperations bulkOps = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "teams");
             
-            Query query = new Query(Criteria.where("id").is(teamId));
-            Update update = new Update()
-                .set("totalFiles", totalFiles)
-                .set("updatedAt", LocalDateTime.now());
+            for (var result : results) {
+                String teamId = result.getString("_id");
+                Integer totalFiles = result.getInteger("totalFiles", 0);
+                
+                Query query = new Query(Criteria.where("id").is(teamId));
+                Update update = new Update()
+                    .set("totalFiles", totalFiles)
+                    .set("updatedAt", LocalDateTime.now());
+                
+                bulkOps.updateOne(query, update);
+            }
             
-            bulkOps.updateOne(query, update);
+            var bulkResult = bulkOps.execute();
+            logger.info("📈 Updated file statistics for {} teams", bulkResult.getModifiedCount());
+        } else {
+            logger.info("📈 No team file statistics to update");
         }
-        
-        var bulkResult = bulkOps.execute();
-        logger.info("📈 Updated file statistics for {} teams", bulkResult.getModifiedCount());
     }
     
     /**
