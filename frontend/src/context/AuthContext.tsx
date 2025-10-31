@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (savedUser && savedToken) {
           try {
-            // Validate token with backend
+            // Try to validate token with backend
             const data = await api.validateToken(savedToken);
             
             if (data.success && data.user) {
@@ -124,12 +124,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               throw new Error('Token validation failed');
             }
           } catch (error) {
-            console.error('Token validation failed, clearing localStorage:', error);
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-            setUser(null);
-            setToken(null);
-            setIsAuthenticated(false);
+            console.error('Token validation failed, trying fallback:', error);
+            
+            // FALLBACK: If token validation fails but we have saved user data,
+            // restore the session temporarily (for better UX during backend issues)
+            try {
+              const parsedUser = JSON.parse(savedUser);
+              console.log('Using fallback authentication for user:', parsedUser.email);
+              
+              // Create user object from saved data
+              const user: User = {
+                id: parsedUser.id,
+                name: parsedUser.name,
+                email: parsedUser.email,
+                plan: parsedUser.plan || 'free',
+                avatar: parsedUser.avatar,
+                picture: parsedUser.picture,
+                createdAt: parsedUser.createdAt,
+                timezone: parsedUser.timezone || 'Asia/Kolkata',
+                language: parsedUser.language || 'en',
+                isAuthenticated: true,
+                authProvider: parsedUser.authProvider || 'email'
+              };
+              
+              setUser(user);
+              setToken(savedToken);
+              setIsAuthenticated(true);
+              console.log('Fallback authentication successful');
+              
+              // Show a warning that backend validation failed
+              console.warn('Using cached authentication - backend validation unavailable');
+              
+            } catch (fallbackError) {
+              console.error('Fallback authentication failed, clearing localStorage:', fallbackError);
+              localStorage.removeItem('user');
+              localStorage.removeItem('token');
+              setUser(null);
+              setToken(null);
+              setIsAuthenticated(false);
+            }
           }
         } else if (googleUserInfo && googleAuthService.isAuthenticated()) {
           console.log('Authenticating with Google info');

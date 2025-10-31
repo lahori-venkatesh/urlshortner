@@ -528,8 +528,12 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           formData.append('isPublic', 'true');
           
           const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+          const token = localStorage.getItem('token');
           const response = await fetch(`${apiUrl}/v1/files/upload`, {
             method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : ''
+            },
             body: formData
           });
           
@@ -568,10 +572,12 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         if (mode === 'url') {
           // Call URL shortening API
           const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+          const token = localStorage.getItem('token');
           const response = await fetch(`${apiUrl}/v1/urls`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : ''
             },
             body: JSON.stringify({
               originalUrl: originalUrl,
@@ -591,10 +597,12 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           
           if (isEditMode && editQRId) {
             // Update existing QR code
+            const token = localStorage.getItem('token');
             const response = await fetch(`${apiUrl}/v1/qr/${editQRId}`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
               },
               body: JSON.stringify({
                 userId: user?.id || 'anonymous-user',
@@ -614,10 +622,12 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             backendResult = await response.json();
           } else {
             // Create new QR code
+            const token = localStorage.getItem('token');
             const response = await fetch(`${apiUrl}/v1/qr`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
               },
               body: JSON.stringify({
                 content: originalUrl,
