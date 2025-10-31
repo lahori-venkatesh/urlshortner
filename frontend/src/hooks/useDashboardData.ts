@@ -22,57 +22,72 @@ const fetchUserUrls = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
-  const response = await fetch(`${apiUrl}/v1/urls/user/${userId}`, {
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json'
+  try {
+    const response = await fetch(`${apiUrl}/v1/urls/user/${userId}`, {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch URLs: ${response.status} ${response.statusText}`);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch URLs: ${response.status}`);
+    
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching user URLs:', error);
+    throw new Error(`Unable to load URLs. Please check if the backend server is running.`);
   }
-  
-  const data = await response.json();
-  return data.success ? data.data : [];
 };
 
 const fetchUserQRCodes = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
-  const response = await fetch(`${apiUrl}/v1/qr/user/${userId}`, {
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json'
+  try {
+    const response = await fetch(`${apiUrl}/v1/qr/user/${userId}`, {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch QR codes: ${response.status} ${response.statusText}`);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch QR codes: ${response.status}`);
+    
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching user QR codes:', error);
+    throw new Error(`Unable to load QR codes. Please check if the backend server is running.`);
   }
-  
-  const data = await response.json();
-  return data.success ? data.data : [];
 };
 
 const fetchUserFiles = async (userId: string) => {
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
   const token = localStorage.getItem('token');
   
-  const response = await fetch(`${apiUrl}/v1/files/user/${userId}`, {
-    headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json'
+  try {
+    const response = await fetch(`${apiUrl}/v1/files/user/${userId}`, {
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch files: ${response.status} ${response.statusText}`);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch files: ${response.status}`);
+    
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching user files:', error);
+    throw new Error(`Unable to load files. Please check if the backend server is running.`);
   }
-  
-  const data = await response.json();
-  return data.success ? data.data : [];
 };
 
 // Process raw data into dashboard stats

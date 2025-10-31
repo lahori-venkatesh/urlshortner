@@ -73,9 +73,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onCreateClick }) 
 
   // Handle error state
   if (error) {
+    console.error('Dashboard data loading error:', error);
     return (
       <div className="p-6 text-center">
         <div className="text-red-600 mb-4">Failed to load dashboard data</div>
+        <div className="text-sm text-gray-600 mb-4">
+          {error instanceof Error ? error.message : 'Unknown error occurred'}
+        </div>
         <button 
           onClick={handleRefresh}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
