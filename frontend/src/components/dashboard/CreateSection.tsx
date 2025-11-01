@@ -1964,12 +1964,19 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       value={selectedDomain}
                       onChange={(e) => {
                         if (e.target.value === 'ADD_CUSTOM_DOMAIN') {
-                          // Handle add custom domain action
-                          // Note: CreateSection doesn't have access to user/auth context directly
-                          // So we'll navigate to the domains page which will handle the upgrade check
-                          window.location.href = '/dashboard?section=domains&action=onboard';
-                          // Reset selection to default
+                          console.log('🚨 ADD_CUSTOM_DOMAIN SELECTED IN CREATE SECTION');
+                          e.preventDefault();
+                          
+                          // Reset selection first
                           setSelectedDomain('pebly.vercel.app');
+                          
+                          // Show alert to confirm this is working
+                          alert('MODAL SHOULD OPEN NOW - CREATE SECTION VERSION');
+                          
+                          // TODO: Add modal logic here
+                          console.log('🚨 NEED TO ADD MODAL LOGIC TO CREATE SECTION');
+                          
+                          return; // Stop navigation
                         } else {
                           setSelectedDomain(e.target.value);
                         }
