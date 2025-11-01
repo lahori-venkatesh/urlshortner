@@ -470,40 +470,46 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
       centerText: featureAccess.canUseQRBranding ? qrCustomization.centerText : undefined
     };
 
-    // Check subscription limits before creating
+    // Check subscription limits before creating (only for logged-in users)
     if (user?.id) {
-      const action = mode === 'url' ? 'create-url' : mode === 'qr' ? 'create-qr' : 'create-file';
-      const accessCheck = await checkAccess(action);
-      
-      if (!accessCheck.hasAccess) {
-        showUpgradeModal('daily-limit', accessCheck.message);
-        return;
-      }
-
-      // Check QR customization
-      if (mode === 'qr') {
-        const hasCustomization = qrCustomization.foregroundColor !== '#000000' ||
-                                qrCustomization.backgroundColor !== '#FFFFFF' ||
-                                qrCustomization.logo ||
-                                qrCustomization.frameStyle !== 'none';
+      try {
+        const action = mode === 'url' ? 'create-url' : mode === 'qr' ? 'create-qr' : 'create-file';
+        const accessCheck = await checkAccess(action);
         
-        if (hasCustomization && !(await checkAccess('customize-qr')).hasAccess) {
-          showUpgradeModal('customize-qr');
+        if (!accessCheck.hasAccess) {
+          showUpgradeModal('daily-limit', accessCheck.message);
           return;
         }
-      }
 
-      // Check file size for file uploads
-      if (mode === 'file' && selectedFile) {
-        const maxSizeMB = planInfo?.maxFileSizeMB || 5;
-        const fileSizeMB = selectedFile.size / (1024 * 1024);
-        
-        if (fileSizeMB > maxSizeMB) {
-          showUpgradeModal('file-size', `File size exceeds ${maxSizeMB}MB limit. Upgrade to Pro for up to 500MB uploads.`);
-          return;
+        // Check QR customization for logged-in users
+        if (mode === 'qr') {
+          const hasCustomization = qrCustomization.foregroundColor !== '#000000' ||
+                                  qrCustomization.backgroundColor !== '#FFFFFF' ||
+                                  qrCustomization.logo ||
+                                  qrCustomization.frameStyle !== 'none';
+          
+          if (hasCustomization && !(await checkAccess('customize-qr')).hasAccess) {
+            showUpgradeModal('customize-qr');
+            return;
+          }
         }
+
+        // Check file size for file uploads
+        if (mode === 'file' && selectedFile) {
+          const maxSizeMB = planInfo?.maxFileSizeMB || 5;
+          const fileSizeMB = selectedFile.size / (1024 * 1024);
+          
+          if (fileSizeMB > maxSizeMB) {
+            showUpgradeModal('file-size', `File size exceeds ${maxSizeMB}MB limit. Upgrade to Pro for up to 500MB uploads.`);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Access check failed, allowing basic functionality:', error);
+        // Continue with generation for basic functionality
       }
     }
+    // Anonymous users can use basic functionality without limits
 
     setIsLoading(true);
 
@@ -914,7 +920,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
       )}
 
       {/* Usage Limits Banner for Free Users */}
-      {planInfo && !planInfo.hasProAccess && (
+      {(!user?.id || (planInfo && !planInfo.hasProAccess)) && (
         <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -922,11 +928,19 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 <Zap className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Free Plan Limits</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {!user?.id ? 'Anonymous Usage' : 'Free Plan Limits'}
+                </h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  <span>URLs: {planInfo.remainingMonthlyUrls || 0}/75 this month</span>
-                  <span>QR Codes: {planInfo.remainingMonthlyQrCodes || 0}/30 this month</span>
-                  <span>Files: {planInfo.remainingMonthlyFiles || 0}/5 this month</span>
+                  {!user?.id ? (
+                    <span>Sign up to track your usage and get monthly limits</span>
+                  ) : (
+                    <>
+                      <span>URLs: {planInfo?.remainingMonthlyUrls || 0}/75 this month</span>
+                      <span>QR Codes: {planInfo?.remainingMonthlyQrCodes || 0}/30 this month</span>
+                      <span>Files: {planInfo?.remainingMonthlyFiles || 0}/5 this month</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -939,50 +953,61 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           </div>
           
           {/* Monthly Progress bars */}
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="bg-white/50 rounded-lg p-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Short Links</span>
-                <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
+          {user?.id && planInfo ? (
+            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Short Links</span>
+                  <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                  style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
-                />
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>QR Codes</span>
+                  <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
               </div>
-              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>File Conversions</span>
+                  <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+              </div>
             </div>
-            <div className="bg-white/50 rounded-lg p-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>QR Codes</span>
-                <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
-                  style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
-                />
-              </div>
-              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+          ) : (
+            <div className="mt-4 p-4 bg-white/50 rounded-lg text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                🚀 Create unlimited URLs, QR codes, and file conversions
+              </p>
+              <p className="text-xs text-gray-500">
+                Sign up to get monthly limits and track your usage
+              </p>
             </div>
-            <div className="bg-white/50 rounded-lg p-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>File Conversions</span>
-                <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
-                  style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
-                />
-              </div>
-              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-            </div>
-          </div>
+          )}
 
           {/* Trial offer */}
-          {planInfo.trialEligible && (
+          {planInfo?.trialEligible && (
             <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200">
               <div className="flex items-center justify-between">
                 <div>
