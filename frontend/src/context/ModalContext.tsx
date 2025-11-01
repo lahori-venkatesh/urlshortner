@@ -49,24 +49,13 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     businessOnly: boolean = false
   ) => {
     console.log('🎯 ModalContext: Opening upgrade modal', { feature, message, businessOnly });
-    console.log('🎯 ModalContext: Current state before open:', {
-      isUpgradeModalOpen,
-      upgradeFeature,
-      upgradeMessage,
-      showOnlyBusiness,
-    });
     
     // Batch state updates to prevent multiple re-renders
     setUpgradeFeature(feature);
     setUpgradeMessage(message);
     setShowOnlyBusiness(businessOnly);
     setActiveModal('upgrade');
-    
-    // Open modal after state is set
-    setTimeout(() => {
-      console.log('🎯 ModalContext: Setting isUpgradeModalOpen to true');
-      setIsUpgradeModalOpen(true);
-    }, 0);
+    setIsUpgradeModalOpen(true);
   };
 
   const closeUpgradeModal = () => {
@@ -81,16 +70,12 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
       }
     });
     
-    // Close modal first
+    // Close modal and clean up state immediately
     setIsUpgradeModalOpen(false);
-    
-    // Clean up state after animation
-    setTimeout(() => {
-      setUpgradeFeature('');
-      setUpgradeMessage('');
-      setShowOnlyBusiness(false);
-      setActiveModal(null);
-    }, 150); // Allow for modal close animation
+    setUpgradeFeature('');
+    setUpgradeMessage('');
+    setShowOnlyBusiness(false);
+    setActiveModal(null);
   };
 
   // Generic Modal Actions
@@ -165,13 +150,6 @@ export const useModal = (): ModalContextType => {
 // Convenience hooks for specific modals
 export const useUpgradeModal = () => {
   const context = useModal();
-  
-  console.log('🎯 useUpgradeModal - Context values:', {
-    isUpgradeModalOpen: context.isUpgradeModalOpen,
-    upgradeFeature: context.upgradeFeature,
-    upgradeMessage: context.upgradeMessage,
-    showOnlyBusiness: context.showOnlyBusiness,
-  });
   
   return {
     isOpen: context.isUpgradeModalOpen,
