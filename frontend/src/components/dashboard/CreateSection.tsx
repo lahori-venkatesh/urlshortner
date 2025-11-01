@@ -20,7 +20,8 @@ import {
   Palette,
   Crown,
   Download,
-  Save
+  Save,
+  Lock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import QRCodeGenerator from '../QRCodeGenerator';
@@ -29,6 +30,7 @@ import * as QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 import LinkSuccessModal from '../LinkSuccessModal';
 import QRSuccessModal from '../QRSuccessModal';
+import PremiumField from '../PremiumField';
 
 type CreateMode = 'url' | 'qr' | 'file';
 
@@ -1564,7 +1566,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       <div className="flex items-center justify-between mb-3">
                         <label className="block text-sm sm:text-base font-medium text-gray-700">Custom Colors</label>
                         {!featureAccess.canUseCustomQRColors && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <span 
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                            onClick={() => upgradeModal.open(
+                              'Custom QR Colors',
+                              'Customize your QR code colors to match your brand. Upgrade to Pro to unlock color customization.',
+                              false
+                            )}
+                            title="Click to upgrade to Pro"
+                          >
                             <Palette className="w-3 h-3 mr-1" />
                             Pro
                           </span>
@@ -1697,7 +1707,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                           Add Logo (Optional)
                         </label>
                         {!featureAccess.canUseQRLogo && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <span 
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                            onClick={() => upgradeModal.open(
+                              'QR Code Logo',
+                              'Add your company logo to QR codes for better branding. Upgrade to Pro to unlock logo customization.',
+                              false
+                            )}
+                            title="Click to upgrade to Pro"
+                          >
                             <Crown className="w-3 h-3 mr-1" />
                             Pro
                           </span>
@@ -1716,14 +1734,17 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                             }
                             logoInputRef.current?.click();
                           }}
-                          className={`w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors ${
+                          className={`w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed rounded-lg transition-all duration-200 ${
                             !featureAccess.canUseQRLogo
-                              ? 'border-purple-200 bg-purple-50 text-purple-600 cursor-not-allowed'
+                              ? 'border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-600 cursor-pointer hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 hover:shadow-md'
                               : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700'
                           }`}
                         >
                           <Upload className="w-5 h-5" />
-                          <span>{!featureAccess.canUseQRLogo ? 'Upgrade to Pro for Logo' : 'Upload Logo'}</span>
+                          <span>{!featureAccess.canUseQRLogo ? 'Click to unlock logo upload' : 'Upload Logo'}</span>
+                          {!featureAccess.canUseQRLogo && (
+                            <Lock className="w-4 h-4 text-purple-500" />
+                          )}
                         </button>
                         {qrCustomization.logo && (
                           <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
@@ -1808,7 +1829,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                           Center Text (Branding)
                         </label>
                         {!featureAccess.canUseQRBranding && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <span 
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                            onClick={() => upgradeModal.open(
+                              'QR Code Branding',
+                              'Add your brand text to QR codes for better recognition. Upgrade to Pro to unlock branding features.',
+                              false
+                            )}
+                            title="Click to upgrade to Pro"
+                          >
                             <Sparkles className="w-3 h-3 mr-1" />
                             Pro
                           </span>
@@ -1819,29 +1848,34 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       <div className="relative mb-4">
                         <input
                           type="text"
-                          placeholder={featureAccess.canUseQRBranding ? "YOUR BRAND" : "Upgrade to Pro for branding"}
+                          placeholder={featureAccess.canUseQRBranding ? "YOUR BRAND" : "Click to unlock branding"}
                           value={qrCustomization.centerText || ''}
-                          onChange={(e) => {
-                            if (!featureAccess.canUseQRBranding && e.target.value.trim()) {
+                          onClick={(e) => {
+                            if (!featureAccess.canUseQRBranding) {
+                              e.preventDefault();
                               upgradeModal.open(
                                 'QR Code Branding',
                                 'Add your brand text to QR codes for better recognition. Upgrade to Pro to unlock branding features.',
                                 false
                               );
-                              return;
                             }
-                            setQrCustomization(prev => ({
-                              ...prev,
-                              centerText: e.target.value.toUpperCase()
-                            }));
+                          }}
+                          onChange={(e) => {
+                            if (featureAccess.canUseQRBranding) {
+                              setQrCustomization(prev => ({
+                                ...prev,
+                                centerText: e.target.value.toUpperCase()
+                              }));
+                            }
                           }}
                           maxLength={10}
-                          className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-bold ${
+                          className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-bold cursor-pointer transition-all duration-200 ${
                             !featureAccess.canUseQRBranding
-                              ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                              ? 'border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-600 placeholder-purple-400 hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 hover:shadow-md'
                               : 'border-gray-300'
                           }`}
-                          disabled={!featureAccess.canUseQRBranding}
+                          readOnly={!featureAccess.canUseQRBranding}
+                          title={!featureAccess.canUseQRBranding ? "Click to upgrade and unlock branding" : ""}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
                           {(qrCustomization.centerText || '').length}/10
@@ -2157,76 +2191,32 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     </select>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Custom Alias (Optional)
-                      </label>
-                      {!featureAccess.canUseCustomAlias && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          <Zap className="w-3 h-3 mr-1" />
-                          Pro
-                        </span>
-                      )}
-                    </div>
+                  <PremiumField 
+                    feature="customAlias" 
+                    label="Custom Alias (Optional)"
+                    description="Create memorable branded short links"
+                  >
                     <input
                       type="text"
-                      placeholder={featureAccess.canUseCustomAlias ? "my-custom-link" : "Upgrade to Pro for custom aliases"}
+                      placeholder="my-custom-link"
                       value={customAlias}
-                      onChange={(e) => {
-                        if (!featureAccess.canUseCustomAlias && e.target.value.trim()) {
-                          upgradeModal.open(
-                            'Custom Aliases',
-                            'Create memorable custom short links with Pro. Make your links more brandable and easier to remember.',
-                            false
-                          );
-                          return;
-                        }
-                        setCustomAlias(e.target.value);
-                      }}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        !featureAccess.canUseCustomAlias 
-                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
-                          : 'border-gray-300'
-                      }`}
-                      disabled={!featureAccess.canUseCustomAlias}
+                      onChange={(e) => setCustomAlias(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                  </div>
+                  </PremiumField>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Password Protection
-                      </label>
-                      {!featureAccess.canUsePasswordProtection && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Pro
-                        </span>
-                      )}
-                    </div>
+                  <PremiumField 
+                    feature="passwordProtection" 
+                    label="Password Protection"
+                    description="Secure your links with password protection"
+                  >
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder={featureAccess.canUsePasswordProtection ? "Optional password" : "Upgrade to Pro for password protection"}
+                        placeholder="Optional password"
                         value={password}
-                        onChange={(e) => {
-                          if (!featureAccess.canUsePasswordProtection && e.target.value.trim()) {
-                            upgradeModal.open(
-                              'Password Protection',
-                              'Secure your links with password protection. Only users with the password can access your content.',
-                              false
-                            );
-                            return;
-                          }
-                          setPassword(e.target.value);
-                        }}
-                        className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          !featureAccess.canUsePasswordProtection
-                            ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
-                            : 'border-gray-300'
-                        }`}
-                        disabled={!featureAccess.canUsePasswordProtection}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       <button
                         type="button"
@@ -2236,7 +2226,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                  </div>
+                  </PremiumField>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">

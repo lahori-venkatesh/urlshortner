@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { uploadFileToBackend, createShortUrl, createQrCode, getUserUrls, getUserFiles, getUserQrCodes } from '../services/api';
 import SimpleFileUpload from './SimpleFileUpload';
 import UpgradeModal from './UpgradeModal';
+import PremiumField from './PremiumField';
 
 
 interface ShortenedLink {
@@ -646,38 +647,19 @@ const UrlShortener: React.FC = () => {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Custom Alias (Optional)
-                    </label>
-                    {!featureAccess.canUseCustomAlias && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <Zap className="w-3 h-3 mr-1" />
-                        Pro
-                      </span>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder={featureAccess.canUseCustomAlias ? "my-custom-link" : "Upgrade to Pro for custom aliases"}
-                    value={customAlias}
-                    onChange={(e) => {
-                      if (!featureAccess.canUseCustomAlias && e.target.value.trim()) {
-                        upgradeModal.open(
-                          'Custom Aliases',
-                          'Create memorable custom short links with Pro. Make your links more brandable and easier to remember.',
-                          false
-                        );
-                        return;
-                      }
-                      setCustomAlias(e.target.value);
-                    }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      !featureAccess.canUseCustomAlias 
-                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
-                        : 'border-gray-300'
-                    }`}
-                  />
+                  <PremiumField 
+                    feature="customAlias" 
+                    label="Custom Alias (Optional)"
+                    description="Create memorable branded short links that are easy to remember and share"
+                  >
+                    <input
+                      type="text"
+                      placeholder="my-custom-link"
+                      value={customAlias}
+                      onChange={(e) => setCustomAlias(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </PremiumField>
                   {customAlias && featureAccess.canUseCustomAlias && (
                     <p className="text-xs text-gray-500 mt-1">
                       Preview: {selectedDomain}/{customAlias}
@@ -685,39 +667,18 @@ const UrlShortener: React.FC = () => {
                   )}
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Password Protection
-                    </label>
-                    {!featureAccess.canUsePasswordProtection && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <Lock className="w-3 h-3 mr-1" />
-                        Pro
-                      </span>
-                    )}
-                  </div>
+                <PremiumField 
+                  feature="passwordProtection" 
+                  label="Password Protection"
+                  description="Secure your links with password protection - only users with the password can access your content"
+                >
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder={featureAccess.canUsePasswordProtection ? "Optional password" : "Upgrade to Pro for password protection"}
+                      placeholder="Optional password"
                       value={password}
-                      onChange={(e) => {
-                        if (!featureAccess.canUsePasswordProtection && e.target.value.trim()) {
-                          upgradeModal.open(
-                            'Password Protection',
-                            'Secure your links with password protection. Only users with the password can access your content.',
-                            false
-                          );
-                          return;
-                        }
-                        setPassword(e.target.value);
-                      }}
-                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        !featureAccess.canUsePasswordProtection
-                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
-                          : 'border-gray-300'
-                      }`}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -727,77 +688,35 @@ const UrlShortener: React.FC = () => {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                </div>
+                </PremiumField>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Expiration (Days)
-                    </label>
-                    {!featureAccess.canUseLinkExpiration && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Pro
-                      </span>
-                    )}
-                  </div>
+                <PremiumField 
+                  feature="linkExpiration" 
+                  label="Expiration (Days)"
+                  description="Set expiration dates for your links to automatically disable them after a certain time period"
+                >
                   <input
                     type="number"
-                    placeholder={featureAccess.canUseLinkExpiration ? "Never expires" : "Upgrade to Pro for link expiration"}
+                    placeholder="Never expires"
                     value={expirationDays}
-                    onChange={(e) => {
-                      if (!featureAccess.canUseLinkExpiration && e.target.value.trim()) {
-                        upgradeModal.open(
-                          'Link Expiration',
-                          'Set expiration dates for your links to automatically disable them after a certain time period.',
-                          false
-                        );
-                        return;
-                      }
-                      setExpirationDays(e.target.value ? parseInt(e.target.value) : '');
-                    }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      !featureAccess.canUseLinkExpiration
-                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
-                        : 'border-gray-300'
-                    }`}
+                    onChange={(e) => setExpirationDays(e.target.value ? parseInt(e.target.value) : '')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                </div>
+                </PremiumField>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Max Clicks
-                    </label>
-                    {!featureAccess.canUseClickLimits && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Pro
-                      </span>
-                    )}
-                  </div>
+                <PremiumField 
+                  feature="clickLimits" 
+                  label="Max Clicks"
+                  description="Control the maximum number of clicks your links can receive before they become inactive"
+                >
                   <input
                     type="number"
-                    placeholder={featureAccess.canUseClickLimits ? "Unlimited" : "Upgrade to Pro for click limits"}
+                    placeholder="Unlimited"
                     value={maxClicks}
-                    onChange={(e) => {
-                      if (!featureAccess.canUseClickLimits && e.target.value.trim()) {
-                        upgradeModal.open(
-                          'Click Limits',
-                          'Control the maximum number of clicks your links can receive before they become inactive.',
-                          false
-                        );
-                        return;
-                      }
-                      setMaxClicks(e.target.value ? parseInt(e.target.value) : '');
-                    }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      !featureAccess.canUseClickLimits
-                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
-                        : 'border-gray-300'
-                    }`}
+                    onChange={(e) => setMaxClicks(e.target.value ? parseInt(e.target.value) : '')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                </div>
+                </PremiumField>
 
                 <div className="md:col-span-2">
                   <label className="flex items-center">
