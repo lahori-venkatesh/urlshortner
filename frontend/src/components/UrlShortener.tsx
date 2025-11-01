@@ -713,6 +713,7 @@ const UrlShortener: React.FC = () => {
                       const selectedValue = e.target.value;
                       
                       if (selectedValue === 'ADD_CUSTOM_DOMAIN') {
+                        e.preventDefault(); // ⛔️ Prevent any default browser behavior
                         // Reset selection FIRST to prevent re-render loops
                         setSelectedDomain('pebly.vercel.app');
                         
@@ -736,16 +737,26 @@ const UrlShortener: React.FC = () => {
                           // 🚫 FREE user or no custom domain feature - show upgrade modal
                           if (!featureAccess.canUseCustomDomain) {
                             console.log('✅ FREE user - showing upgrade modal via context');
+                            console.log('🚀 Attempting to open modal', {
+                              modalContext: upgradeModal,
+                              featureAccess,
+                            });
                             upgradeModal.open(
                               'Custom Domains',
                               'Unlock custom domains and professional branding for your links',
                               false
                             );
+                            return; // ⛔️ STOP - Don't navigate, show modal instead
                           }
+                          
                           // 🟡 Has feature but reached limit - check upgrade path
-                          else if (!featureAccess.canAddDomain(customDomainCount)) {
+                          if (!featureAccess.canAddDomain(customDomainCount)) {
                             if (user?.plan === 'PRO') {
                               console.log('✅ PRO user at limit - showing BUSINESS upgrade modal via context');
+                              console.log('🚀 Attempting to open Business upgrade modal', {
+                                modalContext: upgradeModal,
+                                userPlan: user?.plan,
+                              });
                               upgradeModal.open(
                                 'Upgrade to Business for more domains',
                                 'Get up to 3 custom domains with our Business plan',
@@ -755,13 +766,13 @@ const UrlShortener: React.FC = () => {
                               console.log('✅ BUSINESS user at limit - showing limit message');
                               toast.error(`You've reached the ${featureAccess.domainLimit} domain limit for your ${featureAccess.limits.name} plan. Please contact support for more domains.`);
                             }
+                            return; // ⛔️ STOP - Don't navigate, show modal/toast instead
                           }
+                          
                           // ✅ Can add domain - navigate to onboarding (React Router)
-                          else {
-                            console.log('✅ User can add domain - navigating to onboarding via React Router');
-                            navigate('/dashboard?tab=domains&action=onboard');
-                          }
-                        }, 0);
+                          console.log('✅ User can add domain - navigating to onboarding via React Router');
+                          navigate('/dashboard?tab=domains&action=onboard');
+                        }, 100);
                       } else {
                         setSelectedDomain(selectedValue);
                       }
@@ -1053,8 +1064,7 @@ const UrlShortener: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Upgrade Modal - Now managed by context and portal */}
-      <UpgradeModal />
+      {/* Upgrade Modal is now mounted globally in App.tsx */}
     </div>
   );
 };

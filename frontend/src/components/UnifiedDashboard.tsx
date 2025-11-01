@@ -28,7 +28,7 @@ import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
 import CustomDomainManager from './CustomDomainManager';
-import UpgradeModal from './UpgradeModal';
+// Removed unused import - UpgradeModal is now global
 
 type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'domains' | 'team-members' | 'team-settings';
 type CreateMode = 'url' | 'qr' | 'file';
@@ -434,8 +434,7 @@ const UnifiedDashboard: React.FC = () => {
         </main>
       </div>
 
-      {/* Upgrade Modal - Now managed by context and portal */}
-      <UpgradeModal />
+      {/* Upgrade Modal is now mounted globally in App.tsx */}
     </div>
   );
 };

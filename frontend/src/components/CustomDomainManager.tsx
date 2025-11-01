@@ -7,7 +7,7 @@ import { subscriptionService, UserPlanInfo } from '../services/subscriptionServi
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import CustomDomainOnboarding from './CustomDomainOnboarding';
-import UpgradeModal from './UpgradeModal';
+// Removed unused import - UpgradeModal is now global
 
 interface CustomDomain {
   id: string;
@@ -754,8 +754,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         teamId={ownerType === 'TEAM' ? ownerId : undefined}
       />
 
-      {/* Upgrade Modal - Now managed by context and portal */}
-      <UpgradeModal />
+      {/* Upgrade Modal is now mounted globally in App.tsx */}
     </div>
   );
 };

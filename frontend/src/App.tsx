@@ -9,7 +9,7 @@ import { ModalProvider } from './context/ModalContext';
 import { QueryProvider } from './providers/QueryProvider';
 import UpgradeModal from './components/UpgradeModal';
 import SupportWidget from './components/support/SupportWidget';
-import { useSubscription } from './context/SubscriptionContext';
+// Removed unused import
 import AuthRedirect from './components/AuthRedirect';
 import Header from './components/Header';
 import LandingPage from './pages/LandingPage';
@@ -38,7 +38,6 @@ import AuthTest from './pages/AuthTest';
 import './App.css';
 
 const AppContent: React.FC = () => {
-  const { upgradeModalState, hideUpgradeModal } = useSubscription();
 
   return (
     <>
@@ -204,13 +203,8 @@ const AppContent: React.FC = () => {
         </div>
       </Router>
       
-      {/* Global Upgrade Modal */}
-      <UpgradeModal
-        isOpen={upgradeModalState.isOpen}
-        onClose={hideUpgradeModal}
-        feature={upgradeModalState.feature}
-        message={upgradeModalState.message}
-      />
+      {/* Global Upgrade Modal - New Context System */}
+      <UpgradeModal />
       
       {/* Global Support Widget */}
       <SupportWidget />
