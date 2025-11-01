@@ -261,6 +261,7 @@ const UrlShortener: React.FC = () => {
           customAlias: customAlias || undefined,
           password: password || undefined,
           expirationDays: expirationDays ? parseInt(expirationDays.toString()) : undefined,
+          maxClicks: maxClicks ? parseInt(maxClicks.toString()) : undefined,
           title: `Short link for ${urlInput}`,
           description: 'Created via URL Shortener',
           customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined

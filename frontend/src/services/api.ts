@@ -258,6 +258,7 @@ export const createShortUrl = async (data: {
   customAlias?: string;
   password?: string;
   expirationDays?: number;
+  maxClicks?: number;
   title?: string;
   description?: string;
   customDomain?: string;

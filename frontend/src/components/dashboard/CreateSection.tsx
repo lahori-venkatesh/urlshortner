@@ -31,6 +31,7 @@ import toast from 'react-hot-toast';
 import LinkSuccessModal from '../LinkSuccessModal';
 import QRSuccessModal from '../QRSuccessModal';
 import PremiumField from '../PremiumField';
+import { createShortUrl, createQrCode, uploadFileToBackend } from '../../services/api';
 
 type CreateMode = 'url' | 'qr' | 'file';
 
@@ -558,26 +559,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           reader.readAsDataURL(selectedFile);
         });
         
-        // Upload file to backend via API
+        // Upload file to backend via centralized API function
         try {
-          const formData = new FormData();
-          formData.append('file', selectedFile);
-          formData.append('userId', user?.id || 'anonymous-user');
-          formData.append('title', selectedFile.name);
-          formData.append('description', 'Uploaded via Dashboard');
-          formData.append('isPublic', 'true');
-          
-          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-          const token = localStorage.getItem('token');
-          const response = await fetch(`${apiUrl}/v1/files/upload`, {
-            method: 'POST',
-            headers: {
-              'Authorization': token ? `Bearer ${token}` : ''
-            },
-            body: formData
+          const fileResult = await uploadFileToBackend(selectedFile, {
+            userId: user?.id || 'anonymous-user',
+            title: selectedFile.name,
+            description: 'Uploaded via Dashboard',
+            isPublic: true
           });
           
-          const fileResult = await response.json();
           if (fileResult.success) {
             originalUrl = fileResult.data.fileUrl;
             toast.success('File uploaded to database successfully!');
@@ -610,81 +600,46 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         let backendResult;
         
         if (mode === 'url') {
-          // Call URL shortening API
-          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-          const token = localStorage.getItem('token');
-          const response = await fetch(`${apiUrl}/v1/urls`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': token ? `Bearer ${token}` : ''
-            },
-            body: JSON.stringify({
-              originalUrl: originalUrl,
-              userId: user?.id || 'anonymous-user',
-              customAlias: customAlias || undefined,
-              password: password || undefined,
-              expirationDays: expirationDays || undefined,
-              maxClicks: maxClicks || undefined,
-              title: `Dashboard URL - ${shortCode}`,
-              description: 'Created via Dashboard'
-            })
+          // Call URL shortening API using centralized function
+          backendResult = await createShortUrl({
+            originalUrl: originalUrl,
+            userId: user?.id || 'anonymous-user',
+            customAlias: customAlias || undefined,
+            password: password || undefined,
+            expirationDays: expirationDays || undefined,
+            maxClicks: maxClicks || undefined,
+            title: `Dashboard URL - ${shortCode}`,
+            description: 'Created via Dashboard'
           });
-          backendResult = await response.json();
         } else if (mode === 'qr') {
-          // Call QR code API (create or update)
-          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-          
+          // Call QR code API using centralized function
           if (isEditMode && editQRId) {
-            // Update existing QR code
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${apiUrl}/v1/qr/${editQRId}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : ''
-              },
-              body: JSON.stringify({
-                userId: user?.id || 'anonymous-user',
-                content: originalUrl,
-                contentType: 'TEXT',
-                title: `Dashboard QR - ${shortCode}`,
-                description: 'Updated via Dashboard',
-                foregroundColor: qrCustomization.foregroundColor,
-                backgroundColor: qrCustomization.backgroundColor,
-                size: qrCustomization.size,
-                errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
-                style: 'square',
-                cornerStyle: qrCustomization.cornerStyle,
-                frameStyle: qrCustomization.frameStyle
-              })
+            // Update existing QR code - use updateQrCode function
+            const { updateQrCode } = await import('../../services/api');
+            backendResult = await updateQrCode(editQRId, {
+              userId: user?.id || 'anonymous-user',
+              content: originalUrl,
+              contentType: 'TEXT',
+              title: `Dashboard QR - ${shortCode}`,
+              description: 'Updated via Dashboard',
+              foregroundColor: qrCustomization.foregroundColor,
+              backgroundColor: qrCustomization.backgroundColor,
+              size: qrCustomization.size,
+              style: 'square'
             });
-            backendResult = await response.json();
           } else {
             // Create new QR code
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${apiUrl}/v1/qr`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token ? `Bearer ${token}` : ''
-              },
-              body: JSON.stringify({
-                content: originalUrl,
-                contentType: 'TEXT',
-                userId: user?.id || 'anonymous-user',
-                title: `Dashboard QR - ${shortCode}`,
-                description: 'Created via Dashboard',
-                foregroundColor: qrCustomization.foregroundColor,
-                backgroundColor: qrCustomization.backgroundColor,
-                size: qrCustomization.size,
-                errorCorrectionLevel: qrCustomization.errorCorrectionLevel,
-                style: 'square',
-                cornerStyle: qrCustomization.cornerStyle,
-                frameStyle: qrCustomization.frameStyle
-              })
+            backendResult = await createQrCode({
+              content: originalUrl,
+              contentType: 'TEXT',
+              userId: user?.id || 'anonymous-user',
+              title: `Dashboard QR - ${shortCode}`,
+              description: 'Created via Dashboard',
+              foregroundColor: qrCustomization.foregroundColor,
+              backgroundColor: qrCustomization.backgroundColor,
+              size: qrCustomization.size,
+              style: 'square'
             });
-            backendResult = await response.json();
           }
         }
         
