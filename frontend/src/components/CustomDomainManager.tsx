@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { subscriptionService, UserPlanInfo } from '../services/subscriptionService';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -50,15 +51,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   ownerId 
 }) => {
   const { user, token } = useAuth();
+  const featureAccess = useFeatureAccess(user);
   const [userPlan, setUserPlan] = useState<UserPlanInfo | null>(null);
   
-  // Check if user has access to custom domains
-  const hasCustomDomainAccess = userPlan?.canUseCustomDomain || 
-                                (user?.plan?.includes('PRO')) || 
-                                (user?.plan?.includes('BUSINESS')) ||
-                                user?.plan === 'PRO' ||
-                                user?.plan === 'BUSINESS' ||
-                                user?.plan === 'BUSINESS_TRIAL';
+  // Use centralized policy for custom domain access
+  const hasCustomDomainAccess = featureAccess.canUseCustomDomain;
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [isAddingDomain, setIsAddingDomain] = useState(false);
   const [newDomain, setNewDomain] = useState('');
@@ -71,44 +68,47 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-  // Handle Add Custom Domain button click with proper flow
+  // Handle Add Custom Domain button click with centralized policy
   const handleAddCustomDomain = () => {
-    console.log('🔍 Add Custom Domain clicked - User Plan:', userPlan, 'User:', user?.plan, 'Has Access:', hasCustomDomainAccess);
+    console.log('🔍 Add Custom Domain clicked - Using centralized policy');
     
-    // Check if user is on free plan
-    const isFreeUser = !hasCustomDomainAccess || 
-                      user?.plan === 'FREE' || 
-                      user?.plan === 'free' || 
-                      (!user?.plan?.includes('PRO') && !user?.plan?.includes('BUSINESS'));
+    const verifiedDomainCount = domains.filter(d => d.status === 'VERIFIED').length;
     
-    if (isFreeUser) {
-      console.log('✅ Free user detected - showing upgrade modal');
+    console.log('🔍 Policy Check:', {
+      userPlan: user?.plan,
+      verifiedDomainCount,
+      canUseCustomDomain: featureAccess.canUseCustomDomain,
+      canAddDomain: featureAccess.canAddDomain(verifiedDomainCount),
+      domainLimit: featureAccess.domainLimit
+    });
+    
+    // 🚫 FREE user - show upgrade modal
+    if (!featureAccess.canUseCustomDomain) {
+      console.log('✅ FREE user - showing upgrade modal');
       setShowUpgradeModal(true);
       return;
     }
     
-    // User is PRO/BUSINESS - check domain limits
-    const verifiedDomainCount = domains.filter(d => d.status === 'VERIFIED').length;
-    
-    if (user?.plan === 'BUSINESS' || user?.plan === 'BUSINESS_TRIAL') {
-      if (verifiedDomainCount >= 3) {
-        console.log('✅ BUSINESS user at domain limit - showing limit message');
-        toast.error('You have reached the 3 domain limit for your Business plan. Please contact support for more domains.');
-        return;
+    // 🟡 Has feature but reached limit
+    if (!featureAccess.canAddDomain(verifiedDomainCount)) {
+      if (user?.plan === 'PRO') {
+        console.log('✅ PRO user at limit - showing upgrade modal for Business');
+        setShowUpgradeModal(true);
       } else {
-        console.log('✅ BUSINESS user under limit - redirecting to onboarding');
+        console.log('✅ BUSINESS user at limit - showing limit message');
+        toast.error(featureAccess.getUpgradeReason('Custom Domains', verifiedDomainCount));
       }
+      return;
     }
     
-    // User is PRO/BUSINESS - check if they have completed onboarding
+    // ✅ Can add domain - check if they have existing domains
     const hasExistingDomains = domains && domains.length > 0;
     
     if (!hasExistingDomains) {
-      console.log('✅ Pro user with no domains - showing onboarding');
+      console.log('✅ User with no domains - showing onboarding');
       setShowOnboarding(true);
     } else {
-      console.log('✅ Pro user with existing domains - showing domain management');
-      // Show the add domain form for users who already have domains
+      console.log('✅ User with existing domains - showing domain management');
       setIsAddingDomain(true);
     }
   };
