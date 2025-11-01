@@ -12,6 +12,7 @@ import { uploadFileToBackend, createShortUrl, createQrCode, getUserUrls, getUser
 import SimpleFileUpload from './SimpleFileUpload';
 import UpgradeModal from './UpgradeModal';
 
+
 interface ShortenedLink {
   id: string;
   shortCode: string;
@@ -25,33 +26,6 @@ interface ShortenedLink {
 }
 
 const UrlShortener: React.FC = () => {
-  console.log('=== UrlShortener component rendered ===');
-  console.log('Current time:', new Date().toISOString());
-  
-  // Add global error handlers
-  React.useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      console.error('=== GLOBAL ERROR HANDLER ===');
-      console.error('Global error:', event.error);
-      console.error('Message:', event.message);
-      console.error('Filename:', event.filename);
-      console.error('Line:', event.lineno);
-    };
-    
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('=== UNHANDLED PROMISE REJECTION ===');
-      console.error('Reason:', event.reason);
-      console.error('Promise:', event.promise);
-    };
-    
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, []);
   
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -79,13 +53,10 @@ const UrlShortener: React.FC = () => {
 
   const loadDataFromDatabase = async () => {
     if (!user || !user.id) {
-      console.log('No authenticated user, skipping database load');
       return;
     }
 
     try {
-      console.log('Loading user data from database for user:', user.id);
-      
       // Load URLs, files, and QR codes from database
       const [urlsResponse, filesResponse, qrResponse] = await Promise.all([
         getUserUrls(user.id).catch(e => ({ success: false, data: [] })),
@@ -145,11 +116,6 @@ const UrlShortener: React.FC = () => {
       allLinks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setShortenedLinks(allLinks);
-      console.log(`Loaded ${allLinks.length} items from database`);
-      
-      if (allLinks.length > 0) {
-        toast.success(`Loaded ${allLinks.length} items from database`);
-      }
 
     } catch (error) {
       console.error('Failed to load data from database:', error);
@@ -230,56 +196,64 @@ const UrlShortener: React.FC = () => {
   }, [urlInput, qrText, activeTab]);
 
   const handleShorten = async () => {
-    // Force console log to appear
-    console.log('='.repeat(50));
-    console.log('HANDLE SHORTEN CALLED');
-    console.log('activeTab:', activeTab);
-    console.log('selectedFile:', selectedFile);
-    console.log('='.repeat(50));
-    
-    // Validation with alerts for debugging
+    // Basic validation
     if (activeTab === 'url' && !urlInput.trim()) {
-      console.log('URL validation failed');
-      alert('URL validation failed');
+      toast.error('Please enter a URL to shorten');
       return;
     }
     if (activeTab === 'qr' && !qrText.trim()) {
-      console.log('QR validation failed');
-      alert('QR validation failed');
+      toast.error('Please enter text or URL for QR code');
       return;
     }
     if (activeTab === 'file') {
-      console.log('File tab - navigating to file-to-link section');
       window.location.href = '/dashboard?section=file-to-url';
-      setIsLoading(false);
       return;
     }
 
-    console.log('Validation passed, starting process...');
-    alert('Starting upload process...');
+    // Check premium features BEFORE processing
+    const blockedFeatures: string[] = [];
+    
+    if (customAlias.trim() && !featureAccess.canUseCustomDomain) {
+      blockedFeatures.push('Custom Alias');
+    }
+    if (password.trim() && !featureAccess.canUseCustomDomain) {
+      blockedFeatures.push('Password Protection');
+    }
+    if (expirationDays && !featureAccess.canUseCustomDomain) {
+      blockedFeatures.push('Link Expiration');
+    }
+    if (maxClicks && !featureAccess.canUseCustomDomain) {
+      blockedFeatures.push('Click Limits');
+    }
+    if (selectedDomain !== 'pebly.vercel.app' && !featureAccess.canUseCustomDomain) {
+      blockedFeatures.push('Custom Domains');
+    }
+    
+    if (blockedFeatures.length > 0) {
+      const featureText = blockedFeatures.length === 1 
+        ? blockedFeatures[0] 
+        : blockedFeatures.slice(0, -1).join(', ') + ' and ' + blockedFeatures.slice(-1);
+      
+      const message = `${featureText} ${blockedFeatures.length === 1 ? 'requires' : 'require'} a Pro subscription. Upgrade to unlock ${blockedFeatures.length === 1 ? 'this feature' : 'these features'}.`;
+      
+      upgradeModal.open(
+        'Premium Features Required',
+        message,
+        false
+      );
+      
+      return; // Stop processing
+    }
+
     setIsLoading(true);
 
     try {
-      // Get user ID from auth context
-      let userId = user?.id || 'anonymous-user';
-      
-      if (!user?.id) {
-        console.warn('No authenticated user found, using anonymous-user');
-      }
-      
-      console.log('User from auth context:', user);
-      console.log('Using userId for backend:', userId);
-      
-      console.log('Using userId:', userId);
-      
-      console.log('Skipping health check, proceeding directly to upload...');
-
+      const userId = user?.id || 'anonymous-user';
       let result;
       let newLink: ShortenedLink | null = null;
 
       if (activeTab === 'url') {
-        // Create shortened URL via backend API
-        console.log('Creating short URL via backend API...');
+        console.log('Creating short URL...');
         result = await createShortUrl({
           originalUrl: urlInput,
           userId,
@@ -301,14 +275,13 @@ const UrlShortener: React.FC = () => {
             createdAt: result.data.createdAt,
             type: 'url'
           };
-          toast.success('URL shortened and stored in database!');
+          toast.success('URL shortened successfully!');
         } else {
           throw new Error(result.message || 'Failed to create short URL');
         }
 
       } else if (activeTab === 'qr') {
-        // Create QR code via backend API
-        console.log('Creating QR code via backend API...');
+        console.log('Creating QR code...');
         result = await createQrCode({
           content: qrText,
           contentType: 'TEXT',
@@ -328,35 +301,20 @@ const UrlShortener: React.FC = () => {
             type: 'qr',
             qrCode: result.data.qrImagePath
           };
-          toast.success('QR Code created and stored in database!');
+          toast.success('QR Code created successfully!');
         } else {
           throw new Error(result.message || 'Failed to create QR code');
         }
-
       }
 
-      console.log('=== FINAL PROCESSING ===');
-      console.log('Backend result:', result);
-      console.log('Created link:', newLink);
-      console.log('newLink exists:', !!newLink);
-
-      // Add to local state for immediate UI update (only if newLink was created)
+      // Add to local state
       if (newLink) {
-        console.log('Adding newLink to state...');
-        setShortenedLinks(prev => {
-          const updatedLinks = [newLink!, ...prev];
-          console.log('Updated links array:', updatedLinks);
-          return updatedLinks;
-        });
-        console.log('Successfully added to state');
+        setShortenedLinks(prev => [newLink!, ...prev]);
         
-        // Reload data from database to ensure consistency
+        // Reload from database for consistency
         if (user?.id) {
           loadDataFromDatabase();
         }
-      } else {
-        console.error('newLink is null/undefined, cannot add to state');
-        throw new Error('Failed to create link object');
       }
       
       // Reset form
@@ -372,19 +330,10 @@ const UrlShortener: React.FC = () => {
       setSecurityCheck(null);
       
     } catch (error) {
-      console.error('=== ERROR IN HANDLE SHORTEN ===');
-      console.error('Error type:', typeof error);
-      console.error('Error object:', error);
-      console.error('Error message:', error instanceof Error ? error.message : String(error));
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      
-      // Force the error to be visible
-      alert(`ERROR CAUGHT: ${error instanceof Error ? error.message : String(error)}`);
-      
+      console.error('Error in handleShorten:', error);
       const errorMessage = error instanceof Error ? error.message : 'An error occurred while processing your request';
       toast.error(`Failed to create link: ${errorMessage}`);
     } finally {
-      console.log('=== FINALLY BLOCK EXECUTED ===');
       setIsLoading(false);
     }
   };
@@ -410,79 +359,7 @@ const UrlShortener: React.FC = () => {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('=== FILE SELECTION ===');
-    console.log('Input event:', e);
-    console.log('Files:', e.target.files);
-    const file = e.target.files?.[0];
-    console.log('Selected file:', file);
-    if (file) {
-      console.log('File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-      setSelectedFile(file);
-      console.log('File set in state');
-      alert(`File selected: ${file.name}`);
-    } else {
-      console.log('No file selected');
-      alert('No file selected');
-    }
-  };
 
-  // Simple file upload function that definitely works
-  const simpleFileUpload = async () => {
-    console.log('=== SIMPLE FILE UPLOAD STARTED ===');
-    alert('Simple file upload started');
-    
-    if (!selectedFile) {
-      alert('No file selected!');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('userId', 'simple-test-user');
-      formData.append('title', selectedFile.name);
-      formData.append('isPublic', 'true');
-
-      console.log('Making simple fetch request...');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/files/upload`, {
-        method: 'POST',
-        body: formData
-      });
-
-      console.log('Response received:', response.status);
-      const result = await response.json();
-      console.log('Result:', result);
-
-      if (result.success) {
-        alert(`SUCCESS! File uploaded: ${result.data.fileUrl}`);
-        
-        // Add to state
-        const newLink = {
-          id: result.data.id,
-          shortCode: result.data.fileCode,
-          shortUrl: result.data.fileUrl,
-          originalUrl: result.data.fileUrl,
-          clicks: 0,
-          createdAt: result.data.uploadedAt,
-          type: 'file' as const
-        };
-        
-        setShortenedLinks(prev => [newLink, ...prev]);
-        toast.success('File uploaded successfully!');
-      } else {
-        alert(`FAILED: ${result.message}`);
-      }
-    } catch (error) {
-      console.error('Simple upload error:', error);
-      alert(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -711,31 +588,28 @@ const UrlShortener: React.FC = () => {
                     value={selectedDomain}
                     onChange={(e) => {
                       const selectedValue = e.target.value;
-                      console.log('🚨 DROPDOWN CHANGED - Selected value:', selectedValue);
+                      console.log('Domain dropdown changed:', selectedValue);
                       
                       if (selectedValue === 'ADD_CUSTOM_DOMAIN') {
-                        console.log('🚨 ADD_CUSTOM_DOMAIN SELECTED - STOPPING ALL NAVIGATION');
                         e.preventDefault();
-                        e.stopPropagation();
                         
-                        // FORCE MODAL TO OPEN - SIMPLE APPROACH
-                        alert('MODAL SHOULD OPEN NOW - CHECK IF YOU SEE THIS ALERT');
-                        
-                        // Reset dropdown
+                        // Reset dropdown to default
                         setSelectedDomain('pebly.vercel.app');
                         
-                        // DIRECT MODAL OPEN - NO CONDITIONS, NO LOGIC
-                        console.log('🚨 FORCING MODAL OPEN...');
-                        upgradeModal.open(
-                          'Custom Domains',
-                          'This modal should open for ALL users regardless of plan',
-                          false
-                        );
-                        console.log('🚨 MODAL OPEN CALLED - SHOULD BE VISIBLE NOW');
+                        // Check if user can use custom domains
+                        if (!featureAccess.canUseCustomDomain) {
+                          // Show upgrade modal for custom domains
+                          upgradeModal.open(
+                            'Custom Domains',
+                            'Custom domains allow you to use your own branded short links. Upgrade to Pro to unlock this feature and build your brand.',
+                            false
+                          );
+                        } else {
+                          // User has access, navigate to domain management
+                          navigate('/dashboard?tab=domains');
+                        }
                         
-                        return; // STOP EVERYTHING
-                        
-
+                        return;
                       } else {
                         setSelectedDomain(selectedValue);
                       }
@@ -772,17 +646,39 @@ const UrlShortener: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Alias (Optional)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Custom Alias (Optional)
+                    </label>
+                    {!featureAccess.canUseCustomDomain && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Zap className="w-3 h-3 mr-1" />
+                        Pro
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
-                    placeholder="my-custom-link"
+                    placeholder={featureAccess.canUseCustomDomain ? "my-custom-link" : "Upgrade to Pro for custom aliases"}
                     value={customAlias}
-                    onChange={(e) => setCustomAlias(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                      if (!featureAccess.canUseCustomDomain && e.target.value.trim()) {
+                        upgradeModal.open(
+                          'Custom Aliases',
+                          'Create memorable custom short links with Pro. Make your links more brandable and easier to remember.',
+                          false
+                        );
+                        return;
+                      }
+                      setCustomAlias(e.target.value);
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      !featureAccess.canUseCustomDomain 
+                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
+                        : 'border-gray-300'
+                    }`}
                   />
-                  {customAlias && (
+                  {customAlias && featureAccess.canUseCustomDomain && (
                     <p className="text-xs text-gray-500 mt-1">
                       Preview: {selectedDomain}/{customAlias}
                     </p>
@@ -790,16 +686,38 @@ const UrlShortener: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password Protection
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Password Protection
+                    </label>
+                    {!featureAccess.canUseCustomDomain && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Lock className="w-3 h-3 mr-1" />
+                        Pro
+                      </span>
+                    )}
+                  </div>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Optional password"
+                      placeholder={featureAccess.canUseCustomDomain ? "Optional password" : "Upgrade to Pro for password protection"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        if (!featureAccess.canUseCustomDomain && e.target.value.trim()) {
+                          upgradeModal.open(
+                            'Password Protection',
+                            'Secure your links with password protection. Only users with the password can access your content.',
+                            false
+                          );
+                          return;
+                        }
+                        setPassword(e.target.value);
+                      }}
+                      className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !featureAccess.canUseCustomDomain
+                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                          : 'border-gray-300'
+                      }`}
                     />
                     <button
                       type="button"
@@ -812,28 +730,72 @@ const UrlShortener: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiration (Days)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Expiration (Days)
+                    </label>
+                    {!featureAccess.canUseCustomDomain && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Pro
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
-                    placeholder="Never expires"
+                    placeholder={featureAccess.canUseCustomDomain ? "Never expires" : "Upgrade to Pro for link expiration"}
                     value={expirationDays}
-                    onChange={(e) => setExpirationDays(e.target.value ? parseInt(e.target.value) : '')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                      if (!featureAccess.canUseCustomDomain && e.target.value.trim()) {
+                        upgradeModal.open(
+                          'Link Expiration',
+                          'Set expiration dates for your links to automatically disable them after a certain time period.',
+                          false
+                        );
+                        return;
+                      }
+                      setExpirationDays(e.target.value ? parseInt(e.target.value) : '');
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      !featureAccess.canUseCustomDomain
+                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                        : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Max Clicks
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Max Clicks
+                    </label>
+                    {!featureAccess.canUseCustomDomain && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <Shield className="w-3 h-3 mr-1" />
+                        Pro
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
-                    placeholder="Unlimited"
+                    placeholder={featureAccess.canUseCustomDomain ? "Unlimited" : "Upgrade to Pro for click limits"}
                     value={maxClicks}
-                    onChange={(e) => setMaxClicks(e.target.value ? parseInt(e.target.value) : '')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                      if (!featureAccess.canUseCustomDomain && e.target.value.trim()) {
+                        upgradeModal.open(
+                          'Click Limits',
+                          'Control the maximum number of clicks your links can receive before they become inactive.',
+                          false
+                        );
+                        return;
+                      }
+                      setMaxClicks(e.target.value ? parseInt(e.target.value) : '');
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      !featureAccess.canUseCustomDomain
+                        ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                        : 'border-gray-300'
+                    }`}
                   />
                 </div>
 
@@ -854,15 +816,7 @@ const UrlShortener: React.FC = () => {
 
           {/* Action Button */}
           <button
-            onClick={(e) => {
-              console.log('=== BUTTON CLICKED ===');
-              console.log('Event:', e);
-              console.log('activeTab:', activeTab);
-              console.log('selectedFile:', selectedFile);
-              console.log('isLoading:', isLoading);
-              console.log('Button disabled:', isLoading || (activeTab === 'url' && !urlInput.trim()) || (activeTab === 'qr' && !qrText.trim()) || (activeTab === 'file' && !selectedFile));
-              handleShorten();
-            }}
+            onClick={handleShorten}
             disabled={isLoading || (activeTab === 'url' && !urlInput.trim()) || (activeTab === 'qr' && !qrText.trim()) || (activeTab === 'file')}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
           >
@@ -878,125 +832,7 @@ const UrlShortener: React.FC = () => {
             )}
           </button>
           
-          {/* Backend Test Button */}
-          <button
-            onClick={async () => {
-              console.log('=== TESTING BACKEND CONNECTIVITY ===');
-              try {
-                const response = await fetch('http://localhost:8080/api/v1/urls', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    originalUrl: 'https://test-frontend-connectivity.com',
-                    userId: user?.id || 'test-user',
-                    title: 'Frontend Connectivity Test',
-                    description: 'Testing if frontend can reach backend'
-                  })
-                });
-                
-                const result = await response.json();
-                console.log('Backend test result:', result);
-                
-                if (result.success) {
-                  alert('✅ Backend connectivity test PASSED! Data saved to MongoDB.');
-                  // Reload data to show the new entry
-                  loadDataFromDatabase();
-                } else {
-                  alert('❌ Backend test failed: ' + result.message);
-                }
-              } catch (error: any) {
-                console.error('Backend test error:', error);
-                alert('❌ Backend connectivity test FAILED: ' + (error.message || String(error)));
-              }
-            }}
-            className="w-full mt-2 bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all"
-          >
-            🔗 Test Backend Connection
-          </button>
-          
-          {/* Refresh Data Button */}
-          <button
-            onClick={() => {
-              console.log('=== REFRESHING DATA FROM DATABASE ===');
-              loadDataFromDatabase();
-            }}
-            className="w-full mt-2 bg-purple-500 text-white py-2 rounded-lg font-semibold hover:bg-purple-600 transition-all"
-          >
-            🔄 Refresh from Database
-          </button>
 
-          {/* TEST MODAL BUTTON */}
-          <button
-            onClick={() => {
-              console.log('🧪 TEST MODAL BUTTON CLICKED');
-              console.log('🧪 upgradeModal object:', upgradeModal);
-              console.log('🧪 upgradeModal.open:', upgradeModal.open);
-              try {
-                upgradeModal.open(
-                  'TEST MODAL',
-                  'This is a test modal to see if the context works',
-                  false
-                );
-                console.log('🧪 TEST MODAL OPENED SUCCESSFULLY');
-              } catch (error) {
-                console.error('🧪 TEST MODAL ERROR:', error);
-              }
-            }}
-            className="w-full mt-2 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-all"
-          >
-            🧪 TEST MODAL (DEBUG)
-          </button>
-
-          {/* Simple Upload Button for File Tab */}
-          {activeTab === 'file' && (
-            <button
-              onClick={simpleFileUpload}
-              disabled={!selectedFile}
-              className="w-full mt-2 bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-all disabled:opacity-50"
-            >
-              📤 Simple File Upload (Working Version)
-            </button>
-          )}
-          
-          {/* Debug Button for File Upload */}
-          {activeTab === 'file' && (
-            <button
-              onClick={async () => {
-                console.log('=== DEBUG BUTTON CLICKED ===');
-                console.log('selectedFile:', selectedFile);
-                if (!selectedFile) {
-                  alert('Please select a file first');
-                  return;
-                }
-                
-                try {
-                  const formData = new FormData();
-                  formData.append('file', selectedFile);
-                  formData.append('userId', 'debug-user');
-                  formData.append('title', 'Debug Upload');
-                  formData.append('isPublic', 'true');
-                  
-                  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-                  const response = await fetch(`${apiUrl}/v1/files/upload`, {
-                    method: 'POST',
-                    body: formData
-                  });
-                  
-                  const result = await response.json();
-                  console.log('Debug upload result:', result);
-                  alert(`Debug upload ${result.success ? 'SUCCESS' : 'FAILED'}: ${JSON.stringify(result)}`);
-                } catch (error: any) {
-                  console.error('Debug upload error:', error);
-                  alert(`Debug upload ERROR: ${error.message || String(error)}`);
-                }
-              }}
-              className="w-full mt-2 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-all"
-            >
-              🐛 Debug Upload Test
-            </button>
-          )}
         </div>
       </motion.div>
 
