@@ -211,7 +211,7 @@ const Pricing: React.FC = () => {
           couponCode: appliedCoupon?.code || null,
           originalAmount: originalPrice * 100,
           discountedAmount: finalPrice * 100,
-          userId: 'user-id' // Replace with actual user ID from auth context
+          userId: user?.id || 'anonymous'
         }),
       });
 
@@ -241,7 +241,7 @@ const Pricing: React.FC = () => {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 planType,
-                userId: 'user-id' // Replace with actual user ID
+                userId: user?.id || 'anonymous'
               }),
             });
 

@@ -462,20 +462,54 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         return;
       }
 
-      // Check Pro features
-      if (customAlias && !(await checkAccess('custom-alias')).hasAccess) {
-        showUpgradeModal('custom-alias');
-        return;
+      // Check premium features BEFORE processing
+      const blockedFeatures: string[] = [];
+      
+      if (customAlias.trim() && !featureAccess.canUseCustomAlias) {
+        blockedFeatures.push('Custom Alias');
       }
-
-      if (password && !(await checkAccess('password-protection')).hasAccess) {
-        showUpgradeModal('password-protection');
-        return;
+      if (password.trim() && !featureAccess.canUsePasswordProtection) {
+        blockedFeatures.push('Password Protection');
       }
-
-      if (expirationDays && !(await checkAccess('expiration')).hasAccess) {
-        showUpgradeModal('expiration');
-        return;
+      if (expirationDays && !featureAccess.canUseLinkExpiration) {
+        blockedFeatures.push('Link Expiration');
+      }
+      if (maxClicks && !featureAccess.canUseClickLimits) {
+        blockedFeatures.push('Click Limits');
+      }
+      
+      // For QR codes, check QR-specific premium features
+      if (mode === 'qr') {
+        if ((qrCustomization.foregroundColor !== '#000000' || qrCustomization.backgroundColor !== '#FFFFFF') && !featureAccess.canUseCustomQRColors) {
+          blockedFeatures.push('Custom QR Colors');
+        }
+        if (qrCustomization.logo && !featureAccess.canUseQRLogo) {
+          blockedFeatures.push('QR Logo');
+        }
+        if (qrCustomization.centerText && !featureAccess.canUseQRBranding) {
+          blockedFeatures.push('QR Branding');
+        }
+      }
+      
+      // For file uploads, check file-specific premium features
+      if (mode === 'file' && (customAlias || password || expirationDays || maxClicks) && !featureAccess.canUseAdvancedFileSettings) {
+        blockedFeatures.push('Advanced File Settings');
+      }
+      
+      if (blockedFeatures.length > 0) {
+        const featureText = blockedFeatures.length === 1 
+          ? blockedFeatures[0] 
+          : blockedFeatures.slice(0, -1).join(', ') + ' and ' + blockedFeatures.slice(-1);
+        
+        const message = `${featureText} ${blockedFeatures.length === 1 ? 'requires' : 'require'} a Pro subscription. Upgrade to unlock ${blockedFeatures.length === 1 ? 'this feature' : 'these features'}.`;
+        
+        upgradeModal.open(
+          'Premium Features Required',
+          message,
+          false
+        );
+        
+        return; // Stop processing
       }
 
       // Check QR customization
@@ -1527,7 +1561,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
                     {/* Custom Colors */}
                     <div>
-                      <label className="block text-sm sm:text-base font-medium text-gray-700 mb-3">Custom Colors</label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="block text-sm sm:text-base font-medium text-gray-700">Custom Colors</label>
+                        {!featureAccess.canUseCustomQRColors && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <Palette className="w-3 h-3 mr-1" />
+                            Pro
+                          </span>
+                        )}
+                      </div>
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-2">
@@ -1537,20 +1579,51 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                             <input
                               type="color"
                               value={qrCustomization.foregroundColor}
-                              onChange={(e) => setQrCustomization(prev => ({
-                                ...prev,
-                                foregroundColor: e.target.value
-                              }))}
-                              className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
+                              onChange={(e) => {
+                                if (!featureAccess.canUseCustomQRColors) {
+                                  upgradeModal.open(
+                                    'Custom QR Colors',
+                                    'Customize your QR code colors to match your brand. Upgrade to Pro to unlock color customization.',
+                                    false
+                                  );
+                                  return;
+                                }
+                                setQrCustomization(prev => ({
+                                  ...prev,
+                                  foregroundColor: e.target.value
+                                }));
+                              }}
+                              className={`w-10 h-8 border rounded cursor-pointer ${
+                                !featureAccess.canUseCustomQRColors 
+                                  ? 'border-purple-200 opacity-50' 
+                                  : 'border-gray-300'
+                              }`}
+                              disabled={!featureAccess.canUseCustomQRColors}
                             />
                             <input
                               type="text"
                               value={qrCustomization.foregroundColor}
-                              onChange={(e) => setQrCustomization(prev => ({
-                                ...prev,
-                                foregroundColor: e.target.value
-                              }))}
-                              className="flex-1 px-3 py-1 border border-gray-300 rounded text-sm"
+                              onChange={(e) => {
+                                if (!featureAccess.canUseCustomQRColors) {
+                                  upgradeModal.open(
+                                    'Custom QR Colors',
+                                    'Customize your QR code colors to match your brand. Upgrade to Pro to unlock color customization.',
+                                    false
+                                  );
+                                  return;
+                                }
+                                setQrCustomization(prev => ({
+                                  ...prev,
+                                  foregroundColor: e.target.value
+                                }));
+                              }}
+                              className={`flex-1 px-3 py-1 border rounded text-sm ${
+                                !featureAccess.canUseCustomQRColors 
+                                  ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
+                                  : 'border-gray-300'
+                              }`}
+                              disabled={!featureAccess.canUseCustomQRColors}
+                              placeholder={!featureAccess.canUseCustomQRColors ? "Upgrade to Pro" : ""}
                             />
                           </div>
                         </div>
@@ -1563,20 +1636,51 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                             <input
                               type="color"
                               value={qrCustomization.backgroundColor}
-                              onChange={(e) => setQrCustomization(prev => ({
-                                ...prev,
-                                backgroundColor: e.target.value
-                              }))}
-                              className="w-10 h-8 border border-gray-300 rounded cursor-pointer"
+                              onChange={(e) => {
+                                if (!featureAccess.canUseCustomQRColors) {
+                                  upgradeModal.open(
+                                    'Custom QR Colors',
+                                    'Customize your QR code colors to match your brand. Upgrade to Pro to unlock color customization.',
+                                    false
+                                  );
+                                  return;
+                                }
+                                setQrCustomization(prev => ({
+                                  ...prev,
+                                  backgroundColor: e.target.value
+                                }));
+                              }}
+                              className={`w-10 h-8 border rounded cursor-pointer ${
+                                !featureAccess.canUseCustomQRColors 
+                                  ? 'border-purple-200 opacity-50' 
+                                  : 'border-gray-300'
+                              }`}
+                              disabled={!featureAccess.canUseCustomQRColors}
                             />
                             <input
                               type="text"
                               value={qrCustomization.backgroundColor}
-                              onChange={(e) => setQrCustomization(prev => ({
-                                ...prev,
-                                backgroundColor: e.target.value
-                              }))}
-                              className="flex-1 px-3 py-1 border border-gray-300 rounded text-sm"
+                              onChange={(e) => {
+                                if (!featureAccess.canUseCustomQRColors) {
+                                  upgradeModal.open(
+                                    'Custom QR Colors',
+                                    'Customize your QR code colors to match your brand. Upgrade to Pro to unlock color customization.',
+                                    false
+                                  );
+                                  return;
+                                }
+                                setQrCustomization(prev => ({
+                                  ...prev,
+                                  backgroundColor: e.target.value
+                                }));
+                              }}
+                              className={`flex-1 px-3 py-1 border rounded text-sm ${
+                                !featureAccess.canUseCustomQRColors 
+                                  ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
+                                  : 'border-gray-300'
+                              }`}
+                              disabled={!featureAccess.canUseCustomQRColors}
+                              placeholder={!featureAccess.canUseCustomQRColors ? "Upgrade to Pro" : ""}
                             />
                           </div>
                         </div>
@@ -1588,16 +1692,38 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   <div className="space-y-6">
                     {/* Logo Upload */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Add Logo (Optional)
-                      </label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Add Logo (Optional)
+                        </label>
+                        {!featureAccess.canUseQRLogo && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <Crown className="w-3 h-3 mr-1" />
+                            Pro
+                          </span>
+                        )}
+                      </div>
                       <div className="space-y-3">
                         <button
-                          onClick={() => logoInputRef.current?.click()}
-                          className="w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700 rounded-lg transition-colors"
+                          onClick={() => {
+                            if (!featureAccess.canUseQRLogo) {
+                              upgradeModal.open(
+                                'QR Code Logo',
+                                'Add your company logo to QR codes for better branding. Upgrade to Pro to unlock logo customization.',
+                                false
+                              );
+                              return;
+                            }
+                            logoInputRef.current?.click();
+                          }}
+                          className={`w-full flex items-center justify-center space-x-2 px-4 py-3 border-2 border-dashed rounded-lg transition-colors ${
+                            !featureAccess.canUseQRLogo
+                              ? 'border-purple-200 bg-purple-50 text-purple-600 cursor-not-allowed'
+                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700'
+                          }`}
                         >
                           <Upload className="w-5 h-5" />
-                          <span>Upload Logo</span>
+                          <span>{!featureAccess.canUseQRLogo ? 'Upgrade to Pro for Logo' : 'Upload Logo'}</span>
                         </button>
                         {qrCustomization.logo && (
                           <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
@@ -1677,22 +1803,45 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
                     {/* Center Text */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Center Text (Branding)
-                      </label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Center Text (Branding)
+                        </label>
+                        {!featureAccess.canUseQRBranding && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Pro
+                          </span>
+                        )}
+                      </div>
                       
                       {/* Text Input */}
                       <div className="relative mb-4">
                         <input
                           type="text"
-                          placeholder="YOUR BRAND"
+                          placeholder={featureAccess.canUseQRBranding ? "YOUR BRAND" : "Upgrade to Pro for branding"}
                           value={qrCustomization.centerText || ''}
-                          onChange={(e) => setQrCustomization(prev => ({
-                            ...prev,
-                            centerText: e.target.value.toUpperCase()
-                          }))}
+                          onChange={(e) => {
+                            if (!featureAccess.canUseQRBranding && e.target.value.trim()) {
+                              upgradeModal.open(
+                                'QR Code Branding',
+                                'Add your brand text to QR codes for better recognition. Upgrade to Pro to unlock branding features.',
+                                false
+                              );
+                              return;
+                            }
+                            setQrCustomization(prev => ({
+                              ...prev,
+                              centerText: e.target.value.toUpperCase()
+                            }));
+                          }}
                           maxLength={10}
-                          className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-bold"
+                          className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-bold ${
+                            !featureAccess.canUseQRBranding
+                              ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                              : 'border-gray-300'
+                          }`}
+                          disabled={!featureAccess.canUseQRBranding}
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
                           {(qrCustomization.centerText || '').length}/10
@@ -2009,29 +2158,75 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Custom Alias (Optional)
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Custom Alias (Optional)
+                      </label>
+                      {!featureAccess.canUseCustomAlias && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
-                      placeholder="my-custom-link"
+                      placeholder={featureAccess.canUseCustomAlias ? "my-custom-link" : "Upgrade to Pro for custom aliases"}
                       value={customAlias}
-                      onChange={(e) => setCustomAlias(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        if (!featureAccess.canUseCustomAlias && e.target.value.trim()) {
+                          upgradeModal.open(
+                            'Custom Aliases',
+                            'Create memorable custom short links with Pro. Make your links more brandable and easier to remember.',
+                            false
+                          );
+                          return;
+                        }
+                        setCustomAlias(e.target.value);
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !featureAccess.canUseCustomAlias 
+                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400' 
+                          : 'border-gray-300'
+                      }`}
+                      disabled={!featureAccess.canUseCustomAlias}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password Protection
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Password Protection
+                      </label>
+                      {!featureAccess.canUsePasswordProtection && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <Shield className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Optional password"
+                        placeholder={featureAccess.canUsePasswordProtection ? "Optional password" : "Upgrade to Pro for password protection"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(e) => {
+                          if (!featureAccess.canUsePasswordProtection && e.target.value.trim()) {
+                            upgradeModal.open(
+                              'Password Protection',
+                              'Secure your links with password protection. Only users with the password can access your content.',
+                              false
+                            );
+                            return;
+                          }
+                          setPassword(e.target.value);
+                        }}
+                        className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !featureAccess.canUsePasswordProtection
+                            ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                            : 'border-gray-300'
+                        }`}
+                        disabled={!featureAccess.canUsePasswordProtection}
                       />
                       <button
                         type="button"
@@ -2044,28 +2239,74 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Expiration (Days)
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Expiration (Days)
+                      </label>
+                      {!featureAccess.canUseLinkExpiration && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="number"
-                      placeholder="Never expires"
+                      placeholder={featureAccess.canUseLinkExpiration ? "Never expires" : "Upgrade to Pro for link expiration"}
                       value={expirationDays}
-                      onChange={(e) => setExpirationDays(e.target.value ? parseInt(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        if (!featureAccess.canUseLinkExpiration && e.target.value.trim()) {
+                          upgradeModal.open(
+                            'Link Expiration',
+                            'Set expiration dates for your links to automatically disable them after a certain time period.',
+                            false
+                          );
+                          return;
+                        }
+                        setExpirationDays(e.target.value ? parseInt(e.target.value) : '');
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !featureAccess.canUseLinkExpiration
+                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                          : 'border-gray-300'
+                      }`}
+                      disabled={!featureAccess.canUseLinkExpiration}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Clicks
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Max Clicks
+                      </label>
+                      {!featureAccess.canUseClickLimits && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <Crown className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="number"
-                      placeholder="Unlimited"
+                      placeholder={featureAccess.canUseClickLimits ? "Unlimited" : "Upgrade to Pro for click limits"}
                       value={maxClicks}
-                      onChange={(e) => setMaxClicks(e.target.value ? parseInt(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        if (!featureAccess.canUseClickLimits && e.target.value.trim()) {
+                          upgradeModal.open(
+                            'Click Limits',
+                            'Control the maximum number of clicks your links can receive before they become inactive.',
+                            false
+                          );
+                          return;
+                        }
+                        setMaxClicks(e.target.value ? parseInt(e.target.value) : '');
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !featureAccess.canUseClickLimits
+                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                          : 'border-gray-300'
+                      }`}
+                      disabled={!featureAccess.canUseClickLimits}
                     />
                   </div>
                 </motion.div>

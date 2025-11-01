@@ -8,6 +8,18 @@ export interface PlanFeatures {
   whiteLabel?: boolean;
   apiAccess?: boolean;
   prioritySupport?: boolean;
+  // URL Shortener Premium Features
+  customAlias: boolean;
+  passwordProtection: boolean;
+  linkExpiration: boolean;
+  clickLimits: boolean;
+  // QR Code Premium Features
+  customQRColors: boolean;
+  qrLogo: boolean;
+  qrBranding: boolean;
+  advancedQRSettings: boolean;
+  // File Upload Premium Features
+  advancedFileSettings: boolean;
 }
 
 export interface PlanLimits {
@@ -37,6 +49,18 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
       whiteLabel: false,
       apiAccess: false,
       prioritySupport: false,
+      // URL Shortener Premium Features
+      customAlias: false,
+      passwordProtection: false,
+      linkExpiration: false,
+      clickLimits: false,
+      // QR Code Premium Features
+      customQRColors: false,
+      qrLogo: false,
+      qrBranding: false,
+      advancedQRSettings: false,
+      // File Upload Premium Features
+      advancedFileSettings: false,
     },
   },
 
@@ -54,6 +78,18 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
       whiteLabel: false,
       apiAccess: true,
       prioritySupport: false,
+      // URL Shortener Premium Features
+      customAlias: true,
+      passwordProtection: true,
+      linkExpiration: true,
+      clickLimits: true,
+      // QR Code Premium Features
+      customQRColors: true,
+      qrLogo: true,
+      qrBranding: true,
+      advancedQRSettings: true,
+      // File Upload Premium Features
+      advancedFileSettings: true,
     },
   },
 
@@ -71,6 +107,18 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
       whiteLabel: true,
       apiAccess: true,
       prioritySupport: true,
+      // URL Shortener Premium Features
+      customAlias: true,
+      passwordProtection: true,
+      linkExpiration: true,
+      clickLimits: true,
+      // QR Code Premium Features
+      customQRColors: true,
+      qrLogo: true,
+      qrBranding: true,
+      advancedQRSettings: true,
+      // File Upload Premium Features
+      advancedFileSettings: true,
     },
   },
 
@@ -89,6 +137,18 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
       whiteLabel: true,
       apiAccess: true,
       prioritySupport: true,
+      // URL Shortener Premium Features
+      customAlias: true,
+      passwordProtection: true,
+      linkExpiration: true,
+      clickLimits: true,
+      // QR Code Premium Features
+      customQRColors: true,
+      qrLogo: true,
+      qrBranding: true,
+      advancedQRSettings: true,
+      // File Upload Premium Features
+      advancedFileSettings: true,
     },
   },
 };

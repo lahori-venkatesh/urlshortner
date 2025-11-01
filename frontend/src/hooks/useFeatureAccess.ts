@@ -29,6 +29,21 @@ interface FeatureAccessResult {
   canUseApiAccess: boolean;
   canUsePrioritySupport: boolean;
   
+  // URL Shortener Premium Features
+  canUseCustomAlias: boolean;
+  canUsePasswordProtection: boolean;
+  canUseLinkExpiration: boolean;
+  canUseClickLimits: boolean;
+  
+  // QR Code Premium Features
+  canUseCustomQRColors: boolean;
+  canUseQRLogo: boolean;
+  canUseQRBranding: boolean;
+  canUseAdvancedQRSettings: boolean;
+  
+  // File Upload Premium Features
+  canUseAdvancedFileSettings: boolean;
+  
   // Usage limits
   canCreateUrl: (currentCount: number) => boolean;
   canCreateQR: (currentCount: number) => boolean;
@@ -150,6 +165,21 @@ export const useFeatureAccess = (user?: User | null): FeatureAccessResult => {
       canUseWhiteLabel: hasFeature('whiteLabel'),
       canUseApiAccess: hasFeature('apiAccess'),
       canUsePrioritySupport: hasFeature('prioritySupport'),
+      
+      // URL Shortener Premium Features
+      canUseCustomAlias: hasFeature('customAlias'),
+      canUsePasswordProtection: hasFeature('passwordProtection'),
+      canUseLinkExpiration: hasFeature('linkExpiration'),
+      canUseClickLimits: hasFeature('clickLimits'),
+      
+      // QR Code Premium Features
+      canUseCustomQRColors: hasFeature('customQRColors'),
+      canUseQRLogo: hasFeature('qrLogo'),
+      canUseQRBranding: hasFeature('qrBranding'),
+      canUseAdvancedQRSettings: hasFeature('advancedQRSettings'),
+      
+      // File Upload Premium Features
+      canUseAdvancedFileSettings: hasFeature('advancedFileSettings'),
 
       // Usage limits
       canCreateUrl,
