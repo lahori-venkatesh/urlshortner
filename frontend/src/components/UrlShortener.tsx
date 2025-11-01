@@ -711,15 +711,23 @@ const UrlShortener: React.FC = () => {
                     value={selectedDomain}
                     onChange={(e) => {
                       const selectedValue = e.target.value;
+                      console.log('🚨 DROPDOWN CHANGED - Selected value:', selectedValue);
                       
                       if (selectedValue === 'ADD_CUSTOM_DOMAIN') {
+                        console.log('🚨 ADD_CUSTOM_DOMAIN SELECTED - Starting process...');
                         e.preventDefault(); // ⛔️ Prevent any default browser behavior
                         // Reset selection FIRST to prevent re-render loops
                         setSelectedDomain('pebly.vercel.app');
+                        console.log('🚨 Dropdown reset to default, starting setTimeout...');
                         
                         // Handle custom domain logic in next tick
                         setTimeout(() => {
                           console.log('🔍 Add Custom Domain selected - Using centralized policy');
+                          console.log('🔍 DEBUGGING - Current user:', user);
+                          console.log('🔍 DEBUGGING - User plan:', user?.plan);
+                          console.log('🔍 DEBUGGING - upgradeModal object:', upgradeModal);
+                          console.log('🔍 DEBUGGING - featureAccess object:', featureAccess);
+                          console.log('🔍 DEBUGGING - canUseCustomDomain:', featureAccess.canUseCustomDomain);
                           
                           // Count only custom domains (exclude default domain)
                           const customDomainCount = customDomains.filter(domain => 
@@ -734,23 +742,35 @@ const UrlShortener: React.FC = () => {
                             domainLimit: featureAccess.domainLimit
                           });
                           
+                          console.log('🚨 CRITICAL CHECK - About to check conditions:');
+                          console.log('🚨 !featureAccess.canUseCustomDomain =', !featureAccess.canUseCustomDomain);
+                          console.log('🚨 featureAccess.canUseCustomDomain =', featureAccess.canUseCustomDomain);
+                          
                           // 🚫 FREE user or no custom domain feature - show upgrade modal
                           if (!featureAccess.canUseCustomDomain) {
+                            console.log('🚨 CONDITION MET - FREE USER DETECTED!');
                             console.log('✅ FREE user - showing upgrade modal via context');
                             console.log('🚀 Attempting to open modal', {
                               modalContext: upgradeModal,
                               featureAccess,
+                              canUseCustomDomain: featureAccess.canUseCustomDomain,
                             });
+                            
+                            console.log('🚀 CALLING upgradeModal.open() NOW...');
                             upgradeModal.open(
                               'Custom Domains',
                               'Unlock custom domains and professional branding for your links',
                               false
                             );
+                            console.log('🚀 upgradeModal.open() CALLED SUCCESSFULLY');
                             return; // ⛔️ STOP - Don't navigate, show modal instead
                           }
                           
                           // 🟡 Has feature but reached limit - check upgrade path
+                          console.log('🚨 CHECKING SECOND CONDITION - canAddDomain');
+                          console.log('🚨 !featureAccess.canAddDomain(customDomainCount) =', !featureAccess.canAddDomain(customDomainCount));
                           if (!featureAccess.canAddDomain(customDomainCount)) {
+                            console.log('🚨 CONDITION MET - USER HAS FEATURE BUT AT LIMIT!');
                             if (user?.plan === 'PRO') {
                               console.log('✅ PRO user at limit - showing BUSINESS upgrade modal via context');
                               console.log('🚀 Attempting to open Business upgrade modal', {
@@ -770,6 +790,7 @@ const UrlShortener: React.FC = () => {
                           }
                           
                           // ✅ Can add domain - navigate to onboarding (React Router)
+                          console.log('🚨 THIRD CONDITION - USER CAN ADD DOMAIN - NAVIGATING!');
                           console.log('✅ User can add domain - navigating to onboarding via React Router');
                           navigate('/dashboard?tab=domains&action=onboard');
                         }, 100);

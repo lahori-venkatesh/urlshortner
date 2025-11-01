@@ -49,6 +49,12 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     businessOnly: boolean = false
   ) => {
     console.log('🎯 ModalContext: Opening upgrade modal', { feature, message, businessOnly });
+    console.log('🎯 ModalContext: Current state before open:', {
+      isUpgradeModalOpen,
+      upgradeFeature,
+      upgradeMessage,
+      showOnlyBusiness,
+    });
     
     // Batch state updates to prevent multiple re-renders
     setUpgradeFeature(feature);
@@ -58,6 +64,7 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     
     // Open modal after state is set
     setTimeout(() => {
+      console.log('🎯 ModalContext: Setting isUpgradeModalOpen to true');
       setIsUpgradeModalOpen(true);
     }, 0);
   };
