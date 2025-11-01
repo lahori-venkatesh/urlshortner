@@ -3,18 +3,30 @@ import { X, Crown, Zap, Shield, BarChart3, Palette, Globe, Clock, Star } from 'l
 import { motion, AnimatePresence } from 'framer-motion';
 import { subscriptionService, PricingData } from '../services/subscriptionService';
 import { useAuth } from '../context/AuthContext';
+import { useUpgradeModal } from '../context/ModalContext';
+import PortalModal from './PortalModal';
 import toast from 'react-hot-toast';
 
 interface UpgradeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  // Props are now optional since we get state from context
+  isOpen?: boolean;
+  onClose?: () => void;
   feature?: string;
   message?: string;
-  showOnlyBusiness?: boolean; // New prop to show only business plan
+  showOnlyBusiness?: boolean;
 }
 
-const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, message, showOnlyBusiness = false }) => {
+const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
   const { user } = useAuth();
+  const modal = useUpgradeModal();
+  
+  // Use context state or fallback to props (for backward compatibility)
+  const isOpen = props.isOpen ?? modal.isOpen;
+  const onClose = props.onClose ?? modal.close;
+  const feature = props.feature ?? modal.feature;
+  const message = props.message ?? modal.message;
+  const showOnlyBusiness = props.showOnlyBusiness ?? modal.showOnlyBusiness;
+  
   const [pricing, setPricing] = useState<PricingData | null>(null);
   const [isYearly, setIsYearly] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,17 +34,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
   useEffect(() => {
     if (isOpen) {
       loadPricing();
-      // Prevent background scroll when modal is open
-      setTimeout(() => document.body.style.overflow = 'hidden', 0);
-    } else {
-      // Restore background scroll when modal is closed
-      document.body.style.overflow = '';
     }
-    
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isOpen]);
 
   const loadPricing = async () => {
@@ -83,12 +85,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm">
+    <PortalModal isOpen={isOpen} onClose={onClose} preventBodyScroll={true}>
+      <AnimatePresence>
+        {isOpen && (
+          <div className="overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm h-full w-full">
           <div className="flex items-center justify-center min-h-screen p-4">
             {/* Background overlay */}
             <motion.div
@@ -297,9 +298,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
               </div>
             </motion.div>
           </div>
-        </div>
-      )}
-    </AnimatePresence>
+          </div>
+        )}
+      </AnimatePresence>
+    </PortalModal>
   );
 };
 

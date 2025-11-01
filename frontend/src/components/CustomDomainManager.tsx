@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Globe, Plus, CheckCircle, AlertCircle, Clock, Settings, Trash2, Copy, ExternalLink, Shield, RefreshCw, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useUpgradeModal } from '../context/ModalContext';
 import { subscriptionService, UserPlanInfo } from '../services/subscriptionService';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -52,6 +53,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 }) => {
   const { user, token } = useAuth();
   const featureAccess = useFeatureAccess(user);
+  const upgradeModal = useUpgradeModal();
   const [userPlan, setUserPlan] = useState<UserPlanInfo | null>(null);
   
   // Use centralized policy for custom domain access
@@ -64,7 +66,6 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -82,18 +83,26 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       domainLimit: featureAccess.domainLimit
     });
     
-    // 🚫 FREE user - show upgrade modal
+    // 🚫 FREE user - show upgrade modal via context
     if (!featureAccess.canUseCustomDomain) {
-      console.log('✅ FREE user - showing upgrade modal');
-      setShowUpgradeModal(true);
+      console.log('✅ FREE user - showing upgrade modal via context');
+      upgradeModal.open(
+        'Custom Domains',
+        'Use your own branded domains for professional short links with SSL certificates included.',
+        false
+      );
       return;
     }
     
     // 🟡 Has feature but reached limit
     if (!featureAccess.canAddDomain(verifiedDomainCount)) {
       if (user?.plan === 'PRO') {
-        console.log('✅ PRO user at limit - showing upgrade modal for Business');
-        setShowUpgradeModal(true);
+        console.log('✅ PRO user at limit - showing upgrade modal for Business via context');
+        upgradeModal.open(
+          'Upgrade to Business for more domains',
+          'Get up to 3 custom domains and advanced team features with our Business plan.',
+          true
+        );
       } else {
         console.log('✅ BUSINESS user at limit - showing limit message');
         toast.error(featureAccess.getUpgradeReason('Custom Domains', verifiedDomainCount));
@@ -521,7 +530,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               <div>
                 <p className="text-gray-500 mb-4">Custom domains are available with Pro and Business plans</p>
                 <button
-                  onClick={() => setShowUpgradeModal(true)}
+                  onClick={() => upgradeModal.open(
+                    'Custom Domains',
+                    'Use your own branded domains for professional short links with SSL certificates included.',
+                    false
+                  )}
                   className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   View Plans
@@ -741,13 +754,8 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         teamId={ownerType === 'TEAM' ? ownerId : undefined}
       />
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        feature="Custom Domains"
-        message="Use your own branded domains for professional short links with SSL certificates included."
-      />
+      {/* Upgrade Modal - Now managed by context and portal */}
+      <UpgradeModal />
     </div>
   );
 };

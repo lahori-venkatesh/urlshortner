@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, QrCode, Upload, Copy, ExternalLink, Settings, Calendar, Lock, Eye, EyeOff, Zap, Sparkles, Shield, Globe, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useUpgradeModal } from '../context/ModalContext';
 import QRCodeGenerator from './QRCodeGenerator';
 import { aiService, AliasSuggestion, SecurityCheck } from '../services/aiService';
 import toast from 'react-hot-toast';
@@ -52,7 +54,9 @@ const UrlShortener: React.FC = () => {
   }, []);
   
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const featureAccess = useFeatureAccess(user);
+  const upgradeModal = useUpgradeModal();
   const [activeTab, setActiveTab] = useState<'url' | 'qr' | 'file'>('url');
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
@@ -159,9 +163,6 @@ const UrlShortener: React.FC = () => {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
   const [isLoadingDomains, setIsLoadingDomains] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeFeature, setUpgradeFeature] = useState<string>('');
-  const [showOnlyBusiness, setShowOnlyBusiness] = useState(false);
 
   // Load custom domains from backend API
   React.useEffect(() => {
@@ -731,30 +732,34 @@ const UrlShortener: React.FC = () => {
                         
                         // 🚫 FREE user or no custom domain feature - show upgrade modal
                         if (!featureAccess.canUseCustomDomain) {
-                          console.log('✅ FREE user - showing upgrade modal');
-                          setUpgradeFeature('Custom Domains');
-                          setShowOnlyBusiness(false);
-                          setShowUpgradeModal(true);
+                          console.log('✅ FREE user - showing upgrade modal via context');
+                          upgradeModal.open(
+                            'Custom Domains',
+                            'Unlock custom domains and professional branding for your links',
+                            false
+                          );
                         }
                         // 🟡 Has feature but reached limit - check upgrade path
                         else if (!featureAccess.canAddDomain(customDomainCount)) {
                           if (user?.plan === 'PRO') {
-                            console.log('✅ PRO user at limit - showing BUSINESS upgrade modal');
-                            setUpgradeFeature('Upgrade to Business for more domains');
-                            setShowOnlyBusiness(true);
-                            setShowUpgradeModal(true);
+                            console.log('✅ PRO user at limit - showing BUSINESS upgrade modal via context');
+                            upgradeModal.open(
+                              'Upgrade to Business for more domains',
+                              'Get up to 3 custom domains with our Business plan',
+                              true
+                            );
                           } else {
                             console.log('✅ BUSINESS user at limit - showing limit message');
                             toast.error(`You've reached the ${featureAccess.domainLimit} domain limit for your ${featureAccess.limits.name} plan. Please contact support for more domains.`);
                           }
                         }
-                        // ✅ Can add domain - proceed to onboarding
+                        // ✅ Can add domain - navigate to onboarding (React Router)
                         else {
-                          console.log('✅ User can add domain - redirecting to onboarding');
-                          window.location.href = '/dashboard?tab=domains&action=onboard';
+                          console.log('✅ User can add domain - navigating to onboarding via React Router');
+                          navigate('/dashboard?tab=domains&action=onboard');
                         }
                         
-                        // Reset selection to default
+                        // Reset selection to default (only after modal closes to prevent re-renders)
                         setTimeout(() => {
                           setSelectedDomain('pebly.vercel.app');
                         }, 100);
@@ -1051,17 +1056,8 @@ const UrlShortener: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => {
-          setShowUpgradeModal(false);
-          setShowOnlyBusiness(false); // Reset the business-only flag
-        }}
-        feature={upgradeFeature}
-        message="Unlock custom domains and professional branding for your links"
-        showOnlyBusiness={showOnlyBusiness}
-      />
+      {/* Upgrade Modal - Now managed by context and portal */}
+      <UpgradeModal />
     </div>
   );
 };

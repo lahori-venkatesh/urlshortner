@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTeam } from '../context/TeamContext';
+import { useUpgradeModal } from '../context/ModalContext';
 import DashboardOverview from './dashboard/DashboardOverview';
 import TeamManagement from './TeamManagement';
 import TeamSettings from './TeamSettings';
@@ -35,6 +36,7 @@ type CreateMode = 'url' | 'qr' | 'file';
 const UnifiedDashboard: React.FC = () => {
   const { user } = useAuth();
   const { currentScope } = useTeam();
+  const upgradeModal = useUpgradeModal();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeSection, setActiveSection] = useState<SidebarSection>('dashboard');
@@ -42,8 +44,6 @@ const UnifiedDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isPro] = useState(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS') || false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeFeature, setUpgradeFeature] = useState<string>('');
 
   // Close sidebar on mobile when section changes
   useEffect(() => {
@@ -286,8 +286,11 @@ const UnifiedDashboard: React.FC = () => {
                           setActiveSection(item.id);
                           navigate('/dashboard/domains');
                         } else {
-                          setUpgradeFeature('Custom Domains');
-                          setShowUpgradeModal(true);
+                          upgradeModal.open(
+                            'Custom Domains',
+                            'Unlock custom domains and advanced features for your team',
+                            false
+                          );
                         }
                         return;
                       }
@@ -431,13 +434,8 @@ const UnifiedDashboard: React.FC = () => {
         </main>
       </div>
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        isOpen={showUpgradeModal}
-        onClose={() => setShowUpgradeModal(false)}
-        feature={upgradeFeature}
-        message="Unlock custom domains and advanced features for your team"
-      />
+      {/* Upgrade Modal - Now managed by context and portal */}
+      <UpgradeModal />
     </div>
   );
 };
