@@ -546,7 +546,9 @@ const Pricing: React.FC = () => {
 
             {/* Pro Plan */}
             <motion.div 
-              className="bg-blue-600 rounded-xl shadow-lg p-6 relative transform scale-105 border-2 border-blue-500"
+              className={`bg-blue-600 rounded-xl shadow-lg p-6 relative transform scale-105 border-2 ${
+                appliedCoupon ? 'border-yellow-400 ring-2 ring-yellow-300' : 'border-blue-500'
+              }`}
               variants={fadeInUp}
             >
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -562,14 +564,28 @@ const Pricing: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
                 <div className="space-y-1">
-                  <div className="text-3xl font-bold text-white mb-1">
-                    ₹{billingCycle === 'monthly' ? '349' : '2,999'}
-                  </div>
+                  {appliedCoupon ? (
+                    <div>
+                      <div className="text-lg text-blue-200 line-through">
+                        ₹{billingCycle === 'monthly' ? '349' : '2,999'}
+                      </div>
+                      <div className="text-3xl font-bold text-white mb-1">
+                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 349 : 2999)}
+                      </div>
+                      <div className="text-yellow-300 text-sm font-medium">
+                        {appliedCoupon.discount}% OFF Applied!
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-3xl font-bold text-white mb-1">
+                      ₹{billingCycle === 'monthly' ? '349' : '2,999'}
+                    </div>
+                  )}
                 </div>
                 <p className="text-blue-100 text-sm">
                   per {billingCycle === 'monthly' ? 'month' : 'year'}
                 </p>
-                {billingCycle === 'yearly' && (
+                {billingCycle === 'yearly' && !appliedCoupon && (
                   <p className="text-yellow-300 font-medium mt-1 text-sm">
                     Save ₹1,189 annually
                   </p>
@@ -601,17 +617,25 @@ const Pricing: React.FC = () => {
                   if (!isAuthenticated) {
                     setAuthMode('signup');
                     setIsAuthModalOpen(true);
+                  } else {
+                    const originalPrice = billingCycle === 'monthly' ? 349 : 2999;
+                    const planType = billingCycle === 'monthly' ? 'PRO_MONTHLY' : 'PRO_YEARLY';
+                    const planName = `Pro ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`;
+                    handleRazorpayPayment(planType, planName, originalPrice);
                   }
                 }}
                 className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                disabled={isProcessingPayment}
               >
-                Upgrade to Pro
+                {isProcessingPayment ? 'Processing...' : 'Upgrade to Pro'}
               </button>
             </motion.div>
 
             {/* Business Plan */}
             <motion.div 
-              className="bg-purple-600 rounded-xl shadow-md p-6 border border-purple-500 hover:shadow-lg transition-all duration-300 relative"
+              className={`bg-purple-600 rounded-xl shadow-md p-6 border hover:shadow-lg transition-all duration-300 relative ${
+                appliedCoupon ? 'border-yellow-400 ring-2 ring-yellow-300' : 'border-purple-500'
+              }`}
               variants={fadeInUp}
             >
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -626,14 +650,28 @@ const Pricing: React.FC = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">Business</h3>
                 <div className="space-y-1">
-                  <div className="text-3xl font-bold text-white mb-1">
-                    ₹{billingCycle === 'monthly' ? '699' : '5,999'}
-                  </div>
+                  {appliedCoupon ? (
+                    <div>
+                      <div className="text-lg text-purple-200 line-through">
+                        ₹{billingCycle === 'monthly' ? '699' : '5,999'}
+                      </div>
+                      <div className="text-3xl font-bold text-white mb-1">
+                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 699 : 5999)}
+                      </div>
+                      <div className="text-yellow-300 text-sm font-medium">
+                        {appliedCoupon.discount}% OFF Applied!
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-3xl font-bold text-white mb-1">
+                      ₹{billingCycle === 'monthly' ? '699' : '5,999'}
+                    </div>
+                  )}
                 </div>
                 <p className="text-purple-100 text-sm">
                   per {billingCycle === 'monthly' ? 'month' : 'year'}
                 </p>
-                {billingCycle === 'yearly' && (
+                {billingCycle === 'yearly' && !appliedCoupon && (
                   <p className="text-yellow-300 font-medium mt-1 text-sm">
                     Save ₹2,389 annually
                   </p>
@@ -665,11 +703,17 @@ const Pricing: React.FC = () => {
                   if (!isAuthenticated) {
                     setAuthMode('signup');
                     setIsAuthModalOpen(true);
+                  } else {
+                    const originalPrice = billingCycle === 'monthly' ? 699 : 5999;
+                    const planType = billingCycle === 'monthly' ? 'BUSINESS_MONTHLY' : 'BUSINESS_YEARLY';
+                    const planName = `Business ${billingCycle === 'monthly' ? 'Monthly' : 'Yearly'}`;
+                    handleRazorpayPayment(planType, planName, originalPrice);
                   }
                 }}
                 className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                disabled={isProcessingPayment}
               >
-                Upgrade to Business
+                {isProcessingPayment ? 'Processing...' : 'Upgrade to Business'}
               </button>
             </motion.div>
           </motion.div>
