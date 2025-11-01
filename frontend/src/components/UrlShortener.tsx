@@ -757,12 +757,19 @@ const UrlShortener: React.FC = () => {
                             });
                             
                             console.log('🚀 CALLING upgradeModal.open() NOW...');
-                            upgradeModal.open(
-                              'Custom Domains',
-                              'Unlock custom domains and professional branding for your links',
-                              false
-                            );
-                            console.log('🚀 upgradeModal.open() CALLED SUCCESSFULLY');
+                            console.log('🚀 upgradeModal object:', upgradeModal);
+                            console.log('🚀 upgradeModal.open function:', upgradeModal.open);
+                            
+                            try {
+                              upgradeModal.open(
+                                'Custom Domains',
+                                'Unlock custom domains and professional branding for your links',
+                                false
+                              );
+                              console.log('🚀 upgradeModal.open() CALLED SUCCESSFULLY');
+                            } catch (error) {
+                              console.error('🚨 ERROR calling upgradeModal.open():', error);
+                            }
                             return; // ⛔️ STOP - Don't navigate, show modal instead
                           }
                           
@@ -983,6 +990,28 @@ const UrlShortener: React.FC = () => {
             className="w-full mt-2 bg-purple-500 text-white py-2 rounded-lg font-semibold hover:bg-purple-600 transition-all"
           >
             🔄 Refresh from Database
+          </button>
+
+          {/* TEST MODAL BUTTON */}
+          <button
+            onClick={() => {
+              console.log('🧪 TEST MODAL BUTTON CLICKED');
+              console.log('🧪 upgradeModal object:', upgradeModal);
+              console.log('🧪 upgradeModal.open:', upgradeModal.open);
+              try {
+                upgradeModal.open(
+                  'TEST MODAL',
+                  'This is a test modal to see if the context works',
+                  false
+                );
+                console.log('🧪 TEST MODAL OPENED SUCCESSFULLY');
+              } catch (error) {
+                console.error('🧪 TEST MODAL ERROR:', error);
+              }
+            }}
+            className="w-full mt-2 bg-red-500 text-white py-2 rounded-lg font-semibold hover:bg-red-600 transition-all"
+          >
+            🧪 TEST MODAL (DEBUG)
           </button>
 
           {/* Simple Upload Button for File Tab */}

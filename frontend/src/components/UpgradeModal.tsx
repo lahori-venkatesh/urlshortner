@@ -32,17 +32,16 @@ const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log('🎭 UpgradeModal - State changed:', {
-      isOpen,
-      modalContextIsOpen: modal.isOpen,
-      feature,
-      message,
-      propsIsOpen: props.isOpen,
-    });
     if (isOpen) {
+      console.log('🎭 UpgradeModal - Modal opening:', {
+        isOpen,
+        modalContextIsOpen: modal.isOpen,
+        feature,
+        message,
+      });
       loadPricing();
     }
-  }, [isOpen, modal.isOpen, feature, message, props.isOpen]);
+  }, [isOpen]);
 
   const loadPricing = async () => {
     try {

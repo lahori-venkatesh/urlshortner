@@ -164,21 +164,21 @@ export const useModal = (): ModalContextType => {
 
 // Convenience hooks for specific modals
 export const useUpgradeModal = () => {
-  const { 
-    isUpgradeModalOpen, 
-    upgradeFeature, 
-    upgradeMessage, 
-    showOnlyBusiness,
-    openUpgradeModal, 
-    closeUpgradeModal 
-  } = useModal();
+  const context = useModal();
+  
+  console.log('🎯 useUpgradeModal - Context values:', {
+    isUpgradeModalOpen: context.isUpgradeModalOpen,
+    upgradeFeature: context.upgradeFeature,
+    upgradeMessage: context.upgradeMessage,
+    showOnlyBusiness: context.showOnlyBusiness,
+  });
   
   return {
-    isOpen: isUpgradeModalOpen,
-    feature: upgradeFeature,
-    message: upgradeMessage,
-    showOnlyBusiness,
-    open: openUpgradeModal,
-    close: closeUpgradeModal,
+    isOpen: context.isUpgradeModalOpen,
+    feature: context.upgradeFeature,
+    message: context.upgradeMessage,
+    showOnlyBusiness: context.showOnlyBusiness,
+    open: context.openUpgradeModal,
+    close: context.closeUpgradeModal,
   };
 };
