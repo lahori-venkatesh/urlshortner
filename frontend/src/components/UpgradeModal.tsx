@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Crown, Zap, Shield, BarChart3, Palette, Globe, Clock, Star } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { subscriptionService, PricingData } from '../services/subscriptionService';
 import { useAuth } from '../context/AuthContext';
 import { useUpgradeModal } from '../context/ModalContext';
@@ -87,9 +87,13 @@ const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
 
   return (
     <PortalModal isOpen={isOpen} onClose={onClose} preventBodyScroll={true}>
-      <AnimatePresence>
-        {isOpen && (
-          <div className="overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm h-full w-full">
+      <motion.div 
+        className="overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm h-full w-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+      >
           <div className="flex items-center justify-center min-h-screen p-4">
             {/* Background overlay */}
             <motion.div
@@ -298,9 +302,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = (props) => {
               </div>
             </motion.div>
           </div>
-          </div>
-        )}
-      </AnimatePresence>
+      </motion.div>
     </PortalModal>
   );
 };

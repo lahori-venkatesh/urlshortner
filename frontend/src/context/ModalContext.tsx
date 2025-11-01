@@ -16,6 +16,10 @@ interface ModalContextType {
   modalProps: Record<string, any>;
   openModal: (modalType: string, props?: Record<string, any>) => void;
   closeModal: () => void;
+  
+  // Lifecycle hooks
+  onModalClose: (callback: () => void) => void;
+  removeModalCloseListener: (callback: () => void) => void;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -34,6 +38,9 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
   // Generic Modal State
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [modalProps, setModalProps] = useState<Record<string, any>>({});
+  
+  // Lifecycle listeners
+  const [closeListeners, setCloseListeners] = useState<(() => void)[]>([]);
 
   // Upgrade Modal Actions
   const openUpgradeModal = (
@@ -42,20 +49,41 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     businessOnly: boolean = false
   ) => {
     console.log('🎯 ModalContext: Opening upgrade modal', { feature, message, businessOnly });
+    
+    // Batch state updates to prevent multiple re-renders
     setUpgradeFeature(feature);
     setUpgradeMessage(message);
     setShowOnlyBusiness(businessOnly);
-    setIsUpgradeModalOpen(true);
     setActiveModal('upgrade');
+    
+    // Open modal after state is set
+    setTimeout(() => {
+      setIsUpgradeModalOpen(true);
+    }, 0);
   };
 
   const closeUpgradeModal = () => {
     console.log('🎯 ModalContext: Closing upgrade modal');
+    
+    // Notify all close listeners
+    closeListeners.forEach(callback => {
+      try {
+        callback();
+      } catch (error) {
+        console.error('Error in modal close listener:', error);
+      }
+    });
+    
+    // Close modal first
     setIsUpgradeModalOpen(false);
-    setUpgradeFeature('');
-    setUpgradeMessage('');
-    setShowOnlyBusiness(false);
-    setActiveModal(null);
+    
+    // Clean up state after animation
+    setTimeout(() => {
+      setUpgradeFeature('');
+      setUpgradeMessage('');
+      setShowOnlyBusiness(false);
+      setActiveModal(null);
+    }, 150); // Allow for modal close animation
   };
 
   // Generic Modal Actions
@@ -81,6 +109,15 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     }
   };
 
+  // Lifecycle management
+  const onModalClose = (callback: () => void) => {
+    setCloseListeners(prev => [...prev, callback]);
+  };
+
+  const removeModalCloseListener = (callback: () => void) => {
+    setCloseListeners(prev => prev.filter(listener => listener !== callback));
+  };
+
   const value: ModalContextType = {
     // Upgrade Modal State
     isUpgradeModalOpen,
@@ -97,6 +134,10 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     modalProps,
     openModal,
     closeModal,
+    
+    // Lifecycle hooks
+    onModalClose,
+    removeModalCloseListener,
   };
 
   return (

@@ -698,7 +698,7 @@ const UrlShortener: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       {user?.plan && (user.plan.includes('PRO') || user.plan.includes('BUSINESS')) && (
                         <button
-                          onClick={() => window.location.href = '/dashboard?section=domains'}
+                          onClick={() => navigate('/dashboard?tab=domains')}
                           className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
                         >
                           <Globe className="w-3 h-3 mr-1" />
@@ -710,63 +710,60 @@ const UrlShortener: React.FC = () => {
                   <select
                     value={selectedDomain}
                     onChange={(e) => {
-                      if (e.target.value === 'ADD_CUSTOM_DOMAIN') {
-                        // Prevent any default behavior
-                        e.preventDefault();
-                        e.stopPropagation();
+                      const selectedValue = e.target.value;
+                      
+                      if (selectedValue === 'ADD_CUSTOM_DOMAIN') {
+                        // Reset selection FIRST to prevent re-render loops
+                        setSelectedDomain('pebly.vercel.app');
                         
-                        console.log('🔍 Add Custom Domain selected - Using centralized policy');
-                        
-                        // Count only custom domains (exclude default domain)
-                        const customDomainCount = customDomains.filter(domain => 
-                          domain !== 'pebly.vercel.app' && domain !== 'localhost:3000'
-                        ).length;
-                        
-                        console.log('🔍 Policy Check:', {
-                          userPlan: user?.plan,
-                          customDomainCount,
-                          canUseCustomDomain: featureAccess.canUseCustomDomain,
-                          canAddDomain: featureAccess.canAddDomain(customDomainCount),
-                          domainLimit: featureAccess.domainLimit
-                        });
-                        
-                        // 🚫 FREE user or no custom domain feature - show upgrade modal
-                        if (!featureAccess.canUseCustomDomain) {
-                          console.log('✅ FREE user - showing upgrade modal via context');
-                          upgradeModal.open(
-                            'Custom Domains',
-                            'Unlock custom domains and professional branding for your links',
-                            false
-                          );
-                        }
-                        // 🟡 Has feature but reached limit - check upgrade path
-                        else if (!featureAccess.canAddDomain(customDomainCount)) {
-                          if (user?.plan === 'PRO') {
-                            console.log('✅ PRO user at limit - showing BUSINESS upgrade modal via context');
-                            upgradeModal.open(
-                              'Upgrade to Business for more domains',
-                              'Get up to 3 custom domains with our Business plan',
-                              true
-                            );
-                          } else {
-                            console.log('✅ BUSINESS user at limit - showing limit message');
-                            toast.error(`You've reached the ${featureAccess.domainLimit} domain limit for your ${featureAccess.limits.name} plan. Please contact support for more domains.`);
-                          }
-                        }
-                        // ✅ Can add domain - navigate to onboarding (React Router)
-                        else {
-                          console.log('✅ User can add domain - navigating to onboarding via React Router');
-                          navigate('/dashboard?tab=domains&action=onboard');
-                        }
-                        
-                        // Reset selection to default (only after modal closes to prevent re-renders)
+                        // Handle custom domain logic in next tick
                         setTimeout(() => {
-                          setSelectedDomain('pebly.vercel.app');
-                        }, 100);
-                        
-                        return false; // Prevent any further processing
+                          console.log('🔍 Add Custom Domain selected - Using centralized policy');
+                          
+                          // Count only custom domains (exclude default domain)
+                          const customDomainCount = customDomains.filter(domain => 
+                            domain !== 'pebly.vercel.app' && domain !== 'localhost:3000'
+                          ).length;
+                          
+                          console.log('🔍 Policy Check:', {
+                            userPlan: user?.plan,
+                            customDomainCount,
+                            canUseCustomDomain: featureAccess.canUseCustomDomain,
+                            canAddDomain: featureAccess.canAddDomain(customDomainCount),
+                            domainLimit: featureAccess.domainLimit
+                          });
+                          
+                          // 🚫 FREE user or no custom domain feature - show upgrade modal
+                          if (!featureAccess.canUseCustomDomain) {
+                            console.log('✅ FREE user - showing upgrade modal via context');
+                            upgradeModal.open(
+                              'Custom Domains',
+                              'Unlock custom domains and professional branding for your links',
+                              false
+                            );
+                          }
+                          // 🟡 Has feature but reached limit - check upgrade path
+                          else if (!featureAccess.canAddDomain(customDomainCount)) {
+                            if (user?.plan === 'PRO') {
+                              console.log('✅ PRO user at limit - showing BUSINESS upgrade modal via context');
+                              upgradeModal.open(
+                                'Upgrade to Business for more domains',
+                                'Get up to 3 custom domains with our Business plan',
+                                true
+                              );
+                            } else {
+                              console.log('✅ BUSINESS user at limit - showing limit message');
+                              toast.error(`You've reached the ${featureAccess.domainLimit} domain limit for your ${featureAccess.limits.name} plan. Please contact support for more domains.`);
+                            }
+                          }
+                          // ✅ Can add domain - navigate to onboarding (React Router)
+                          else {
+                            console.log('✅ User can add domain - navigating to onboarding via React Router');
+                            navigate('/dashboard?tab=domains&action=onboard');
+                          }
+                        }, 0);
                       } else {
-                        setSelectedDomain(e.target.value);
+                        setSelectedDomain(selectedValue);
                       }
                     }}
                     disabled={isLoadingDomains}
