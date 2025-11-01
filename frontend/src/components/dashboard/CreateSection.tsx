@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSubscription } from '../../context/SubscriptionContext';
+import { useUpgradeModal } from '../../context/ModalContext';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { subscriptionService } from '../../services/subscriptionService';
 import { 
   Link, 
@@ -74,6 +76,8 @@ interface ShortenedLink {
 const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => {
   const { user } = useAuth();
   const { planInfo, checkAccess, showUpgradeModal, startTrial } = useSubscription();
+  const upgradeModal = useUpgradeModal();
+  const featureAccess = useFeatureAccess(user);
   const location = useLocation();
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
@@ -1970,11 +1974,18 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                           // Reset selection first
                           setSelectedDomain('pebly.vercel.app');
                           
-                          // Show alert to confirm this is working
-                          alert('MODAL SHOULD OPEN NOW - CREATE SECTION VERSION');
-                          
-                          // TODO: Add modal logic here
-                          console.log('🚨 NEED TO ADD MODAL LOGIC TO CREATE SECTION');
+                          // Check if user can use custom domains
+                          if (!featureAccess.canUseCustomDomain) {
+                            console.log('✅ FREE user - showing upgrade modal');
+                            upgradeModal.open(
+                              'Custom Domains',
+                              'Unlock custom domains and professional branding for your links',
+                              false
+                            );
+                          } else {
+                            // User has access, navigate to domain management
+                            window.location.href = '/dashboard?section=domains&action=onboard';
+                          }
                           
                           return; // Stop navigation
                         } else {
