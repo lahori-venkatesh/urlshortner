@@ -211,40 +211,12 @@ const UrlShortener: React.FC = () => {
       return;
     }
 
-    // Check premium features BEFORE processing
-    const blockedFeatures: string[] = [];
-    
-    if (customAlias.trim() && !featureAccess.canUseCustomAlias) {
-      blockedFeatures.push('Custom Alias');
-    }
-    if (password.trim() && !featureAccess.canUsePasswordProtection) {
-      blockedFeatures.push('Password Protection');
-    }
-    if (expirationDays && !featureAccess.canUseLinkExpiration) {
-      blockedFeatures.push('Link Expiration');
-    }
-    if (maxClicks && !featureAccess.canUseClickLimits) {
-      blockedFeatures.push('Click Limits');
-    }
-    if (selectedDomain !== 'pebly.vercel.app' && !featureAccess.canUseCustomDomain) {
-      blockedFeatures.push('Custom Domains');
-    }
-    
-    if (blockedFeatures.length > 0) {
-      const featureText = blockedFeatures.length === 1 
-        ? blockedFeatures[0] 
-        : blockedFeatures.slice(0, -1).join(', ') + ' and ' + blockedFeatures.slice(-1);
-      
-      const message = `${featureText} ${blockedFeatures.length === 1 ? 'requires' : 'require'} a Pro subscription. Upgrade to unlock ${blockedFeatures.length === 1 ? 'this feature' : 'these features'}.`;
-      
-      upgradeModal.open(
-        'Premium Features Required',
-        message,
-        false
-      );
-      
-      return; // Stop processing
-    }
+    // For free users, clear any premium field values to prevent validation issues
+    const finalCustomAlias = featureAccess.canUseCustomAlias ? customAlias : '';
+    const finalPassword = featureAccess.canUsePasswordProtection ? password : '';
+    const finalExpirationDays = featureAccess.canUseLinkExpiration ? expirationDays : '';
+    const finalMaxClicks = featureAccess.canUseClickLimits ? maxClicks : '';
+    const finalDomain = featureAccess.canUseCustomDomain ? selectedDomain : 'pebly.vercel.app';
 
     setIsLoading(true);
 
@@ -258,13 +230,13 @@ const UrlShortener: React.FC = () => {
         result = await createShortUrl({
           originalUrl: urlInput,
           userId,
-          customAlias: customAlias || undefined,
-          password: password || undefined,
-          expirationDays: expirationDays ? parseInt(expirationDays.toString()) : undefined,
-          maxClicks: maxClicks ? parseInt(maxClicks.toString()) : undefined,
+          customAlias: finalCustomAlias || undefined,
+          password: finalPassword || undefined,
+          expirationDays: finalExpirationDays ? parseInt(finalExpirationDays.toString()) : undefined,
+          maxClicks: finalMaxClicks ? parseInt(finalMaxClicks.toString()) : undefined,
           title: `Short link for ${urlInput}`,
           description: 'Created via URL Shortener',
-          customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined
+          customDomain: finalDomain !== 'pebly.vercel.app' ? finalDomain : undefined
         });
 
         if (result.success) {

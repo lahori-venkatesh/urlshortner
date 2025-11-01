@@ -455,6 +455,21 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     if (mode === 'qr' && !qrText.trim()) return;
     if (mode === 'file' && !selectedFile) return;
 
+    // For free users, clear any premium field values to prevent validation issues
+    const finalCustomAlias = featureAccess.canUseCustomAlias ? customAlias : '';
+    const finalPassword = featureAccess.canUsePasswordProtection ? password : '';
+    const finalExpirationDays = featureAccess.canUseLinkExpiration ? expirationDays : '';
+    const finalMaxClicks = featureAccess.canUseClickLimits ? maxClicks : '';
+    
+    // For QR codes, clear premium customization for free users
+    const finalQrCustomization = {
+      ...qrCustomization,
+      foregroundColor: featureAccess.canUseCustomQRColors ? qrCustomization.foregroundColor : '#000000',
+      backgroundColor: featureAccess.canUseCustomQRColors ? qrCustomization.backgroundColor : '#FFFFFF',
+      logo: featureAccess.canUseQRLogo ? qrCustomization.logo : undefined,
+      centerText: featureAccess.canUseQRBranding ? qrCustomization.centerText : undefined
+    };
+
     // Check subscription limits before creating
     if (user?.id) {
       const action = mode === 'url' ? 'create-url' : mode === 'qr' ? 'create-qr' : 'create-file';
@@ -463,56 +478,6 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
       if (!accessCheck.hasAccess) {
         showUpgradeModal('daily-limit', accessCheck.message);
         return;
-      }
-
-      // Check premium features BEFORE processing
-      const blockedFeatures: string[] = [];
-      
-      if (customAlias.trim() && !featureAccess.canUseCustomAlias) {
-        blockedFeatures.push('Custom Alias');
-      }
-      if (password.trim() && !featureAccess.canUsePasswordProtection) {
-        blockedFeatures.push('Password Protection');
-      }
-      if (expirationDays && !featureAccess.canUseLinkExpiration) {
-        blockedFeatures.push('Link Expiration');
-      }
-      if (maxClicks && !featureAccess.canUseClickLimits) {
-        blockedFeatures.push('Click Limits');
-      }
-      
-      // For QR codes, check QR-specific premium features
-      if (mode === 'qr') {
-        if ((qrCustomization.foregroundColor !== '#000000' || qrCustomization.backgroundColor !== '#FFFFFF') && !featureAccess.canUseCustomQRColors) {
-          blockedFeatures.push('Custom QR Colors');
-        }
-        if (qrCustomization.logo && !featureAccess.canUseQRLogo) {
-          blockedFeatures.push('QR Logo');
-        }
-        if (qrCustomization.centerText && !featureAccess.canUseQRBranding) {
-          blockedFeatures.push('QR Branding');
-        }
-      }
-      
-      // For file uploads, check file-specific premium features
-      if (mode === 'file' && (customAlias || password || expirationDays || maxClicks) && !featureAccess.canUseAdvancedFileSettings) {
-        blockedFeatures.push('Advanced File Settings');
-      }
-      
-      if (blockedFeatures.length > 0) {
-        const featureText = blockedFeatures.length === 1 
-          ? blockedFeatures[0] 
-          : blockedFeatures.slice(0, -1).join(', ') + ' and ' + blockedFeatures.slice(-1);
-        
-        const message = `${featureText} ${blockedFeatures.length === 1 ? 'requires' : 'require'} a Pro subscription. Upgrade to unlock ${blockedFeatures.length === 1 ? 'this feature' : 'these features'}.`;
-        
-        upgradeModal.open(
-          'Premium Features Required',
-          message,
-          false
-        );
-        
-        return; // Stop processing
       }
 
       // Check QR customization
@@ -543,7 +508,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
     setIsLoading(true);
 
     try {
-      const shortCode = customAlias || Math.random().toString(36).substr(2, 6);
+      const shortCode = finalCustomAlias || Math.random().toString(36).substr(2, 6);
       const baseUrl = window.location.origin;
       let originalUrl = '';
       
@@ -604,10 +569,10 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
           backendResult = await createShortUrl({
             originalUrl: originalUrl,
             userId: user?.id || 'anonymous-user',
-            customAlias: customAlias || undefined,
-            password: password || undefined,
-            expirationDays: expirationDays || undefined,
-            maxClicks: maxClicks || undefined,
+            customAlias: finalCustomAlias || undefined,
+            password: finalPassword || undefined,
+            expirationDays: finalExpirationDays || undefined,
+            maxClicks: finalMaxClicks || undefined,
             title: `Dashboard URL - ${shortCode}`,
             description: 'Created via Dashboard'
           });
@@ -622,9 +587,9 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
               contentType: 'TEXT',
               title: `Dashboard QR - ${shortCode}`,
               description: 'Updated via Dashboard',
-              foregroundColor: qrCustomization.foregroundColor,
-              backgroundColor: qrCustomization.backgroundColor,
-              size: qrCustomization.size,
+              foregroundColor: finalQrCustomization.foregroundColor,
+              backgroundColor: finalQrCustomization.backgroundColor,
+              size: finalQrCustomization.size,
               style: 'square'
             });
           } else {
@@ -635,9 +600,9 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
               userId: user?.id || 'anonymous-user',
               title: `Dashboard QR - ${shortCode}`,
               description: 'Created via Dashboard',
-              foregroundColor: qrCustomization.foregroundColor,
-              backgroundColor: qrCustomization.backgroundColor,
-              size: qrCustomization.size,
+              foregroundColor: finalQrCustomization.foregroundColor,
+              backgroundColor: finalQrCustomization.backgroundColor,
+              size: finalQrCustomization.size,
               style: 'square'
             });
           }

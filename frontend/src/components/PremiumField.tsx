@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 interface PremiumFieldProps {
   children: ReactElement;
-  feature: 'customAlias' | 'passwordProtection' | 'linkExpiration' | 'clickLimits' | 'customDomain' | 'customQRColors' | 'qrLogo' | 'qrBranding' | 'advancedQRSettings' | 'advancedFileSettings';
+  feature: keyof typeof FEATURE_CONFIG;
   label?: string;
   description?: string;
   requiredPlan?: 'Pro' | 'Business';
@@ -16,77 +16,17 @@ interface PremiumFieldProps {
 }
 
 const FEATURE_CONFIG = {
-  customAlias: {
-    name: 'Custom Alias',
-    description: 'Create memorable custom short links with your own branded aliases',
-    icon: Zap,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseCustomAlias' as const
-  },
-  passwordProtection: {
-    name: 'Password Protection',
-    description: 'Secure your links with password protection. Only users with the password can access your content',
-    icon: Lock,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUsePasswordProtection' as const
-  },
-  linkExpiration: {
-    name: 'Link Expiration',
-    description: 'Set expiration dates for your links to automatically disable them after a certain time period',
-    icon: Sparkles,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseLinkExpiration' as const
-  },
-  clickLimits: {
-    name: 'Click Limits',
-    description: 'Control the maximum number of clicks your links can receive before they become inactive',
-    icon: Shield,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseClickLimits' as const
-  },
-  customDomain: {
-    name: 'Custom Domains',
-    description: 'Use your own branded domains for professional short links that build trust',
-    icon: Crown,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseCustomDomain' as const
-  },
-  customQRColors: {
-    name: 'Custom QR Colors',
-    description: 'Customize your QR code colors to match your brand identity',
-    icon: Palette,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseCustomQRColors' as const
-  },
-  qrLogo: {
-    name: 'QR Code Logo',
-    description: 'Add your company logo to QR codes for better brand recognition',
-    icon: Upload,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseQRLogo' as const
-  },
-  qrBranding: {
-    name: 'QR Code Branding',
-    description: 'Add custom text and branding to your QR codes',
-    icon: Sparkles,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseQRBranding' as const
-  },
-  advancedQRSettings: {
-    name: 'Advanced QR Settings',
-    description: 'Access advanced QR code customization options',
-    icon: Crown,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseAdvancedQRSettings' as const
-  },
-  advancedFileSettings: {
-    name: 'Advanced File Settings',
-    description: 'Use premium features for file uploads including custom settings',
-    icon: Crown,
-    requiredPlan: 'Pro' as const,
-    featureKey: 'canUseAdvancedFileSettings' as const
-  }
-};
+  customAlias: { name: 'Custom Alias', description: 'Create memorable custom short links with branded aliases', icon: Zap, requiredPlan: 'Pro', featureKey: 'canUseCustomAlias' },
+  passwordProtection: { name: 'Password Protection', description: 'Secure your links with passwords', icon: Lock, requiredPlan: 'Pro', featureKey: 'canUsePasswordProtection' },
+  linkExpiration: { name: 'Link Expiration', description: 'Auto-disable links after a set time', icon: Sparkles, requiredPlan: 'Pro', featureKey: 'canUseLinkExpiration' },
+  clickLimits: { name: 'Click Limits', description: 'Limit total clicks per link', icon: Shield, requiredPlan: 'Pro', featureKey: 'canUseClickLimits' },
+  customDomain: { name: 'Custom Domains', description: 'Use branded domains for trust', icon: Crown, requiredPlan: 'Pro', featureKey: 'canUseCustomDomain' },
+  customQRColors: { name: 'Custom QR Colors', description: 'Customize your QR colors to match your brand', icon: Palette, requiredPlan: 'Pro', featureKey: 'canUseCustomQRColors' },
+  qrLogo: { name: 'QR Code Logo', description: 'Add your logo inside QR codes', icon: Upload, requiredPlan: 'Pro', featureKey: 'canUseQRLogo' },
+  qrBranding: { name: 'QR Branding', description: 'Add brand text to QR codes', icon: Sparkles, requiredPlan: 'Pro', featureKey: 'canUseQRBranding' },
+  advancedQRSettings: { name: 'Advanced QR Settings', description: 'Full control over QR customization', icon: Crown, requiredPlan: 'Pro', featureKey: 'canUseAdvancedQRSettings' },
+  advancedFileSettings: { name: 'Advanced File Settings', description: 'Extra upload controls for files', icon: Crown, requiredPlan: 'Pro', featureKey: 'canUseAdvancedFileSettings' },
+} as const;
 
 const PremiumField: React.FC<PremiumFieldProps> = ({
   children,
@@ -107,20 +47,11 @@ const PremiumField: React.FC<PremiumFieldProps> = ({
   const IconComponent = config.icon;
   const planName = requiredPlan || config.requiredPlan;
 
-  // If user has access, render normally
-  if (hasAccess) {
-    return (
-      <div className={wrapperClassName}>
-        {children}
-      </div>
-    );
-  }
+  if (hasAccess) return <div className={wrapperClassName}>{children}</div>;
 
-  // Premium field wrapper for locked features
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     upgradeModal.open(
       config.name,
       description || config.description,
@@ -128,29 +59,25 @@ const PremiumField: React.FC<PremiumFieldProps> = ({
     );
   };
 
-  // Clone the child element and add premium styling
   const enhancedChild = cloneElement(children, {
     ...children.props,
-    className: `${children.props.className || ''} ${className} cursor-pointer transition-all duration-200 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-600 placeholder-purple-400 hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 hover:shadow-md`,
+    className: `${children.props.className || ''} ${className} cursor-pointer transition-all duration-200 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 text-purple-600 placeholder-purple-400 hover:from-purple-100 hover:to-blue-100 hover:border-purple-300 hover:shadow-md`,
     onClick: handleClick,
-    onFocus: handleClick,
     readOnly: true,
-    disabled: false, // Keep clickable
+    tabIndex: 0,
+    'aria-label': `Premium feature locked. Upgrade to ${planName} to unlock ${config.name}`,
     placeholder: `Upgrade to ${planName} to unlock ${config.name.toLowerCase()}`,
     title: `Click to upgrade and unlock ${config.name}`
   });
 
   return (
     <div className={`relative ${wrapperClassName}`}>
-      {/* Premium Badge */}
       {showBadge && (
         <div className="flex items-center justify-between mb-2">
-          {label && (
-            <label className="block text-sm font-medium text-gray-700">
-              {label}
-            </label>
-          )}
-          <div 
+          {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+          <div
+            role="button"
+            tabIndex={0}
             className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
             onClick={handleClick}
             title={`Click to upgrade to ${planName}`}
@@ -161,31 +88,20 @@ const PremiumField: React.FC<PremiumFieldProps> = ({
         </div>
       )}
 
-      {/* Enhanced Input Field */}
-      <div className="relative group">
-        {enhancedChild}
-        
-        {/* Lock Overlay */}
+      <div className="relative group">{enhancedChild}
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-          <div className="flex items-center space-x-1">
-            <Lock className="w-4 h-4 text-purple-400 group-hover:text-purple-600 transition-colors" />
-            <span className="text-xs text-purple-500 font-medium hidden sm:inline">
-              {planName}
-            </span>
-          </div>
+          <Lock className="w-4 h-4 text-purple-400 group-hover:text-purple-600 transition-all duration-200 group-hover:scale-110" />
         </div>
 
-        {/* Hover Tooltip */}
-        <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap">
+        <div className="absolute bottom-full left-0 mb-2 max-w-xs break-words px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap">
           <div className="flex items-center space-x-2">
             <IconComponent className="w-3 h-3" />
             <span>Click to unlock {config.name}</span>
           </div>
-          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="absolute top-full left-5 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
         </div>
       </div>
 
-      {/* Subtle Description */}
       {description && (
         <p className="text-xs text-purple-600 mt-1 cursor-pointer hover:text-purple-800 transition-colors" onClick={handleClick}>
           💡 {description}
