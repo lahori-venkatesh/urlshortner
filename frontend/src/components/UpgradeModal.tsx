@@ -22,7 +22,17 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
   useEffect(() => {
     if (isOpen) {
       loadPricing();
+      // Prevent background scroll when modal is open
+      setTimeout(() => document.body.style.overflow = 'hidden', 0);
+    } else {
+      // Restore background scroll when modal is closed
+      document.body.style.overflow = '';
     }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const loadPricing = async () => {
@@ -73,12 +83,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
     }
   };
 
-  if (!pricing) return null;
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black bg-opacity-50 backdrop-blur-sm">
           <div className="flex items-center justify-center min-h-screen p-4">
             {/* Background overlay */}
             <motion.div
@@ -126,8 +136,16 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                   </p>
                 </div>
 
-                {/* Plan Toggle */}
-                <div className="flex items-center justify-center mb-8">
+                {/* Pricing Loader */}
+                {!pricing ? (
+                  <div className="flex justify-center items-center py-16">
+                    <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="ml-3 text-gray-600">Loading pricing...</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Plan Toggle */}
+                    <div className="flex items-center justify-center mb-8">
                   <div className="bg-gray-100 p-1 rounded-xl flex items-center">
                     <button
                       onClick={() => setIsYearly(false)}
@@ -268,6 +286,9 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, feature, m
                     </div>
                   </div>
                 </div>
+
+                  </>
+                )}
 
                 {/* Footer */}
                 <div className="mt-6 text-center text-sm text-gray-500">
