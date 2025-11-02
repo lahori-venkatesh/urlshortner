@@ -59,8 +59,6 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-
   // Create a new support ticket
   const createTicket = async (ticketData: Omit<SupportTicket, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'status' | 'responses'>): Promise<SupportTicket> => {
     if (!user?.id) {
@@ -69,28 +67,29 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/v1/support/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          category: ticketData.category.toUpperCase(),
-          subject: ticketData.subject,
-          message: ticketData.message,
-          priority: ticketData.priority.toUpperCase(),
-          currentPage: window.location.pathname
-        }),
+      // Import apiClient dynamically to avoid circular dependencies
+      const { default: axios } = await import('axios');
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
+      // Add auth token
+      const token = localStorage.getItem('token');
+      if (token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
       }
 
-      const result = await response.json();
+      const response = await apiClient.post('/v1/support/tickets', {
+        userId: user.id,
+        category: ticketData.category.toUpperCase(),
+        subject: ticketData.subject,
+        message: ticketData.message,
+        priority: ticketData.priority.toUpperCase(),
+        currentPage: window.location.pathname
+      });
+
+      const result = response.data;
       
       if (!result.success) {
         throw new Error(result.message || 'Failed to create support ticket');
@@ -114,13 +113,21 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/v1/support/tickets/user/${user.id}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch support tickets');
+      // Import apiClient dynamically
+      const { default: axios } = await import('axios');
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
+      });
+
+      // Add auth token
+      const token = localStorage.getItem('token');
+      if (token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
       }
 
-      const result = await response.json();
+      const response = await apiClient.get(`/v1/support/tickets/user/${user.id}`);
+      const result = response.data;
       setTickets(result.data || []);
       
       // Calculate unread count
@@ -142,13 +149,21 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
   // Get a specific ticket by ID
   const getTicket = async (ticketId: string): Promise<SupportTicket | null> => {
     try {
-      const response = await fetch(`${baseUrl}/v1/support/tickets/${ticketId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch support ticket');
+      // Import apiClient dynamically
+      const { default: axios } = await import('axios');
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
+      });
+
+      // Add auth token
+      const token = localStorage.getItem('token');
+      if (token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
       }
 
-      const result = await response.json();
+      const response = await apiClient.get(`/v1/support/tickets/${ticketId}`);
+      const result = response.data;
       return result.data;
     } catch (error) {
       console.error('Error fetching support ticket:', error);
@@ -163,22 +178,25 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
     }
 
     try {
-      const response = await fetch(`${baseUrl}/v1/support/tickets/${ticketId}/responses`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          sender: 'user',
-          senderName: user.name || user.email,
-          attachments,
-        }),
+      // Import apiClient dynamically
+      const { default: axios } = await import('axios');
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add response');
+      // Add auth token
+      const token = localStorage.getItem('token');
+      if (token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
       }
+
+      await apiClient.post(`/v1/support/tickets/${ticketId}/responses`, {
+        message,
+        sender: 'user',
+        senderName: user.name || user.email,
+        attachments,
+      });
 
       // Refresh tickets to get updated data
       await getTickets();
@@ -191,17 +209,20 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
   // Update ticket status
   const updateTicketStatus = async (ticketId: string, status: SupportTicket['status']): Promise<void> => {
     try {
-      const response = await fetch(`${baseUrl}/v1/support/tickets/${ticketId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status }),
+      // Import apiClient dynamically
+      const { default: axios } = await import('axios');
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update ticket status');
+      // Add auth token
+      const token = localStorage.getItem('token');
+      if (token) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
       }
+
+      await apiClient.patch(`/v1/support/tickets/${ticketId}/status`, { status });
 
       // Update local state
       setTickets(prev => prev.map(ticket => 
