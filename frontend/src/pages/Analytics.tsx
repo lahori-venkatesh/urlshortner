@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   ArrowLeft, 
@@ -37,6 +37,7 @@ const Analytics: React.FC = () => {
   const { shortCode } = useParams<{ shortCode: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [analytics, setAnalytics] = useState<LinkAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
@@ -54,37 +55,47 @@ const Analytics: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load user's URLs to find the specific link
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/urls/user/${user?.id}`);
-      const result = await response.json();
+      // Get userId from URL params or user context
+      const userId = searchParams.get('userId') || user?.id;
       
-      if (!result.success) {
-        throw new Error('Failed to load links');
-      }
-
-      const link = result.data.find((l: any) => l.shortUrl.endsWith(shortCode));
-      
-      if (!link) {
-        toast.error('Link not found');
+      if (!userId) {
+        toast.error('User ID not found');
         navigate('/dashboard');
         return;
       }
+      
+      // Load analytics from the backend
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/analytics/url/${shortCode}?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to load analytics');
+      }
 
-      // Generate analytics data for this specific link
-      const totalClicks = link.clicks || 0;
+      const analyticsData = result.data;
+      
+      // Transform backend data to frontend format
+      const totalClicks = analyticsData.totalClicks || 0;
       const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
       
-      // Generate time series data
-      const clicksOverTime = Array.from({ length: days }, (_, i) => {
+      // Generate time series data from backend data or create mock data
+      const clicksOverTime = analyticsData.last7DaysClicks || Array.from({ length: days }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (days - 1 - i));
         
         // Simulate realistic click distribution
-        const daysSinceCreation = Math.floor((new Date().getTime() - new Date(link.createdAt).getTime()) / (1000 * 60 * 60 * 24));
         const isRecentDay = i >= days - 7;
         const baseClicks = Math.floor(totalClicks / days);
-        const multiplier = isRecentDay ? 1.5 : daysSinceCreation > i ? 0.8 : 0.3;
+        const multiplier = isRecentDay ? 1.5 : 0.8;
         
         return {
           date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -95,18 +106,18 @@ const Analytics: React.FC = () => {
 
       setAnalytics({
         shortCode: shortCode!,
-        originalUrl: link.originalUrl,
-        shortUrl: link.shortUrl,
+        originalUrl: analyticsData.originalUrl || `https://example.com/${shortCode}`,
+        shortUrl: analyticsData.shortUrl || `https://pebly.vercel.app/${shortCode}`,
         totalClicks,
-        uniqueVisitors: Math.floor(totalClicks * 0.75),
-        createdAt: link.createdAt,
+        uniqueVisitors: analyticsData.uniqueClicks || Math.floor(totalClicks * 0.75),
+        createdAt: analyticsData.createdAt || new Date().toISOString(),
         clicksOverTime,
-        deviceData: [
+        deviceData: analyticsData.deviceBreakdown || [
           { device: 'Mobile', count: Math.floor(totalClicks * 0.65), percentage: 65 },
           { device: 'Desktop', count: Math.floor(totalClicks * 0.25), percentage: 25 },
           { device: 'Tablet', count: Math.floor(totalClicks * 0.10), percentage: 10 }
         ],
-        locationData: [
+        locationData: analyticsData.countryBreakdown || [
           { country: 'India', city: 'Mumbai', count: Math.floor(totalClicks * 0.35) },
           { country: 'India', city: 'Delhi', count: Math.floor(totalClicks * 0.25) },
           { country: 'India', city: 'Bangalore', count: Math.floor(totalClicks * 0.20) },
@@ -114,7 +125,7 @@ const Analytics: React.FC = () => {
           { country: 'UK', city: 'London', count: Math.floor(totalClicks * 0.05) },
           { country: 'Others', city: 'Various', count: Math.floor(totalClicks * 0.05) }
         ],
-        referrerData: [
+        referrerData: analyticsData.referrerBreakdown || [
           { source: 'Direct', count: Math.floor(totalClicks * 0.45) },
           { source: 'Google', count: Math.floor(totalClicks * 0.25) },
           { source: 'Social Media', count: Math.floor(totalClicks * 0.20) },
@@ -129,6 +140,7 @@ const Analytics: React.FC = () => {
     } catch (error) {
       console.error('Error loading analytics:', error);
       toast.error('Failed to load analytics');
+      // Don't navigate away on error, show the error state instead
     } finally {
       setLoading(false);
     }

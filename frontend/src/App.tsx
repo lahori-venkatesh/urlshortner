@@ -124,6 +124,12 @@ const AppContent: React.FC = () => {
               </AuthRedirect>
             } />
             
+            <Route path="/dashboard/analytics/url/:shortCode" element={
+              <AuthRedirect requireAuth={true}>
+                <Analytics />
+              </AuthRedirect>
+            } />
+            
             <Route path="/dashboard/qr-codes/analytics/:qrCode" element={
               <AuthRedirect requireAuth={true}>
                 <QRAnalyticsPage />
