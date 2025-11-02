@@ -84,6 +84,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('=== AuthContext useEffect - Checking stored auth ===');
     
+    // Listen for auth events from API interceptor
+    const handleAuthLogout = () => {
+      console.log('Received auth-logout event, clearing user state');
+      setUser(null);
+      setToken(null);
+      setIsAuthenticated(false);
+      // Redirect to home page
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    };
+
+    const handleTokenRefresh = (event: CustomEvent) => {
+      console.log('Received auth-token-refreshed event, updating user state');
+      const { token: newToken, user: userData } = event.detail;
+      
+      const user: User = {
+        id: userData.id,
+        name: `${userData.firstName} ${userData.lastName}`.trim() || userData.email.split('@')[0],
+        email: userData.email,
+        plan: userData.subscriptionPlan || 'free',
+        avatar: userData.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.firstName || userData.email.split('@')[0])}&background=3b82f6&color=fff`,
+        picture: userData.profilePicture,
+        createdAt: userData.createdAt,
+        timezone: 'Asia/Kolkata',
+        language: 'en',
+        isAuthenticated: true,
+        authProvider: userData.authProvider === 'GOOGLE' ? 'google' : 'email'
+      };
+      
+      setUser(user);
+      setToken(newToken);
+      setIsAuthenticated(true);
+    };
+
+    window.addEventListener('auth-logout', handleAuthLogout);
+    window.addEventListener('auth-token-refreshed', handleTokenRefresh as EventListener);
+    
     const initializeAuth = async () => {
       try {
         // Check if user is logged in from localStorage or Google OAuth
@@ -124,39 +162,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               throw new Error('Token validation failed');
             }
           } catch (error) {
-            console.error('Token validation failed, trying fallback:', error);
+            console.error('Token validation failed, attempting token refresh:', error);
             
-            // FALLBACK: If token validation fails but we have saved user data,
-            // restore the session temporarily (for better UX during backend issues)
+            // Try to refresh the token instead of falling back
             try {
-              const parsedUser = JSON.parse(savedUser);
-              console.log('Using fallback authentication for user:', parsedUser.email);
+              console.log('Attempting automatic token refresh...');
+              const refreshResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${savedToken}`,
+                  'Content-Type': 'application/json',
+                },
+              });
               
-              // Create user object from saved data
-              const user: User = {
-                id: parsedUser.id,
-                name: parsedUser.name,
-                email: parsedUser.email,
-                plan: parsedUser.plan || 'free',
-                avatar: parsedUser.avatar,
-                picture: parsedUser.picture,
-                createdAt: parsedUser.createdAt,
-                timezone: parsedUser.timezone || 'Asia/Kolkata',
-                language: parsedUser.language || 'en',
-                isAuthenticated: true,
-                authProvider: parsedUser.authProvider || 'email'
-              };
+              const refreshData = await refreshResponse.json();
               
-              setUser(user);
-              setToken(savedToken);
-              setIsAuthenticated(true);
-              console.log('Fallback authentication successful');
-              
-              // Show a warning that backend validation failed
-              console.warn('Using cached authentication - backend validation unavailable');
-              
-            } catch (fallbackError) {
-              console.error('Fallback authentication failed, clearing localStorage:', fallbackError);
+              if (refreshData.success && refreshData.token && refreshData.user) {
+                console.log('Token refreshed successfully during initialization');
+                
+                const user: User = {
+                  id: refreshData.user.id,
+                  name: `${refreshData.user.firstName} ${refreshData.user.lastName}`.trim() || refreshData.user.email.split('@')[0],
+                  email: refreshData.user.email,
+                  plan: refreshData.user.subscriptionPlan || 'free',
+                  avatar: refreshData.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(refreshData.user.firstName || refreshData.user.email.split('@')[0])}&background=3b82f6&color=fff`,
+                  picture: refreshData.user.profilePicture,
+                  createdAt: refreshData.user.createdAt,
+                  timezone: 'Asia/Kolkata',
+                  language: 'en',
+                  isAuthenticated: true,
+                  authProvider: refreshData.user.authProvider === 'GOOGLE' ? 'google' : 'email'
+                };
+                
+                // Update stored auth data
+                localStorage.setItem('token', refreshData.token);
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                setUser(user);
+                setToken(refreshData.token);
+                setIsAuthenticated(true);
+                console.log('Authentication restored via token refresh');
+              } else {
+                throw new Error('Token refresh failed');
+              }
+            } catch (refreshError) {
+              console.error('Token refresh failed during initialization, clearing auth:', refreshError);
               localStorage.removeItem('user');
               localStorage.removeItem('token');
               setUser(null);
@@ -185,6 +235,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     initializeAuth();
+    
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('auth-logout', handleAuthLogout);
+      window.removeEventListener('auth-token-refreshed', handleTokenRefresh as EventListener);
+    };
   }, []);
 
   const handleGoogleAuth = async (googleUserInfo: GoogleUserInfo) => {

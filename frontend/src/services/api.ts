@@ -90,19 +90,24 @@ apiClient.interceptors.response.use(
         console.warn('Token refresh failed or already retried - clearing auth');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        if (window.location.pathname !== '/') {
-          window.location.href = '/';
-        }
+        // Dispatch a custom event to notify the app about logout
+        window.dispatchEvent(new CustomEvent('auth-logout'));
         return Promise.reject(error);
       }
 
       // Try to refresh token
       try {
-        console.log('Attempting token refresh...');
+        console.log('Attempting token refresh due to 401/403 error...');
         const token = localStorage.getItem('token');
         
         if (token) {
-          const refreshResponse = await apiClient.post('/v1/auth/refresh', {}, {
+          // Create a new axios instance to avoid interceptor loops
+          const refreshClient = axios.create({
+            baseURL: API_BASE_URL,
+            timeout: 10000,
+          });
+          
+          const refreshResponse = await refreshClient.post('/v1/auth/refresh', {}, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           
@@ -119,6 +124,12 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             
             console.log('Token refreshed successfully, retrying original request');
+            
+            // Dispatch event to notify app about successful token refresh
+            window.dispatchEvent(new CustomEvent('auth-token-refreshed', { 
+              detail: { token: newToken, user: userData } 
+            }));
+            
             return apiClient(originalRequest);
           }
         }
@@ -126,13 +137,11 @@ apiClient.interceptors.response.use(
         console.error('Token refresh failed:', refreshError);
       }
       
-      // If refresh fails, clear auth and redirect
+      // If refresh fails, clear auth and notify app
       console.warn('Token refresh failed - clearing auth');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
-      }
+      window.dispatchEvent(new CustomEvent('auth-logout'));
     } else if (error.response?.status === 503) {
       console.error('Service unavailable - backend may be suspended');
       error.message = 'Server is currently unavailable. Please try again later.';

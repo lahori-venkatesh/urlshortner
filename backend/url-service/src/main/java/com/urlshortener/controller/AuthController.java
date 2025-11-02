@@ -397,15 +397,40 @@ public class AuthController {
             }
             
             String token = authHeader.substring(7);
+            String userId = null;
             
-            // Parse token to get user info (even if expired)
-            var claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            try {
+                // Try to parse token normally first
+                var claims = Jwts.parserBuilder()
+                        .setSigningKey(getSigningKey())
+                        .build()
+                        .parseClaimsJws(token)
+                        .getBody();
+                
+                userId = claims.getSubject();
+            } catch (Exception e) {
+                // If token is expired, parse without validation to get user ID
+                try {
+                    String[] chunks = token.split("\\.");
+                    if (chunks.length == 3) {
+                        // Decode payload without signature verification
+                        String payload = new String(java.util.Base64.getUrlDecoder().decode(chunks[1]));
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        var claims = mapper.readValue(payload, java.util.Map.class);
+                        userId = (String) claims.get("sub");
+                    }
+                } catch (Exception parseError) {
+                    response.put("success", false);
+                    response.put("message", "Invalid token format");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }
             
-            String userId = claims.getSubject();
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "Unable to extract user ID from token");
+                return ResponseEntity.badRequest().body(response);
+            }
             
             // Get user from database
             var userOpt = userService.findById(userId);
@@ -430,6 +455,11 @@ public class AuthController {
             userData.put("emailVerified", user.isEmailVerified());
             userData.put("authProvider", user.getAuthProvider());
             userData.put("createdAt", user.getCreatedAt());
+            userData.put("totalUrls", user.getTotalUrls());
+            userData.put("totalQrCodes", user.getTotalQrCodes());
+            userData.put("totalFiles", user.getTotalFiles());
+            userData.put("totalClicks", user.getTotalClicks());
+            userData.put("apiKey", user.getApiKey());
             
             response.put("success", true);
             response.put("token", newToken);

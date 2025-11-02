@@ -65,4 +65,19 @@ public class JwtUtil {
             return false;
         }
     }
+
+    public String generateToken(String userId, String email, String firstName, String lastName) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        
+        return Jwts.builder()
+                .setSubject(userId)
+                .claim("email", email)
+                .claim("firstName", firstName)
+                .claim("lastName", lastName)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
 }

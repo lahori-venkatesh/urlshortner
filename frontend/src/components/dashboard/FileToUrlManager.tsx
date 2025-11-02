@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { 
   File, 
   Image, 
@@ -43,6 +44,7 @@ interface FileToUrlManagerProps {
 
 const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Use React Query for fast loading with caching
   const { data: rawFiles, isLoading, isFetching, error, refetch } = useUserFiles();
@@ -142,15 +144,21 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     toast('Edit functionality coming soon!');
   };
 
-  const deleteFileLink = async (linkId: string) => {
+  const deleteFileLink = async (fileCode: string) => {
     if (!window.confirm('Are you sure you want to delete this file link? This action cannot be undone.')) {
       return;
     }
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/files/${linkId}`, {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/files/${fileCode}?userId=${user?.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       const result = await response.json();
@@ -226,16 +234,20 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     }
   };
 
-  const updateFileTags = async (linkId: string, newTags: string[]) => {
+  const updateFileTags = async (fileCode: string, newTags: string[]) => {
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/files/${linkId}`, {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/files/${fileCode}`, {
         method: 'PUT',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tags: newTags
+          tags: newTags,
+          userId: user?.id
         }),
       });
 
@@ -519,7 +531,10 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                     <div className="flex items-center space-x-1">
                       <button
                         onClick={() => {
-                          navigate(`/dashboard/file-links/analytics/${fileLink.shortCode}`);
+                          // Since there's no specific file analytics endpoint, show a message
+                          toast('File analytics feature coming soon! For now, check your general analytics.', { icon: 'ℹ️' });
+                          // Alternative: navigate to user analytics
+                          // navigate(`/dashboard/analytics/user/${user?.id}`);
                         }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
                         title="Analytics"

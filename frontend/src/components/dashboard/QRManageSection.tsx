@@ -258,8 +258,14 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
       const response = await fetch(`${apiUrl}/v1/qr/${qrId}?userId=${user?.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       const result = await response.json();
@@ -407,8 +413,10 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   };
 
   const viewQRAnalytics = (qr: QRCodeData) => {
-    // Navigate to analytics page using the QR code ID
-    navigate(`/dashboard/qr-codes/analytics/${qr.id}`);
+    // Since there's no specific QR analytics endpoint, show a message or redirect to general analytics
+    toast('QR Code analytics feature coming soon! For now, check your general analytics.', { icon: 'ℹ️' });
+    // Alternative: navigate to user analytics
+    // navigate(`/dashboard/analytics/user/${user?.id}`);
   };
 
   const customizeQR = (qr: QRCodeData) => {

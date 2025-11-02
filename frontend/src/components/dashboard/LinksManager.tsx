@@ -108,8 +108,14 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       }
 
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
-      const response = await fetch(`${apiUrl}/v1/urls/${linkToDelete.shortCode}`, {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/urls/${linkToDelete.shortCode}?userId=${user?.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       const result = await response.json();
@@ -148,9 +154,12 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
       }
 
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
       const response = await fetch(`${apiUrl}/v1/urls/${linkToUpdate.shortCode}`, {
         method: 'PUT',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -184,9 +193,12 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
 
       console.log('Updating tags in backend:', linkId, newTags);
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
       const response = await fetch(`${apiUrl}/v1/urls/${linkToUpdate.shortCode}`, {
         method: 'PUT',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -477,7 +489,8 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
                       <button
                         onClick={() => {
                           const shortCode = link.shortUrl.split('/').pop();
-                          window.open(`/dashboard/links/analytics/${shortCode}`, '_blank');
+                          // Navigate to analytics page with shortCode and userId
+                          window.open(`/dashboard/analytics/url/${shortCode}?userId=${user?.id}`, '_blank');
                         }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation"
                         title="Analytics"
