@@ -593,6 +593,48 @@ export const getTeamFiles = async (teamId: string): Promise<any> => {
   return response.data;
 };
 
+// Support Ticket API Functions
+export const createSupportTicket = async (data: {
+  userId: string;
+  category: string;
+  subject: string;
+  message: string;
+  priority: string;
+  currentPage?: string;
+  userEmail?: string;
+  userName?: string;
+}): Promise<any> => {
+  const response = await apiClient.post('/v1/support/tickets', data);
+  return response.data;
+};
+
+export const getUserSupportTickets = async (userId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/support/tickets/user/${userId}`);
+  return response.data;
+};
+
+export const getSupportTicket = async (ticketId: string): Promise<any> => {
+  const response = await apiClient.get(`/v1/support/tickets/${ticketId}`);
+  return response.data;
+};
+
+export const addSupportTicketResponse = async (ticketId: string, data: {
+  message: string;
+  sender: string;
+  senderName: string;
+  attachments?: string[];
+}): Promise<any> => {
+  const response = await apiClient.post(`/v1/support/tickets/${ticketId}/responses`, data);
+  return response.data;
+};
+
+export const updateSupportTicketStatus = async (ticketId: string, data: {
+  status: string;
+}): Promise<any> => {
+  const response = await apiClient.patch(`/v1/support/tickets/${ticketId}/status`, data);
+  return response.data;
+};
+
 export default {
   // Legacy functions (keep for backward compatibility)
   shortenUrl,
