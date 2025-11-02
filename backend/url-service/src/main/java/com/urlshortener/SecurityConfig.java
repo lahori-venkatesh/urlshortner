@@ -4,6 +4,7 @@ import com.urlshortener.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,6 +34,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/database/**").permitAll()
                 .requestMatchers("/api/domains/**").permitAll()
                 .requestMatchers("/api/monitoring/**").permitAll()
+                // Allow anonymous creation but protect management endpoints
+                .requestMatchers(HttpMethod.POST, "/api/v1/urls").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/qr").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/files/upload").permitAll()
                 // Protected endpoints - require authentication
                 .requestMatchers("/api/v1/urls/**").authenticated()
                 .requestMatchers("/api/v1/qr/**").authenticated()
