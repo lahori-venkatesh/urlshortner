@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.model.UploadedFile;
 import com.urlshortener.service.FileUploadService;
 import com.urlshortener.service.DashboardService;
@@ -27,6 +28,7 @@ public class FileController {
     private DashboardService dashboardService;
     
     @PostMapping("/upload")
+    @RequiresPlan(feature = "fileUpload", checkLimit = true)
     public ResponseEntity<Map<String, Object>> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String userId,

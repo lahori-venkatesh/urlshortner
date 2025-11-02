@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.model.QrCode;
 import com.urlshortener.service.QrCodeService;
 import com.urlshortener.service.DashboardService;
@@ -27,6 +28,7 @@ public class QrCodeController {
     private DashboardService dashboardService;
     
     @PostMapping
+    @RequiresPlan(feature = "qrCreation", checkLimit = true)
     public ResponseEntity<Map<String, Object>> createQrCode(@RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
         

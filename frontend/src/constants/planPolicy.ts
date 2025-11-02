@@ -38,8 +38,8 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
     name: "Free",
     domains: 0,
     teamMembers: 0,
-    urlsPerMonth: 100,
-    qrCodesPerMonth: 10,
+    urlsPerMonth: 75,
+    qrCodesPerMonth: 30,
     filesPerMonth: 5,
     trialDays: 7,
     features: {
@@ -71,6 +71,7 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
     urlsPerMonth: 1000,
     qrCodesPerMonth: 100,
     filesPerMonth: 50,
+    trialDays: 7,
     features: {
       customDomain: true,
       analytics: true,
@@ -100,6 +101,7 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
     urlsPerMonth: 10000,
     qrCodesPerMonth: 1000,
     filesPerMonth: 500,
+    trialDays: 14,
     features: {
       customDomain: true,
       analytics: true,

@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.service.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class AnalyticsController {
     private AnalyticsService analyticsService;
     
     @GetMapping("/url/{shortCode}")
+    @RequiresPlan(feature = "analytics")
     public ResponseEntity<Map<String, Object>> getUrlAnalytics(@PathVariable String shortCode,
                                                               @RequestParam String userId) {
         Map<String, Object> response = new HashMap<>();
@@ -36,6 +38,7 @@ public class AnalyticsController {
     }
     
     @GetMapping("/user/{userId}")
+    @RequiresPlan(feature = "analytics")
     public ResponseEntity<Map<String, Object>> getUserAnalytics(@PathVariable String userId) {
         Map<String, Object> response = new HashMap<>();
         

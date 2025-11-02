@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.model.ShortenedUrl;
 import com.urlshortener.service.UrlShorteningService;
 import com.urlshortener.service.AnalyticsService;
@@ -122,6 +123,7 @@ public class UrlController {
     }
 
     @PostMapping
+    @RequiresPlan(feature = "urlCreation", checkLimit = true)
     public ResponseEntity<Map<String, Object>> createShortUrl(@RequestBody Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
         
@@ -143,6 +145,10 @@ public class UrlController {
                 response.put("message", "Original URL is required");
                 return ResponseEntity.badRequest().body(response);
             }
+            
+            // Note: Premium feature validation is handled by @RequiresPlan aspect
+            // Additional premium features like customAlias, password, expiration, maxClicks
+            // are validated in the service layer based on user's plan
             
             ShortenedUrl shortenedUrl = urlShorteningService.createShortUrl(
                 originalUrl, userId, customAlias, password, expirationDays, maxClicks, title, description, scopeType, scopeId, customDomain

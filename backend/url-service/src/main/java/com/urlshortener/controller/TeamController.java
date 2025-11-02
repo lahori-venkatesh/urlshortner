@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.model.*;
 import com.urlshortener.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ public class TeamController {
     
     // Create new team
     @PostMapping
+    @RequiresPlan(feature = "teamCollaboration")
     public ResponseEntity<Map<String, Object>> createTeam(@RequestBody Map<String, String> request) {
         try {
             String userId = request.get("userId");
@@ -179,6 +181,7 @@ public class TeamController {
     
     // Invite user to team
     @PostMapping("/{teamId}/invite")
+    @RequiresPlan(feature = "teamMembers", checkLimit = true)
     public ResponseEntity<Map<String, Object>> inviteUser(
             @PathVariable String teamId,
             @RequestBody Map<String, String> request) {

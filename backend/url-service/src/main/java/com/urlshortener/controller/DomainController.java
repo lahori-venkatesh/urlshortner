@@ -1,5 +1,6 @@
 package com.urlshortener.controller;
 
+import com.urlshortener.annotation.RequiresPlan;
 import com.urlshortener.dto.DomainRequest;
 import com.urlshortener.dto.DomainResponse;
 import com.urlshortener.dto.DomainTransferRequest;
@@ -37,6 +38,7 @@ public class DomainController {
      * POST /api/v1/domains
      */
     @PostMapping
+    @RequiresPlan(feature = "customDomain")
     public ResponseEntity<?> reserveDomain(
             @Valid @RequestBody DomainRequest request,
             Authentication authentication) {
