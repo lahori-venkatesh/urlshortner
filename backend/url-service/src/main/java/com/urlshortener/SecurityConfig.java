@@ -38,7 +38,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/urls").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/qr").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/files/upload").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/support/tickets").permitAll()
                 // Protected endpoints - require authentication
                 .requestMatchers("/api/v1/urls/**").authenticated()
                 .requestMatchers("/api/v1/qr/**").authenticated()

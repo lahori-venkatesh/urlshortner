@@ -292,9 +292,6 @@ const ContactForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Creating support ticket with user:', user);
-      console.log('Form data:', formData);
-      
       await createTicket({
         category: formData.category as any,
         subject: formData.subject,
@@ -313,12 +310,46 @@ const ContactForm: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Error creating support ticket:', error);
-      const errorMessage = error?.message || 'Failed to create support ticket. Please try again.';
-      toast.error(errorMessage);
+      
+      // Handle authentication errors specifically
+      if (error?.message?.includes('Authentication required') || 
+          error?.message?.includes('Please log in')) {
+        toast.error('Your session has expired. Please log in again to submit a support ticket.');
+      } else if (error?.response?.status === 401 || error?.response?.status === 403) {
+        toast.error('Authentication failed. Please log in again to submit a support ticket.');
+      } else {
+        const errorMessage = error?.message || 'Failed to create support ticket. Please try again.';
+        toast.error(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show login prompt if user is not authenticated
+  if (!user?.id) {
+    return (
+      <div className="text-center py-8">
+        <div className="mb-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Login Required</h3>
+          <p className="text-gray-600 mb-4">
+            Please log in to submit a support ticket. This helps us provide better assistance and follow up on your request.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

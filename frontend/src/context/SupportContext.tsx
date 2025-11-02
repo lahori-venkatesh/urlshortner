@@ -61,41 +61,42 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
 
   // Create a new support ticket
   const createTicket = async (ticketData: Omit<SupportTicket, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'status' | 'responses'>): Promise<SupportTicket> => {
+    if (!user?.id) {
+      throw new Error('Please log in to submit a support ticket');
+    }
+
     setIsLoading(true);
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
+      // Import apiClient to use proper authentication
+      const { default: axios } = await import('axios');
       
-      // Prepare request data
-      const requestData: any = {
-        userId: user?.id || 'anonymous-user',
+      // Get fresh token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      const apiClient = axios.create({
+        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
+        timeout: 10000,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const response = await apiClient.post('/v1/support/tickets', {
+        userId: user.id,
         category: ticketData.category.toUpperCase(),
         subject: ticketData.subject,
         message: ticketData.message,
         priority: ticketData.priority.toUpperCase(),
-        currentPage: window.location.pathname
-      };
-
-      // Add user info if available
-      if (user) {
-        requestData.userEmail = user.email;
-        requestData.userName = user.name || user.email;
-      }
-
-      const response = await fetch(`${baseUrl}/v1/support/tickets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
+        currentPage: window.location.pathname,
+        userEmail: user.email,
+        userName: user.name || user.email
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
+      const result = response.data;
       
       if (!result.success) {
         throw new Error(result.message || 'Failed to create support ticket');
@@ -121,16 +122,21 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
     try {
       // Import apiClient dynamically
       const { default: axios } = await import('axios');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('No authentication token found');
+        return;
+      }
+
       const apiClient = axios.create({
         baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
         timeout: 10000,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-
-      // Add auth token
-      const token = localStorage.getItem('token');
-      if (token) {
-        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
-      }
 
       const response = await apiClient.get(`/v1/support/tickets/user/${user.id}`);
       const result = response.data;
