@@ -385,6 +385,66 @@ public class AuthController {
         }
     }
     
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "Invalid authorization header");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String token = authHeader.substring(7);
+            
+            // Parse token to get user info (even if expired)
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            String userId = claims.getSubject();
+            
+            // Get user from database
+            var userOpt = userService.findById(userId);
+            if (userOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            User user = userOpt.get();
+            
+            // Generate new token
+            String newToken = generateToken(user);
+            
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("email", user.getEmail());
+            userData.put("firstName", user.getFirstName());
+            userData.put("lastName", user.getLastName());
+            userData.put("profilePicture", user.getProfilePicture());
+            userData.put("subscriptionPlan", user.getSubscriptionPlan());
+            userData.put("emailVerified", user.isEmailVerified());
+            userData.put("authProvider", user.getAuthProvider());
+            userData.put("createdAt", user.getCreatedAt());
+            
+            response.put("success", true);
+            response.put("token", newToken);
+            response.put("user", userData);
+            response.put("message", "Token refreshed successfully");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to refresh token: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @GetMapping("/users")
     public ResponseEntity<Map<String, Object>> getAllUsers() {
         Map<String, Object> response = new HashMap<>();

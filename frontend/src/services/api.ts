@@ -75,19 +75,61 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling with token refresh
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     console.error('API Error:', error.response?.data || error.message);
     
+    const originalRequest = error.config;
+    
     // Handle different types of errors
-    if (error.response?.status === 401) {
-      console.warn('Unauthorized request - clearing invalid auth');
-      // Clear invalid authentication
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Don't retry refresh endpoint or if already retried
+      if (originalRequest.url?.includes('/auth/refresh') || originalRequest._retry) {
+        console.warn('Token refresh failed or already retried - clearing auth');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
+        return Promise.reject(error);
+      }
+
+      // Try to refresh token
+      try {
+        console.log('Attempting token refresh...');
+        const token = localStorage.getItem('token');
+        
+        if (token) {
+          const refreshResponse = await apiClient.post('/v1/auth/refresh', {}, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (refreshResponse.data.success) {
+            const newToken = refreshResponse.data.token;
+            const userData = refreshResponse.data.user;
+            
+            // Update stored auth data
+            localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(userData));
+            
+            // Update the original request with new token
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            originalRequest._retry = true;
+            
+            console.log('Token refreshed successfully, retrying original request');
+            return apiClient(originalRequest);
+          }
+        }
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+      }
+      
+      // If refresh fails, clear auth and redirect
+      console.warn('Token refresh failed - clearing auth');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Redirect to login page
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
@@ -632,6 +674,22 @@ export const updateSupportTicketStatus = async (ticketId: string, data: {
   status: string;
 }): Promise<any> => {
   const response = await apiClient.patch(`/v1/support/tickets/${ticketId}/status`, data);
+  return response.data;
+};
+
+// Auth Token Management
+export const refreshAuthToken = async (): Promise<any> => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No token to refresh');
+  }
+
+  const response = await apiClient.post('/v1/auth/refresh', {}, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
   return response.data;
 };
 
