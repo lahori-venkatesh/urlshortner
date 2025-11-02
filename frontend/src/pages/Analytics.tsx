@@ -85,6 +85,30 @@ const Analytics: React.FC = () => {
       
       console.log('📡 Analytics API response status:', response.status);
       
+      if (!response.ok) {
+        let errorMessage = `Server error (${response.status})`;
+        
+        try {
+          const errorResult = await response.json();
+          errorMessage = errorResult.message || errorResult.error || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use the status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        
+        console.error('❌ Analytics API HTTP error:', response.status, errorMessage);
+        
+        if (response.status === 403) {
+          throw new Error('You do not have permission to view analytics for this link. This link may belong to another user or may not exist.');
+        } else if (response.status === 401) {
+          throw new Error('Authentication failed. Please log in again.');
+        } else if (response.status === 404) {
+          throw new Error('Link not found. This link may have been deleted or may not exist.');
+        } else {
+          throw new Error(errorMessage);
+        }
+      }
+      
       const result = await response.json();
       console.log('📊 Analytics API result:', result);
       
@@ -167,11 +191,21 @@ const Analytics: React.FC = () => {
         totalClicks: 0,
         uniqueVisitors: 0,
         createdAt: new Date().toISOString(),
-        clicksOverTime: [],
-        deviceData: [],
-        locationData: [],
-        referrerData: [],
-        hourlyData: []
+        clicksOverTime: [
+          { date: 'Today', clicks: 0, visitors: 0 }
+        ],
+        deviceData: [
+          { device: 'No Data', count: 0, percentage: 0 }
+        ],
+        locationData: [
+          { country: 'No Data', city: 'No Data', count: 0 }
+        ],
+        referrerData: [
+          { source: 'No Data', count: 0 }
+        ],
+        hourlyData: [
+          { hour: 0, clicks: 0 }
+        ]
       });
     } finally {
       setLoading(false);
@@ -371,57 +405,69 @@ const Analytics: React.FC = () => {
           {/* Clicks Over Time */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Clicks Over Time</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={analytics.clicksOverTime}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area 
-                  type="monotone" 
-                  dataKey="clicks" 
-                  stackId="1" 
-                  stroke="#3b82f6" 
-                  fill="#3b82f6" 
-                  fillOpacity={0.6}
-                  name="Clicks"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="visitors" 
-                  stackId="2" 
-                  stroke="#10b981" 
-                  fill="#10b981" 
-                  fillOpacity={0.6}
-                  name="Unique Visitors"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {analytics.clicksOverTime && analytics.clicksOverTime.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={analytics.clicksOverTime}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="clicks" 
+                    stackId="1" 
+                    stroke="#3b82f6" 
+                    fill="#3b82f6" 
+                    fillOpacity={0.6}
+                    name="Clicks"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="visitors" 
+                    stackId="2" 
+                    stroke="#10b981" 
+                    fill="#10b981" 
+                    fillOpacity={0.6}
+                    name="Unique Visitors"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                No click data available
+              </div>
+            )}
           </div>
 
           {/* Device Breakdown */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Breakdown</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={analytics.deviceData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ device, percentage }) => `${device} ${percentage}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {analytics.deviceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {analytics.deviceData && analytics.deviceData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={analytics.deviceData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ device, percentage }) => `${device} ${percentage}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="count"
+                  >
+                    {analytics.deviceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                No device data available
+              </div>
+            )}
           </div>
         </div>
 
@@ -443,7 +489,7 @@ const Analytics: React.FC = () => {
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">{location.count}</p>
                     <p className="text-sm text-gray-600">
-                      {((location.count / analytics.totalClicks) * 100).toFixed(1)}%
+                      {analytics.totalClicks > 0 ? ((location.count / analytics.totalClicks) * 100).toFixed(1) : 0}%
                     </p>
                   </div>
                 </div>
@@ -464,7 +510,7 @@ const Analytics: React.FC = () => {
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">{referrer.count}</p>
                     <p className="text-sm text-gray-600">
-                      {((referrer.count / analytics.totalClicks) * 100).toFixed(1)}%
+                      {analytics.totalClicks > 0 ? ((referrer.count / analytics.totalClicks) * 100).toFixed(1) : 0}%
                     </p>
                   </div>
                 </div>
@@ -476,20 +522,26 @@ const Analytics: React.FC = () => {
         {/* Hourly Distribution */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Hourly Click Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={analytics.hourlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="hour" 
-                tickFormatter={(hour) => `${hour}:00`}
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(hour) => `${hour}:00 - ${hour + 1}:00`}
-              />
-              <Bar dataKey="clicks" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+          {analytics.hourlyData && analytics.hourlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={analytics.hourlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="hour" 
+                  tickFormatter={(hour) => `${hour}:00`}
+                />
+                <YAxis />
+                <Tooltip 
+                  labelFormatter={(hour) => `${hour}:00 - ${hour + 1}:00`}
+                />
+                <Bar dataKey="clicks" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-gray-500">
+              No hourly data available
+            </div>
+          )}
         </div>
       </div>
     </div>
