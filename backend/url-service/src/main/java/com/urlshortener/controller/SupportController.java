@@ -362,6 +362,8 @@ public class SupportController {
         private String message;
         private SupportTicket.Priority priority;
         private String currentPage;
+        private String userEmail;
+        private String userName;
         
         // Getters and setters
         public String getUserId() { return userId; }
@@ -381,6 +383,12 @@ public class SupportController {
         
         public String getCurrentPage() { return currentPage; }
         public void setCurrentPage(String currentPage) { this.currentPage = currentPage; }
+        
+        public String getUserEmail() { return userEmail; }
+        public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+        
+        public String getUserName() { return userName; }
+        public void setUserName(String userName) { this.userName = userName; }
     }
     
     public static class AddResponseRequest {

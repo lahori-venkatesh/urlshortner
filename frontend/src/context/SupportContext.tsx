@@ -61,35 +61,41 @@ export const SupportProvider: React.FC<SupportProviderProps> = ({ children }) =>
 
   // Create a new support ticket
   const createTicket = async (ticketData: Omit<SupportTicket, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'status' | 'responses'>): Promise<SupportTicket> => {
-    if (!user?.id) {
-      throw new Error('User must be logged in to create a ticket');
-    }
-
     setIsLoading(true);
     try {
-      // Import apiClient dynamically to avoid circular dependencies
-      const { default: axios } = await import('axios');
-      const apiClient = axios.create({
-        baseURL: process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api',
-        timeout: 10000,
-      });
-
-      // Add auth token
-      const token = localStorage.getItem('token');
-      if (token) {
-        apiClient.defaults.headers.Authorization = `Bearer ${token}`;
-      }
-
-      const response = await apiClient.post('/v1/support/tickets', {
-        userId: user.id,
+      const baseUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
+      
+      // Prepare request data
+      const requestData: any = {
+        userId: user?.id || 'anonymous-user',
         category: ticketData.category.toUpperCase(),
         subject: ticketData.subject,
         message: ticketData.message,
         priority: ticketData.priority.toUpperCase(),
         currentPage: window.location.pathname
+      };
+
+      // Add user info if available
+      if (user) {
+        requestData.userEmail = user.email;
+        requestData.userName = user.name || user.email;
+      }
+
+      const response = await fetch(`${baseUrl}/v1/support/tickets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
       });
 
-      const result = response.data;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.message || 'Failed to create support ticket');
