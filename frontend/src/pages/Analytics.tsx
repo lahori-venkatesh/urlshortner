@@ -40,25 +40,30 @@ const Analytics: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [analytics, setAnalytics] = useState<LinkAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
-    if (!shortCode || !user?.id) {
+    if (!shortCode) {
       navigate('/dashboard');
       return;
     }
 
     loadAnalytics();
-  }, [shortCode, user, timeRange]);
+  }, [shortCode, timeRange, searchParams]);
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('🔍 Loading analytics for shortCode:', shortCode);
       
       // Get userId from URL params or user context
       const userId = searchParams.get('userId') || user?.id;
+      console.log('📊 Analytics userId:', userId);
       
       if (!userId) {
+        console.error('❌ No userId found');
         toast.error('User ID not found');
         navigate('/dashboard');
         return;
@@ -67,21 +72,29 @@ const Analytics: React.FC = () => {
       // Load analytics from the backend
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
       const token = localStorage.getItem('token');
+      const analyticsUrl = `${apiUrl}/v1/analytics/url/${shortCode}?userId=${userId}`;
       
-      const response = await fetch(`${apiUrl}/v1/analytics/url/${shortCode}?userId=${userId}`, {
+      console.log('🌐 Making analytics API call to:', analyticsUrl);
+      
+      const response = await fetch(analyticsUrl, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
       
+      console.log('📡 Analytics API response status:', response.status);
+      
       const result = await response.json();
+      console.log('📊 Analytics API result:', result);
       
       if (!result.success) {
+        console.error('❌ Analytics API failed:', result.message);
         throw new Error(result.message || 'Failed to load analytics');
       }
 
       const analyticsData = result.data;
+      console.log('✅ Analytics data received:', analyticsData);
       
       // Transform backend data to frontend format
       const totalClicks = analyticsData.totalClicks || 0;
@@ -104,7 +117,7 @@ const Analytics: React.FC = () => {
         };
       });
 
-      setAnalytics({
+      const analyticsObject = {
         shortCode: shortCode!,
         originalUrl: analyticsData.originalUrl || `https://example.com/${shortCode}`,
         shortUrl: analyticsData.shortUrl || `https://pebly.vercel.app/${shortCode}`,
@@ -136,13 +149,33 @@ const Analytics: React.FC = () => {
           hour,
           clicks: Math.floor((totalClicks / 24) * (hour >= 9 && hour <= 21 ? 1.5 : 0.5))
         }))
-      });
+      };
+      
+      console.log('📈 Setting analytics object:', analyticsObject);
+      setAnalytics(analyticsObject);
     } catch (error) {
-      console.error('Error loading analytics:', error);
-      toast.error('Failed to load analytics');
-      // Don't navigate away on error, show the error state instead
+      console.error('❌ Error loading analytics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(errorMessage);
+      toast.error(`Failed to load analytics: ${errorMessage}`);
+      
+      // Set a fallback analytics object to prevent white screen
+      setAnalytics({
+        shortCode: shortCode!,
+        originalUrl: `https://example.com/${shortCode}`,
+        shortUrl: `https://pebly.vercel.app/${shortCode}`,
+        totalClicks: 0,
+        uniqueVisitors: 0,
+        createdAt: new Date().toISOString(),
+        clicksOverTime: [],
+        deviceData: [],
+        locationData: [],
+        referrerData: [],
+        hourlyData: []
+      });
     } finally {
       setLoading(false);
+      console.log('✅ Analytics loading completed');
     }
   };
 
@@ -177,6 +210,37 @@ const Analytics: React.FC = () => {
     );
   }
 
+  if (error && !analytics) {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Analytics Error</h2>
+            <p className="text-gray-600 mb-2">Failed to load analytics for this link.</p>
+            <p className="text-sm text-red-500 mb-6">{error}</p>
+            <div className="space-x-4">
+              <button
+                onClick={() => {
+                  setError(null);
+                  loadAnalytics();
+                }}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!analytics) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20">
@@ -196,9 +260,10 @@ const Analytics: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+  try {
+    return (
+      <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -428,7 +493,26 @@ const Analytics: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (renderError) {
+    console.error('❌ Render error in Analytics component:', renderError);
+    return (
+      <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Render Error</h2>
+            <p className="text-gray-600 mb-6">Something went wrong while displaying the analytics.</p>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default Analytics;
