@@ -6,7 +6,7 @@ package com.urlshortener.model;
  * Must be kept in sync with frontend planPolicy.ts
  */
 public enum PlanPolicy {
-    FREE("Free", 0, 0, 100, 10, 5, false, false, false, false, false, false),
+    FREE("Free", 0, 1, 100, 10, 5, false, false, false, false, false, false),
     PRO("Pro", 1, 3, 1000, 100, 50, true, true, true, false, true, false),
     BUSINESS("Business", 3, 10, 10000, 1000, 500, true, true, true, true, true, true),
     BUSINESS_TRIAL("Business Trial", 3, 10, 10000, 1000, 500, true, true, true, true, true, true);

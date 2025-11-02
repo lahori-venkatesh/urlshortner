@@ -339,17 +339,23 @@ public class TeamService {
     private void updateTeamLimits(Team team, String plan) {
         switch (plan) {
             case "FREE":
-                team.setMemberLimit(3);
+                team.setMemberLimit(1); // FREE teams get 1 member (owner only)
                 team.setLinkQuota(1000);
+                break;
+            case "PRO":
+            case "PRO_MONTHLY":
+            case "PRO_YEARLY":
+                team.setMemberLimit(3); // PRO teams get up to 3 members
+                team.setLinkQuota(5000);
                 break;
             case "BUSINESS_TRIAL":
             case "BUSINESS_MONTHLY":
             case "BUSINESS_YEARLY":
-                team.setMemberLimit(10);
+                team.setMemberLimit(10); // BUSINESS teams get up to 10 members
                 team.setLinkQuota(-1); // Unlimited
                 break;
             default:
-                team.setMemberLimit(3);
+                team.setMemberLimit(1); // Default to FREE limits
                 team.setLinkQuota(1000);
         }
     }

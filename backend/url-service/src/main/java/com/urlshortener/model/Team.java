@@ -46,8 +46,8 @@ public class Team {
     private LocalDateTime lastMonthlyReset = LocalDateTime.now();
     
     // Team limits based on plan
-    private int memberLimit = 3; // FREE: 3, BUSINESS: 10
-    private int linkQuota = 1000; // FREE: 1000/month, BUSINESS: unlimited
+    private int memberLimit = 1; // FREE: 1, PRO: 3, BUSINESS: 10
+    private int linkQuota = 1000; // FREE: 1000/month, PRO: 5000/month, BUSINESS: unlimited
     
     // Timestamps
     private LocalDateTime createdAt = LocalDateTime.now();
