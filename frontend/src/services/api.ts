@@ -221,6 +221,7 @@ export interface AuthResponse {
     firstName: string;
     lastName: string;
     subscriptionPlan: string;
+    subscriptionExpiry?: string;
     emailVerified: boolean;
     totalUrls: number;
     totalQrCodes: number;

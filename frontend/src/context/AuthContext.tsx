@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { googleAuthService, GoogleUserInfo } from '../services/googleAuth';
+import { normalizePlanName } from '../constants/planPolicy';
 import * as api from '../services/api';
 
 interface User {
@@ -106,7 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: userData.id,
         name: `${userData.firstName} ${userData.lastName}`.trim() || userData.email.split('@')[0],
         email: userData.email,
-        plan: userData.subscriptionPlan || 'free',
+        plan: normalizePlanName(userData.subscriptionPlan || 'FREE'),
+        subscriptionPlan: userData.subscriptionPlan,
+        subscriptionExpiry: userData.subscriptionExpiry || undefined,
         avatar: userData.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.firstName || userData.email.split('@')[0])}&background=3b82f6&color=fff`,
         picture: userData.profilePicture,
         createdAt: userData.createdAt,
@@ -132,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updatedUser && user) {
         const newUser: User = {
           ...user,
-          plan: updatedUser.subscriptionPlan || updatedUser.plan || 'free',
+          plan: normalizePlanName(updatedUser.subscriptionPlan || updatedUser.plan || 'FREE'),
           subscriptionPlan: updatedUser.subscriptionPlan,
           subscriptionExpiry: updatedUser.subscriptionExpiry
         };
@@ -172,7 +175,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 id: data.user.id,
                 name: `${data.user.firstName} ${data.user.lastName}`.trim() || data.user.email.split('@')[0],
                 email: data.user.email,
-                plan: data.user.subscriptionPlan || 'free',
+                plan: normalizePlanName(data.user.subscriptionPlan || 'FREE'),
+                subscriptionPlan: data.user.subscriptionPlan,
+                subscriptionExpiry: data.user.subscriptionExpiry || undefined,
                 avatar: data.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.firstName || data.user.email.split('@')[0])}&background=3b82f6&color=fff`,
                 picture: data.user.profilePicture,
                 createdAt: data.user.createdAt,
@@ -212,7 +217,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   id: refreshData.user.id,
                   name: `${refreshData.user.firstName} ${refreshData.user.lastName}`.trim() || refreshData.user.email.split('@')[0],
                   email: refreshData.user.email,
-                  plan: refreshData.user.subscriptionPlan || 'free',
+                  plan: normalizePlanName(refreshData.user.subscriptionPlan || 'FREE'),
+                  subscriptionPlan: refreshData.user.subscriptionPlan,
+                  subscriptionExpiry: refreshData.user.subscriptionExpiry || undefined,
                   avatar: refreshData.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(refreshData.user.firstName || refreshData.user.email.split('@')[0])}&background=3b82f6&color=fff`,
                   picture: refreshData.user.profilePicture,
                   createdAt: refreshData.user.createdAt,
@@ -292,7 +299,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan || 'free',
+          plan: normalizePlanName(response.user.subscriptionPlan || 'FREE'),
+          subscriptionPlan: response.user.subscriptionPlan,
+          subscriptionExpiry: response.user.subscriptionExpiry,
           avatar: response.user.profilePicture || googleUserInfo.picture,
           picture: response.user.profilePicture || googleUserInfo.picture,
           createdAt: response.user.createdAt,
@@ -338,7 +347,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan || 'free',
+          plan: normalizePlanName(response.user.subscriptionPlan || 'FREE'),
+          subscriptionPlan: response.user.subscriptionPlan,
+          subscriptionExpiry: response.user.subscriptionExpiry,
           avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
           createdAt: response.user.createdAt,
           timezone: 'Asia/Kolkata',
@@ -389,7 +400,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: response.user.id,
           name: `${response.user.firstName} ${response.user.lastName}`.trim() || response.user.email.split('@')[0],
           email: response.user.email,
-          plan: response.user.subscriptionPlan || 'free',
+          plan: normalizePlanName(response.user.subscriptionPlan || 'FREE'),
+          subscriptionPlan: response.user.subscriptionPlan,
+          subscriptionExpiry: response.user.subscriptionExpiry || undefined,
           avatar: response.user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.firstName || response.user.email.split('@')[0])}&background=3b82f6&color=fff`,
           createdAt: response.user.createdAt,
           timezone: 'Asia/Kolkata',

@@ -159,8 +159,40 @@ export const PLAN_POLICY: Record<string, PlanLimits> = {
 export const getPlanPolicy = (planName?: string): PlanLimits => {
   if (!planName) return PLAN_POLICY.FREE;
   
-  const normalizedPlan = planName.toUpperCase().replace(/[^A-Z_]/g, '');
+  // Normalize plan name to match our policy keys
+  const normalizedPlan = normalizePlanName(planName);
   return PLAN_POLICY[normalizedPlan] || PLAN_POLICY.FREE;
+};
+
+// Helper function to normalize plan names from backend to frontend format
+export const normalizePlanName = (planName: string): string => {
+  const plan = planName.toUpperCase().trim();
+  
+  // Handle different plan name formats from backend
+  if (plan === 'FREE' || plan === 'FREE_PLAN') {
+    return 'FREE';
+  }
+  
+  // Pro plans (monthly/yearly) -> PRO
+  if (plan.includes('PRO')) {
+    return 'PRO';
+  }
+  
+  // Business plans (monthly/yearly) -> BUSINESS
+  if (plan.includes('BUSINESS')) {
+    return 'BUSINESS';
+  }
+  
+  // Trial plans
+  if (plan.includes('TRIAL')) {
+    if (plan.includes('BUSINESS')) {
+      return 'BUSINESS_TRIAL';
+    }
+    return 'PRO'; // Default trial to PRO features
+  }
+  
+  // Fallback to original plan name
+  return plan;
 };
 
 // Helper function to check if plan is trial

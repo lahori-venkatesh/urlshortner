@@ -69,12 +69,12 @@ interface FeatureAccessResult {
  * @returns FeatureAccessResult with all access checks and limits
  */
 export const useFeatureAccess = (user?: User | null): FeatureAccessResult => {
-  // Use subscriptionPlan if available, otherwise fall back to plan
-  const effectivePlan = user?.subscriptionPlan || user?.plan;
+  // Use the normalized plan from user.plan (which should be normalized in AuthContext)
+  const effectivePlan = user?.plan || 'FREE';
   const limits = usePlanLimits(effectivePlan);
   const isFree = useIsFree(effectivePlan);
   const isPaid = useIsPaid(effectivePlan);
-  const isTrial = isTrialPlan(effectivePlan);
+  const isTrial = isTrialPlan(user?.subscriptionPlan || effectivePlan);
   const upgradePath = getUpgradePath(effectivePlan);
 
   return useMemo(() => {
