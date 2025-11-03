@@ -3,6 +3,7 @@ import { Lock, Crown, Zap, Sparkles, Shield, Palette, Upload } from 'lucide-reac
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUpgradeModal } from '../context/ModalContext';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface PremiumFieldProps {
   children: ReactElement;
@@ -39,10 +40,12 @@ const PremiumField: React.FC<PremiumFieldProps> = ({
   wrapperClassName = ''
 }) => {
   const { user } = useAuth();
+  const { planInfo } = useSubscription();
   const featureAccess = useFeatureAccess(user);
   const upgradeModal = useUpgradeModal();
 
   const config = FEATURE_CONFIG[feature];
+  // Use featureAccess which should now properly check subscription status
   const hasAccess = featureAccess[config.featureKey];
   const IconComponent = config.icon;
   const planName = requiredPlan || config.requiredPlan;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { useUpgradeModal } from '../../context/ModalContext';
@@ -82,6 +82,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const upgradeModal = useUpgradeModal();
   const featureAccess = useFeatureAccess(user);
   const location = useLocation();
+  const navigate = useNavigate();
   const [urlInput, setUrlInput] = useState('');
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -919,23 +920,40 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         </div>
       )}
 
-      {/* Usage Limits Banner for Free Users */}
-      {(!user?.id || (planInfo && !planInfo.hasProAccess)) && (
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
+      {/* Debug Info - Remove in production */}
+      {user?.id && process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-xs">
+          <strong>Debug Info:</strong><br/>
+          User Plan: {user.plan}<br/>
+          User Subscription Plan: {user.subscriptionPlan}<br/>
+          PlanInfo hasProAccess: {planInfo?.hasProAccess ? 'true' : 'false'}<br/>
+          PlanInfo plan: {planInfo?.plan}<br/>
+          FeatureAccess canUseCustomAlias: {featureAccess.canUseCustomAlias ? 'true' : 'false'}<br/>
+          FeatureAccess isPaid: {featureAccess.isPaid ? 'true' : 'false'}
+        </div>
+      )}
+
+      {/* Usage Limits Banner */}
+      {user?.id && (
+        <div className={`${planInfo?.hasProAccess 
+          ? 'bg-gradient-to-r from-green-50 to-blue-50 border border-green-200' 
+          : 'bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200'
+        } rounded-xl p-4 mb-6`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Zap className="w-5 h-5 text-orange-600" />
+              <div className={`p-2 ${planInfo?.hasProAccess ? 'bg-green-100' : 'bg-orange-100'} rounded-lg`}>
+                {planInfo?.hasProAccess ? (
+                  <Crown className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Zap className="w-5 h-5 text-orange-600" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {!user?.id ? 'Anonymous Usage' : 
-                   planInfo?.hasProAccess ? 'Pro Plan Usage' : 'Free Plan Limits'}
+                  {planInfo?.hasProAccess ? 'Pro Plan Usage' : 'Free Plan Limits'}
                 </h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  {!user?.id ? (
-                    <span>Sign up to track your usage and get monthly limits</span>
-                  ) : planInfo?.hasProAccess ? (
+                  {planInfo?.hasProAccess ? (
                     <>
                       <span>URLs: Unlimited</span>
                       <span>QR Codes: Unlimited</span>
@@ -959,6 +977,31 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 Upgrade
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Anonymous Usage Banner */}
+      {!user?.id && (
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Zap className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Anonymous Usage</h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                  <span>Sign up to track your usage and get monthly limits</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/auth')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              Sign Up
+            </button>
           </div>
           
           {/* Monthly Progress bars */}

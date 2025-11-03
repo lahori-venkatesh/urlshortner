@@ -28,7 +28,7 @@ public class SubscriptionController {
             
             Map<String, Object> planData = new HashMap<>();
             planData.put("plan", planInfo.getPlan());
-            planData.put("hasPremiumAccess", planInfo.isHasPremiumAccess());
+            planData.put("hasProAccess", planInfo.isHasPremiumAccess());
             planData.put("inTrial", planInfo.isInTrial());
             planData.put("trialEligible", planInfo.isTrialEligible());
             planData.put("subscriptionExpiry", planInfo.getSubscriptionExpiry());
