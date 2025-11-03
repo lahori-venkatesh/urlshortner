@@ -1,6 +1,7 @@
 package com.urlshortener.admin.repository;
 
 import com.urlshortener.admin.model.AuditEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public interface AuditEventRepository extends MongoRepository<AuditEvent, String> {
     
     Page<AuditEvent> findByActorIdOrderByTimestampDesc(String actorId, Pageable pageable);

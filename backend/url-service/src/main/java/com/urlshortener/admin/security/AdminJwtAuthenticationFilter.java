@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired

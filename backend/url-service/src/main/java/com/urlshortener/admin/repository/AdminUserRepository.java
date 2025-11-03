@@ -1,6 +1,7 @@
 package com.urlshortener.admin.repository;
 
 import com.urlshortener.admin.model.AdminUser;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public interface AdminUserRepository extends MongoRepository<AdminUser, String> {
     
     Optional<AdminUser> findByEmail(String email);

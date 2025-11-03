@@ -4,6 +4,7 @@ import com.urlshortener.admin.model.AdminUser;
 import com.urlshortener.admin.model.AdminRole;
 import com.urlshortener.admin.repository.AdminUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public class AdminUserService {
 
     @Autowired

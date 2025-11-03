@@ -21,6 +21,8 @@ app:
     url: ${FRONTEND_URL:https://pebly.vercel.app}
   shorturl:
     domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
+  admin:
+    enabled: false  # Disable admin functionality in simple mode
 
 # Logging Configuration
 logging:

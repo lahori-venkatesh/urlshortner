@@ -3,6 +3,7 @@ package com.urlshortener.admin.service;
 import com.urlshortener.admin.model.AuditEvent;
 import com.urlshortener.admin.repository.AuditEventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public class AuditService {
 
     @Autowired

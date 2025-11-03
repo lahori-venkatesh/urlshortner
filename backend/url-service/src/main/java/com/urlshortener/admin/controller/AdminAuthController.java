@@ -6,6 +6,7 @@ import com.urlshortener.admin.service.AuditService;
 import com.urlshortener.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/admin/auth")
 @CrossOrigin(origins = "*")
+@ConditionalOnProperty(name = "app.admin.enabled", havingValue = "true", matchIfMissing = false)
 public class AdminAuthController {
 
     @Autowired
