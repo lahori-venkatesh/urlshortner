@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: pebly-url-service
+  
+  # Allow circular references as fallback
+  main:
+    allow-circular-references: true
 
   # MongoDB Configuration (fallback)
   data:

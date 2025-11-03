@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@EnableMongoRepositories(basePackages = "com.urlshortener.repository")
+@EnableMongoRepositories(basePackages = {"com.urlshortener.repository", "com.urlshortener.admin.repository"})
 @ConditionalOnProperty(name = "spring.data.mongodb.uri")
 public class MongoConfiguration {
 
