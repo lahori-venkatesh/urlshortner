@@ -137,8 +137,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           subscriptionExpiry: updatedUser.subscriptionExpiry
         };
         
+        // Update localStorage with new user data
+        localStorage.setItem('user', JSON.stringify(newUser));
+        
         setUser(newUser);
         console.log('User context updated with new subscription:', newUser.plan);
+        
+        // Force refresh of subscription context
+        window.dispatchEvent(new CustomEvent('subscription-updated'));
       }
     };
     

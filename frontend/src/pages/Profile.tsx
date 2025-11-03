@@ -199,6 +199,11 @@ const SubscriptionSection: React.FC = () => {
                 : 'Free'
               }
             </span>
+            {planInfo.subscriptionExpiry && (
+              <span className="text-xs text-gray-500 ml-2">
+                • Expires {formatDate(planInfo.subscriptionExpiry)}
+              </span>
+            )}
           </div>
           {!planInfo.hasProAccess && (
             <div className="text-xs text-blue-600 mt-1">

@@ -61,7 +61,10 @@ const ProfileDropdown: React.FC = () => {
         />
         <div className="hidden md:block text-left">
           <p className="text-sm font-medium text-gray-900">{user.name}</p>
-          <p className="text-xs text-gray-500 capitalize">{user.plan} Plan</p>
+          <p className="text-xs text-gray-500 capitalize">
+            {(user.subscriptionPlan?.includes('BUSINESS') || user.plan?.includes('BUSINESS')) ? 'Business' : 
+             (user.subscriptionPlan?.includes('PRO') || user.plan?.includes('PRO')) ? 'Pro' : 'Free'} Plan
+          </p>
         </div>
       </button>
 
@@ -87,10 +90,10 @@ const ProfileDropdown: React.FC = () => {
                   <p className="text-xs text-gray-500">{user.email}</p>
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center">
-                      {(user.plan?.includes('PRO') || user.plan?.includes('BUSINESS')) && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
+                      {(user.plan?.includes('PRO') || user.plan?.includes('BUSINESS') || user.subscriptionPlan?.includes('PRO') || user.subscriptionPlan?.includes('BUSINESS')) && <Crown className="w-3 h-3 text-yellow-500 mr-1" />}
                       <span className="text-xs font-medium text-blue-600 capitalize">
-                        {user.plan?.includes('BUSINESS') ? 'Business' : 
-                         user.plan?.includes('PRO') ? 'Pro' : 'Free'} Plan
+                        {(user.subscriptionPlan?.includes('BUSINESS') || user.plan?.includes('BUSINESS')) ? 'Business' : 
+                         (user.subscriptionPlan?.includes('PRO') || user.plan?.includes('PRO')) ? 'Pro' : 'Free'} Plan
                       </span>
                     </div>
                     <div className="flex items-center text-xs text-gray-500">
@@ -134,7 +137,8 @@ const ProfileDropdown: React.FC = () => {
                 Account Settings
               </button>
 
-              {(!user.plan || user.plan === 'free' || user.plan === 'FREE') && (
+              {(!user.plan || user.plan === 'free' || user.plan === 'FREE') && 
+               (!user.subscriptionPlan || user.subscriptionPlan === 'FREE') && (
                 <button 
                   onClick={handleUpgradeToPro}
                   className="w-full flex items-center px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-colors"

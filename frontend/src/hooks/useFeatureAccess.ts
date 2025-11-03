@@ -5,6 +5,8 @@ import { getUpgradePath, isTrialPlan, PlanFeatures } from '../constants/planPoli
 interface User {
   id?: string;
   plan?: string;
+  subscriptionPlan?: string;
+  subscriptionExpiry?: string;
   trialActive?: boolean;
   trialExpiresAt?: string;
 }
@@ -67,11 +69,13 @@ interface FeatureAccessResult {
  * @returns FeatureAccessResult with all access checks and limits
  */
 export const useFeatureAccess = (user?: User | null): FeatureAccessResult => {
-  const limits = usePlanLimits(user?.plan);
-  const isFree = useIsFree(user?.plan);
-  const isPaid = useIsPaid(user?.plan);
-  const isTrial = isTrialPlan(user?.plan);
-  const upgradePath = getUpgradePath(user?.plan);
+  // Use subscriptionPlan if available, otherwise fall back to plan
+  const effectivePlan = user?.subscriptionPlan || user?.plan;
+  const limits = usePlanLimits(effectivePlan);
+  const isFree = useIsFree(effectivePlan);
+  const isPaid = useIsPaid(effectivePlan);
+  const isTrial = isTrialPlan(effectivePlan);
+  const upgradePath = getUpgradePath(effectivePlan);
 
   return useMemo(() => {
     // Domain access functions
@@ -112,11 +116,11 @@ export const useFeatureAccess = (user?: User | null): FeatureAccessResult => {
         return `Upgrade to ${upgradePath} to unlock ${feature}`;
       }
 
-      if (feature === 'Custom Domains' && user?.plan === 'PRO') {
+      if (feature === 'Custom Domains' && (effectivePlan === 'PRO' || (effectivePlan?.includes('PRO') ?? false))) {
         return 'Upgrade to Business for more domains';
       }
 
-      if (feature === 'Team Members' && user?.plan === 'PRO') {
+      if (feature === 'Team Members' && (effectivePlan === 'PRO' || (effectivePlan?.includes('PRO') ?? false))) {
         return 'Upgrade to Business for larger teams';
       }
 
@@ -136,10 +140,10 @@ export const useFeatureAccess = (user?: User | null): FeatureAccessResult => {
       // Paid users see upgrade modal when they hit limits
       if (isPaid && typeof currentCount === 'number') {
         if (feature === 'Custom Domains' && !canAddDomain(currentCount)) {
-          return user?.plan === 'PRO'; // PRO users can upgrade to BUSINESS
+          return effectivePlan === 'PRO' || (effectivePlan?.includes('PRO') ?? false); // PRO users can upgrade to BUSINESS
         }
         if (feature === 'Team Members' && !canAddTeamMember(currentCount)) {
-          return user?.plan === 'PRO'; // PRO users can upgrade to BUSINESS
+          return effectivePlan === 'PRO' || (effectivePlan?.includes('PRO') ?? false); // PRO users can upgrade to BUSINESS
         }
       }
 
