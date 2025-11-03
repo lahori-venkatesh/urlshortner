@@ -29,4 +29,21 @@ public interface TeamRepository extends MongoRepository<Team, String> {
     // Find teams with expired subscriptions
     @Query("{ 'subscriptionExpiry': { $lt: ?0 }, 'isActive': true }")
     List<Team> findTeamsWithExpiredSubscriptions(java.time.LocalDateTime now);
+
+    // Admin-specific methods
+    @Query("{'$or': [" +
+           "{'teamName': {$regex: ?0, $options: 'i'}}, " +
+           "{'ownerId': {$in: ?1}}" +
+           "]}")
+    org.springframework.data.domain.Page<Team> findByTeamNameContainingIgnoreCaseOrOwnerIdIn(
+            String search, List<String> ownerIds, org.springframework.data.domain.Pageable pageable);
+
+    // For admin filtering
+    @Query("{'$and': [" +
+           "{'subscriptionPlan': ?0}, " +
+           "{'members': {$size: ?1}}, " +
+           "{'createdAt': {$gte: ?2, $lte: ?3}}" +
+           "]}")
+    org.springframework.data.domain.Page<Team> findTeamsWithFilters(
+            String plan, String memberCount, String dateFrom, String dateTo, org.springframework.data.domain.Pageable pageable);
 }

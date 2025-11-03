@@ -239,7 +239,7 @@ public class AdminTeamController {
     @AuditLog(action = "TEAM_DELETE", entity = "Team")
     public ResponseEntity<?> deleteTeam(@PathVariable String id) {
         try {
-            teamService.deleteTeam(id);
+            teamService.deleteTeam(id, "admin");
 
             return ResponseEntity.ok(Map.of(
                 "success", true,

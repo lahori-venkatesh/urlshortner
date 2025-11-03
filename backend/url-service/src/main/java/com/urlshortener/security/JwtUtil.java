@@ -32,6 +32,10 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("email", String.class));
     }
 
+    public String extractUsername(String token) {
+        return extractEmail(token); // For admin tokens, username is email
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }

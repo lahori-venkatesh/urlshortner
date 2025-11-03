@@ -188,4 +188,22 @@ public class User {
     
     public LocalDateTime getTrialEndDate() { return trialEndDate; }
     public void setTrialEndDate(LocalDateTime trialEndDate) { this.trialEndDate = trialEndDate; }
+
+    // Additional methods for admin functionality
+    public String getName() {
+        String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+        return fullName.trim().isEmpty() ? email : fullName.trim();
+    }
+
+    public String getPlan() {
+        return subscriptionPlan;
+    }
+
+    public String getStatus() {
+        return isActive ? "ACTIVE" : "INACTIVE";
+    }
+
+    public LocalDateTime getLastLogin() {
+        return lastLoginAt;
+    }
 }

@@ -76,7 +76,8 @@ public class AdminAuthController {
             }
 
             // Generate JWT token
-            String token = jwtUtil.generateToken(adminUser.getEmail());
+            String token = jwtUtil.generateToken(adminUser.getId(), adminUser.getEmail(), 
+                                               adminUser.getName(), "");
 
             // Update last login
             adminUserService.updateLastLogin(adminUser.getEmail(), getClientIpAddress(httpRequest));
@@ -123,7 +124,7 @@ public class AdminAuthController {
             AdminUser adminUser = (AdminUser) request.getAttribute("adminUser");
             
             if (adminUser == null) {
-                return ResponseEntity.unauthorized().body(Map.of(
+                return ResponseEntity.status(401).body(Map.of(
                     "success", false,
                     "message", "Unauthorized"
                 ));

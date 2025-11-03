@@ -187,4 +187,22 @@ public class Team {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    // Additional methods for admin functionality
+    public String getName() {
+        return teamName;
+    }
+
+    public String getPlan() {
+        return subscriptionPlan;
+    }
+
+    public String getOwner() {
+        return ownerId;
+    }
+
+    public List<String> getDomains() {
+        // Return empty list for now - would need domain repository integration
+        return new ArrayList<>();
+    }
 }

@@ -5,6 +5,8 @@ import com.urlshortener.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -544,5 +546,106 @@ public class TeamService {
             invite.setExpired(true);
             teamInviteRepository.save(invite);
         });
+    }
+
+    // Admin-specific methods
+    public Page<Team> searchTeams(String search, Pageable pageable) {
+        // Implementation for searching teams by name or owner email
+        return teamRepository.findByTeamNameContainingIgnoreCaseOrOwnerIdIn(search, getUserIdsByEmailSearch(search), pageable);
+    }
+
+    public Page<Team> findAllTeams(Pageable pageable) {
+        return teamRepository.findAll(pageable);
+    }
+
+    public Page<Team> findTeamsWithFilters(String plan, String memberCount, String dateFrom, String dateTo, Pageable pageable) {
+        // Implementation for filtering teams
+        return teamRepository.findTeamsWithFilters(plan, memberCount, dateFrom, dateTo, pageable);
+    }
+
+    public Optional<Team> findById(String id) {
+        return teamRepository.findById(id);
+    }
+
+    public Team createTeamByAdmin(String name, String ownerId, String plan) {
+        Team team = new Team(name, ownerId);
+        team.setSubscriptionPlan(plan);
+        updateTeamLimits(team, plan);
+        return teamRepository.save(team);
+    }
+
+    public Team updateTeamByAdmin(String id, Object updateRequest) {
+        Team team = teamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        // Update team properties based on request
+        // This is a simplified implementation
+        team.setUpdatedAt(LocalDateTime.now());
+        return teamRepository.save(team);
+    }
+
+    public void transferOwnership(String teamId, String newOwnerId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        team.setOwnerId(newOwnerId);
+        team.setUpdatedAt(LocalDateTime.now());
+        teamRepository.save(team);
+    }
+
+    public void addMemberByAdmin(String teamId, String userId, String role) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        team.addMember(userId, TeamRole.valueOf(role.toUpperCase()));
+        teamRepository.save(team);
+    }
+
+    public void removeMemberByAdmin(String teamId, String userId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        
+        team.removeMember(userId);
+        teamRepository.save(team);
+    }
+
+    public int getTeamLinksCount(String teamId) {
+        // Implementation to count team links
+        return 0; // Placeholder
+    }
+
+    public int getTeamLinksLimit(String plan) {
+        return switch (plan) {
+            case "FREE" -> 1000;
+            case "PRO", "PRO_MONTHLY", "PRO_YEARLY" -> 5000;
+            case "BUSINESS_MONTHLY", "BUSINESS_YEARLY" -> -1; // Unlimited
+            default -> 1000;
+        };
+    }
+
+    public int getTeamMembersLimit(String plan) {
+        return switch (plan) {
+            case "FREE" -> 1;
+            case "PRO", "PRO_MONTHLY", "PRO_YEARLY" -> 3;
+            case "BUSINESS_MONTHLY", "BUSINESS_YEARLY" -> 10;
+            default -> 1;
+        };
+    }
+
+    public int getTeamDomainsLimit(String plan) {
+        return switch (plan) {
+            case "FREE" -> 0;
+            case "PRO", "PRO_MONTHLY", "PRO_YEARLY" -> 1;
+            case "BUSINESS_MONTHLY", "BUSINESS_YEARLY" -> 5;
+            default -> 0;
+        };
+    }
+
+    private List<String> getUserIdsByEmailSearch(String search) {
+        // Helper method to find user IDs by email search
+        return userRepository.findByEmailContainingIgnoreCase(search)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
     }
 }
