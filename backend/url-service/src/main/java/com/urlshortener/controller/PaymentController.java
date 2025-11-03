@@ -1,11 +1,13 @@
 package com.urlshortener.controller;
 
 import com.urlshortener.service.PaymentService;
+import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -14,6 +16,9 @@ public class PaymentController {
     
     @Autowired
     private PaymentService paymentService;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     @PostMapping("/create-order")
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Map<String, Object> request) {
@@ -84,6 +89,30 @@ public class PaymentController {
             if (isValid) {
                 // Activate subscription for user
                 paymentService.activateSubscription(userId, planType, razorpayPaymentId);
+                
+                // Get updated user data to return to frontend
+                Optional<com.urlshortener.model.User> userOpt = userRepository.findById(userId);
+                if (userOpt.isPresent()) {
+                    com.urlshortener.model.User user = userOpt.get();
+                    
+                    Map<String, Object> userData = new HashMap<>();
+                    userData.put("id", user.getId());
+                    userData.put("email", user.getEmail());
+                    userData.put("firstName", user.getFirstName());
+                    userData.put("lastName", user.getLastName());
+                    userData.put("subscriptionPlan", user.getSubscriptionPlan());
+                    userData.put("subscriptionExpiry", user.getSubscriptionExpiry());
+                    userData.put("emailVerified", user.isEmailVerified());
+                    userData.put("totalUrls", user.getTotalUrls());
+                    userData.put("totalQrCodes", user.getTotalQrCodes());
+                    userData.put("totalFiles", user.getTotalFiles());
+                    userData.put("totalClicks", user.getTotalClicks());
+                    userData.put("authProvider", user.getAuthProvider());
+                    userData.put("apiKey", user.getApiKey());
+                    userData.put("profilePicture", user.getProfilePicture());
+                    
+                    response.put("user", userData);
+                }
                 
                 response.put("success", true);
                 response.put("message", "Payment verified and subscription activated");

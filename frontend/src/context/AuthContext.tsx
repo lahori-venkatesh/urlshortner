@@ -20,6 +20,8 @@ interface User {
   createdAt?: string;
   isAuthenticated?: boolean;
   authProvider?: 'email' | 'google';
+  subscriptionPlan?: string;
+  subscriptionExpiry?: string;
 }
 
 interface AuthContextType {
@@ -121,6 +123,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     window.addEventListener('auth-logout', handleAuthLogout);
     window.addEventListener('auth-token-refreshed', handleTokenRefresh as EventListener);
+    
+    // Handle user updates (e.g., after successful payment)
+    const handleUserUpdate = (event: CustomEvent) => {
+      const { user: updatedUser } = event.detail;
+      console.log('User update event received:', updatedUser);
+      
+      if (updatedUser && user) {
+        const newUser: User = {
+          ...user,
+          plan: updatedUser.subscriptionPlan || updatedUser.plan || 'free',
+          subscriptionPlan: updatedUser.subscriptionPlan,
+          subscriptionExpiry: updatedUser.subscriptionExpiry
+        };
+        
+        setUser(newUser);
+        console.log('User context updated with new subscription:', newUser.plan);
+      }
+    };
+    
+    window.addEventListener('auth-user-updated', handleUserUpdate as EventListener);
     
     const initializeAuth = async () => {
       try {
@@ -240,6 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       window.removeEventListener('auth-logout', handleAuthLogout);
       window.removeEventListener('auth-token-refreshed', handleTokenRefresh as EventListener);
+      window.removeEventListener('auth-user-updated', handleUserUpdate as EventListener);
     };
   }, []);
 

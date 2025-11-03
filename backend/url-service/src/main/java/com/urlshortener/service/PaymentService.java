@@ -99,24 +99,38 @@ public class PaymentService {
         subscription.setCreatedAt(LocalDateTime.now());
         subscription.setUpdatedAt(LocalDateTime.now());
         
-        // Set expiration based on plan type
-        if ("MONTHLY".equals(planType)) {
-            subscription.setExpiresAt(LocalDateTime.now().plusMonths(1));
-        } else if ("YEARLY".equals(planType)) {
-            subscription.setExpiresAt(LocalDateTime.now().plusYears(1));
+        // Map plan types correctly and set expiration
+        String userPlanType = planType.toUpperCase();
+        LocalDateTime expiryDate = null;
+        
+        if ("PRO_MONTHLY".equals(planType) || "MONTHLY".equals(planType)) {
+            userPlanType = "PRO_MONTHLY";
+            expiryDate = LocalDateTime.now().plusMonths(1);
+        } else if ("PRO_YEARLY".equals(planType) || "YEARLY".equals(planType)) {
+            userPlanType = "PRO_YEARLY";
+            expiryDate = LocalDateTime.now().plusYears(1);
         } else if ("BUSINESS_MONTHLY".equals(planType)) {
-            subscription.setExpiresAt(LocalDateTime.now().plusMonths(1));
+            userPlanType = "BUSINESS_MONTHLY";
+            expiryDate = LocalDateTime.now().plusMonths(1);
         } else if ("BUSINESS_YEARLY".equals(planType)) {
-            subscription.setExpiresAt(LocalDateTime.now().plusYears(1));
+            userPlanType = "BUSINESS_YEARLY";
+            expiryDate = LocalDateTime.now().plusYears(1);
         }
         
+        subscription.setExpiresAt(expiryDate);
         subscriptionRepository.save(subscription);
         
-        // Update user plan
-        user.setSubscriptionPlan(planType.toUpperCase());
-        user.setSubscriptionExpiry(subscription.getExpiresAt());
+        // Update user plan with correct format
+        user.setSubscriptionPlan(userPlanType);
+        user.setSubscriptionExpiry(expiryDate);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
+        
+        System.out.println("✅ Subscription activated successfully:");
+        System.out.println("   User ID: " + userId);
+        System.out.println("   Plan Type: " + userPlanType);
+        System.out.println("   Expiry: " + expiryDate);
+        System.out.println("   Payment ID: " + paymentId);
     }
     
     public Map<String, Object> getSubscriptionStatus(String userId) {

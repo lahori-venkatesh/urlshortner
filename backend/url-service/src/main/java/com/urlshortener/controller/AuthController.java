@@ -385,6 +385,51 @@ public class AuthController {
         }
     }
     
+    @GetMapping("/refresh-profile/{userId}")
+    public ResponseEntity<Map<String, Object>> refreshProfile(@PathVariable String userId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            var userOpt = userService.findById(userId);
+            
+            if (userOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.notFound().build();
+            }
+            
+            User user = userOpt.get();
+            
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("email", user.getEmail());
+            userData.put("firstName", user.getFirstName());
+            userData.put("lastName", user.getLastName());
+            userData.put("profilePicture", user.getProfilePicture());
+            userData.put("subscriptionPlan", user.getSubscriptionPlan());
+            userData.put("subscriptionExpiry", user.getSubscriptionExpiry());
+            userData.put("emailVerified", user.isEmailVerified());
+            userData.put("totalUrls", user.getTotalUrls());
+            userData.put("totalQrCodes", user.getTotalQrCodes());
+            userData.put("totalFiles", user.getTotalFiles());
+            userData.put("totalClicks", user.getTotalClicks());
+            userData.put("authProvider", user.getAuthProvider());
+            userData.put("apiKey", user.getApiKey());
+            userData.put("createdAt", user.getCreatedAt());
+            userData.put("lastLoginAt", user.getLastLoginAt());
+            
+            response.put("success", true);
+            response.put("user", userData);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String authHeader) {
         Map<String, Object> response = new HashMap<>();

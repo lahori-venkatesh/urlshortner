@@ -97,8 +97,29 @@ const Pricing: React.FC = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     toast.success('Welcome to Pebly Premium! 🎉');
+    
+    // Refresh user profile to get updated subscription data
+    try {
+      if (user?.id) {
+        const apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
+        const response = await fetch(`${apiUrl}/v1/auth/refresh-profile/${user.id}`);
+        const data = await response.json();
+        
+        if (data.success && data.user) {
+          // Update localStorage and trigger context refresh
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          window.dispatchEvent(new CustomEvent('auth-user-updated', { 
+            detail: { user: data.user } 
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh user profile:', error);
+    }
+    
     loadSubscriptionStatus();
     navigate('/dashboard');
   };
@@ -248,6 +269,24 @@ const Pricing: React.FC = () => {
             const verifyData = await verifyResponse.json();
             
             if (verifyData.success) {
+              // Update user context with new subscription data if provided
+              if (verifyData.user) {
+                const updatedUser = {
+                  ...user,
+                  plan: verifyData.user.subscriptionPlan || 'free',
+                  subscriptionPlan: verifyData.user.subscriptionPlan,
+                  subscriptionExpiry: verifyData.user.subscriptionExpiry
+                };
+                
+                // Update localStorage
+                localStorage.setItem('user', JSON.stringify(verifyData.user));
+                
+                // Trigger auth context refresh
+                window.dispatchEvent(new CustomEvent('auth-user-updated', { 
+                  detail: { user: updatedUser } 
+                }));
+              }
+              
               handlePaymentSuccess();
             } else {
               toast.error('Payment verification failed');
@@ -258,9 +297,9 @@ const Pricing: React.FC = () => {
           }
         },
         prefill: {
-          name: 'User Name', // Replace with actual user name
-          email: 'user@example.com', // Replace with actual user email
-          contact: '9999999999', // Replace with actual user phone
+          name: user?.name || 'User',
+          email: user?.email || '',
+          contact: user?.phone || '',
         },
         notes: {
           planType,
