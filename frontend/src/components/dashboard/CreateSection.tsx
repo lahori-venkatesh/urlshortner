@@ -933,50 +933,29 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         </div>
       )}
 
-      {/* Usage Limits Banner */}
-      {user?.id && (
-        <div className={`${planInfo?.hasProAccess 
-          ? 'bg-gradient-to-r from-green-50 to-blue-50 border border-green-200' 
-          : 'bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200'
-        } rounded-xl p-4 mb-6`}>
+      {/* Usage Limits Banner - Only show for Free users */}
+      {user?.id && !planInfo?.hasProAccess && (
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 ${planInfo?.hasProAccess ? 'bg-green-100' : 'bg-orange-100'} rounded-lg`}>
-                {planInfo?.hasProAccess ? (
-                  <Crown className="w-5 h-5 text-green-600" />
-                ) : (
-                  <Zap className="w-5 h-5 text-orange-600" />
-                )}
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Zap className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  {planInfo?.hasProAccess ? 'Pro Plan Usage' : 'Free Plan Limits'}
-                </h3>
+                <h3 className="font-semibold text-gray-900">Free Plan Limits</h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  {planInfo?.hasProAccess ? (
-                    <>
-                      <span>URLs: Unlimited</span>
-                      <span>QR Codes: Unlimited</span>
-                      <span>Files: {planInfo?.remainingMonthlyFiles || 0}/{planInfo?.plan?.includes('BUSINESS') ? '200' : '50'} this month</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>URLs: {planInfo?.remainingMonthlyUrls || 0}/75 this month</span>
-                      <span>QR Codes: {planInfo?.remainingMonthlyQrCodes || 0}/30 this month</span>
-                      <span>Files: {planInfo?.remainingMonthlyFiles || 0}/5 this month</span>
-                    </>
-                  )}
+                  <span>URLs: {planInfo?.remainingMonthlyUrls || 0}/75 this month</span>
+                  <span>QR Codes: {planInfo?.remainingMonthlyQrCodes || 0}/30 this month</span>
+                  <span>Files: {planInfo?.remainingMonthlyFiles || 0}/5 this month</span>
                 </div>
               </div>
             </div>
-            {!planInfo?.hasProAccess && (
-              <button
-                onClick={() => showUpgradeModal()}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
-              >
-                Upgrade
-              </button>
-            )}
+            <button
+              onClick={() => showUpgradeModal()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              Upgrade
+            </button>
           </div>
         </div>
       )}
@@ -1004,92 +983,50 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             </button>
           </div>
           
-          {/* Monthly Progress bars */}
-          {user?.id && planInfo ? (
+          {/* Monthly Progress bars - Only show for Free users */}
+          {user?.id && planInfo && !planInfo.hasProAccess ? (
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-              {planInfo.hasProAccess ? (
-                <>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>Short Links</span>
-                      <span>∞ Unlimited</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full w-full" />
-                    </div>
-                    <div className="text-xs text-green-600 mt-1">Pro Feature</div>
-                  </div>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>QR Codes</span>
-                      <span>∞ Unlimited</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full w-full" />
-                    </div>
-                    <div className="text-xs text-green-600 mt-1">Pro Feature</div>
-                  </div>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>File Conversions</span>
-                      <span>{planInfo.remainingMonthlyFiles || 0}/{planInfo.plan?.includes('BUSINESS') ? '200' : '50'}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
-                        style={{ 
-                          width: `${((planInfo.plan?.includes('BUSINESS') ? 200 : 50) - (planInfo.remainingMonthlyFiles || 0)) / (planInfo.plan?.includes('BUSINESS') ? 200 : 50) * 100}%` 
-                        }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>Short Links</span>
-                      <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                        style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-                  </div>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>QR Codes</span>
-                      <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
-                        style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-                  </div>
-                  <div className="bg-white/50 rounded-lg p-3">
-                    <div className="flex justify-between text-xs text-gray-600 mb-1">
-                      <span>File Conversions</span>
-                      <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
-                        style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-                  </div>
-                </>
-              )}
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Short Links</span>
+                  <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+              </div>
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>QR Codes</span>
+                  <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+              </div>
+              <div className="bg-white/50 rounded-lg p-3">
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>File Conversions</span>
+                  <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
+                    style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
+                  />
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+              </div>
             </div>
-          ) : (
+          ) : !user?.id ? (
             <div className="mt-4 p-4 bg-white/50 rounded-lg text-center">
               <p className="text-sm text-gray-600 mb-2">
                 🚀 Create unlimited URLs, QR codes, and file conversions
@@ -1098,7 +1035,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                 Sign up to get monthly limits and track your usage
               </p>
             </div>
-          )}
+          ) : null}
 
           {/* Trial offer */}
           {planInfo?.trialEligible && (
@@ -2228,6 +2165,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                         + Add Custom Domain
                       </option>
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">Choose a domain for your shortened links</p>
                   </div>
 
                   <PremiumField 
@@ -2246,7 +2184,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
 
                   <PremiumField 
                     feature="passwordProtection" 
-                    label="Password Protection"
+                    label="Password Protection (Optional)"
                     description="Secure your links with password protection"
                   >
                     <div className="relative">
@@ -2273,7 +2211,15 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                         Expiration (Days)
                       </label>
                       {!featureAccess.canUseLinkExpiration && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                          onClick={() => upgradeModal.open(
+                            'Link Expiration',
+                            'Set expiration dates for your links to automatically disable them after a certain time period.',
+                            false
+                          )}
+                          title="Click to upgrade to Pro"
+                        >
                           <Sparkles className="w-3 h-3 mr-1" />
                           Pro
                         </span>
@@ -2301,15 +2247,24 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       }`}
                       disabled={!featureAccess.canUseLinkExpiration}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Set expiration dates for your links to automatically disable them after a certain time period</p>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="block text-sm font-medium text-gray-700">
-                        Max Clicks
+                        Max Clicks (Optional)
                       </label>
                       {!featureAccess.canUseClickLimits && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                          onClick={() => upgradeModal.open(
+                            'Click Limits',
+                            'Control the maximum number of clicks your links can receive before they become inactive.',
+                            false
+                          )}
+                          title="Click to upgrade to Pro"
+                        >
                           <Crown className="w-3 h-3 mr-1" />
                           Pro
                         </span>
@@ -2337,6 +2292,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                       }`}
                       disabled={!featureAccess.canUseClickLimits}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Control the maximum number of clicks your links can receive before they become inactive</p>
                   </div>
                 </motion.div>
               )}

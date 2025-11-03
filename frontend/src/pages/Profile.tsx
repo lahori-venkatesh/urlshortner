@@ -22,6 +22,7 @@ import {
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { subscriptionService } from '../services/subscriptionService';
 import Header from '../components/Header';
 import toast from 'react-hot-toast';
@@ -30,6 +31,7 @@ import toast from 'react-hot-toast';
 const SubscriptionSection: React.FC = () => {
   const { user } = useAuth();
   const { planInfo, refreshPlanInfo } = useSubscription();
+  const featureAccess = useFeatureAccess(user);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCancelSubscription = async () => {
@@ -205,9 +207,18 @@ const SubscriptionSection: React.FC = () => {
               </span>
             )}
           </div>
-          {!planInfo.hasProAccess && (
+          {!planInfo.hasProAccess ? (
             <div className="text-xs text-blue-600 mt-1">
-              Limits reset monthly • <button className="underline hover:no-underline">Upgrade for unlimited</button>
+              Limits reset monthly • <button 
+                onClick={() => window.location.href = '/pricing'}
+                className="underline hover:no-underline"
+              >
+                Upgrade for unlimited
+              </button>
+            </div>
+          ) : (
+            <div className="text-xs text-green-600 mt-1">
+              🎉 Enjoying unlimited access to all features
             </div>
           )}
         </div>
@@ -217,29 +228,47 @@ const SubscriptionSection: React.FC = () => {
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-gray-900">Available Features</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-          <div className={`flex items-center ${planInfo.canUseCustomAlias ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className="mr-2">{planInfo.canUseCustomAlias ? '✓' : '✗'}</span>
+          <div className={`flex items-center ${featureAccess.canUseCustomAlias ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseCustomAlias ? '✓' : '✗'}</span>
             Custom Aliases
+            {featureAccess.canUseCustomAlias && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
           </div>
-          <div className={`flex items-center ${planInfo.canUsePasswordProtection ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className="mr-2">{planInfo.canUsePasswordProtection ? '✓' : '✗'}</span>
+          <div className={`flex items-center ${featureAccess.canUsePasswordProtection ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUsePasswordProtection ? '✓' : '✗'}</span>
             Password Protection
+            {featureAccess.canUsePasswordProtection && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
           </div>
-          <div className={`flex items-center ${planInfo.canSetExpiration ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className="mr-2">{planInfo.canSetExpiration ? '✓' : '✗'}</span>
+          <div className={`flex items-center ${featureAccess.canUseLinkExpiration ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseLinkExpiration ? '✓' : '✗'}</span>
             Link Expiration
+            {featureAccess.canUseLinkExpiration && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
           </div>
-          <div className={`flex items-center ${planInfo.canCustomizeQrCodes ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className="mr-2">{planInfo.canCustomizeQrCodes ? '✓' : '✗'}</span>
-            Custom QR Codes
+          <div className={`flex items-center ${featureAccess.canUseClickLimits ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseClickLimits ? '✓' : '✗'}</span>
+            Click Limits
+            {featureAccess.canUseClickLimits && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
           </div>
-          <div className={`flex items-center ${planInfo.canAccessDetailedAnalytics ? 'text-green-600' : 'text-gray-400'}`}>
-            <span className="mr-2">{planInfo.canAccessDetailedAnalytics ? '✓' : '✗'}</span>
+          <div className={`flex items-center ${featureAccess.canUseCustomQRColors ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseCustomQRColors ? '✓' : '✗'}</span>
+            Custom QR Colors
+            {featureAccess.canUseCustomQRColors && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
+          </div>
+          <div className={`flex items-center ${featureAccess.canUseAnalytics ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseAnalytics ? '✓' : '✗'}</span>
             Detailed Analytics
+            {featureAccess.canUseAnalytics && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
+          </div>
+          <div className={`flex items-center ${featureAccess.canUseCustomDomain ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className="mr-2">{featureAccess.canUseCustomDomain ? '✓' : '✗'}</span>
+            Custom Domains
+            {featureAccess.canUseCustomDomain && <span className="ml-1 text-xs text-purple-600 font-medium">Pro</span>}
           </div>
           <div className="flex items-center text-green-600">
             <span className="mr-2">✓</span>
-            {planInfo.maxFileSizeMB}MB File Uploads
+            {planInfo?.hasProAccess 
+              ? (planInfo.plan?.includes('BUSINESS') ? '500MB' : '100MB')
+              : '10MB'
+            } File Uploads
           </div>
         </div>
       </div>
