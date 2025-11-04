@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Domain Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Custom Domain Debug Tool</h1>
+    <p>This tool helps debug custom domain API issues with your deployed backend.</p>
+    
+    <div class="test-section">
+        <h3>📋 Configuration</h3>
+        <p><strong>Backend URL:</strong> <span id="backend-url">https://urlshortner-1-hpyu.onrender.com/api</span></p>
+        <p><strong>JWT Token:</strong> 
+            <input type="text" id="jwt-token" placeholder="Paste your JWT token here" />
+            <button onclick="loadTokenFromStorage()">Load from localStorage</button>
+        </p>
+        <p><em>To get your JWT token: Login to your app, open DevTools Console, run: <code>localStorage.getItem('token')</code></em></p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 API Tests</h3>
+        <button onclick="testBackendHealth()">Test Backend Health</button>
+        <button onclick="testCustomDomainEndpoints()">Test Custom Domain Endpoints</button>
+        <button onclick="testGetDomains()">Test Get My Domains</button>
+        <button onclick="testAddDomain()">Test Add Domain</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+    </div>
+
+    <div id="results" class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="test-output">Click a test button to see results...</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://urlshortner-1-hpyu.onrender.com/api';
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('test-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('test-output').innerHTML = '';
+        }
+
+        function getJwtToken() {
+            return document.getElementById('jwt-token').value.trim();
+        }
+
+        function loadTokenFromStorage() {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    document.getElementById('jwt-token').value = token;
+                    log('✅ JWT token loaded from localStorage', 'success');
+                } else {
+                    log('⚠️ No token found in localStorage. Please login first.', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Error loading token: ${error.message}`, 'error');
+            }
+        }
+
+        async function makeApiRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const token = getJwtToken();
+            
+            const requestOptions = {
+                method: options.method || 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
+                    ...options.headers
+                }
+            };
+
+            if (options.body) {
+                requestOptions.body = JSON.stringify(options.body);
+            }
+
+            log(`🔍 ${requestOptions.method} ${url}`);
+            
+            try {
+                const response = await fetch(url, requestOptions);
+                const data = await response.json();
+                
+                log(`📡 Status: ${response.status} ${response.statusText}`);
+                log(`📄 Response: ${JSON.stringify(data, null, 2)}`);
+                
+                if (response.ok) {
+                    log('✅ Request successful', 'success');
+                } else if (response.status === 401) {
+                    log('🔐 Authentication required - check your JWT token', 'warning');
+                } else if (response.status === 404) {
+                    log('❌ Endpoint not found - may need backend deployment', 'error');
+                } else {
+                    log(`❌ Request failed: ${data.message || 'Unknown error'}`, 'error');
+                }
+                
+                return { response, data };
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+                return { error };
+            }
+        }
+
+        async function testBackendHealth() {
+            clearLog();
+            log('🏥 Testing Backend Health...');
+            
+            // Test basic connectivity
+            await makeApiRequest('/v1/auth/heartbeat');
+            
+            log('');
+        }
+
+        async function testCustomDomainEndpoints() {
+            clearLog();
+            log('🏗️ Testing Custom Domain Endpoints...');
+            
+            const endpoints = [
+                { path: '/v1/domains/my', method: 'GET', description: 'Get My Domains' },
+                { path: '/v1/domains/verified', method: 'GET', description: 'Get Verified Domains' },
+                { path: '/v1/domains', method: 'POST', description: 'Add Domain' },
+                { path: '/v1/domains/verify', method: 'POST', description: 'Verify Domain' }
+            ];
+
+            for (const endpoint of endpoints) {
+                log(`\n🔍 Testing ${endpoint.description}...`);
+                
+                const options = { method: endpoint.method };
+                if (endpoint.method === 'POST') {
+                    options.body = { domainName: 'test.example.com', ownerType: 'USER' };
+                }
+                
+                await makeApiRequest(endpoint.path, options);
+            }
+            
+            log('');
+        }
+
+        async function testGetDomains() {
+            clearLog();
+            log('📋 Testing Get My Domains...');
+            
+            if (!getJwtToken()) {
+                log('⚠️ JWT token required for this test', 'warning');
+                return;
+            }
+            
+            await makeApiRequest('/v1/domains/my');
+            log('');
+        }
+
+        async function testAddDomain() {
+            clearLog();
+            log('➕ Testing Add Domain...');
+            
+            if (!getJwtToken()) {
+                log('⚠️ JWT token required for this test', 'warning');
+                return;
+            }
+            
+            const testDomain = `test-${Date.now()}.example.com`;
+            log(`🌐 Using test domain: ${testDomain}`);
+            
+            await makeApiRequest('/v1/domains', {
+                method: 'POST',
+                body: {
+                    domainName: testDomain,
+                    ownerType: 'USER'
+                }
+            });
+            
+            log('');
+        }
+
+        async function runAllTests() {
+            clearLog();
+            log('🚀 Running All Tests...\n');
+            
+            await testBackendHealth();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testCustomDomainEndpoints();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            if (getJwtToken()) {
+                await testGetDomains();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            log('✅ All tests completed!', 'success');
+        }
+
+        // Auto-load token on page load
+        window.addEventListener('load', () => {
+            loadTokenFromStorage();
+        });
+    </script>
+</body>
+</html>

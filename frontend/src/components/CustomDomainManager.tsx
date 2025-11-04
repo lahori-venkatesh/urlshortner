@@ -194,6 +194,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       console.log('API_BASE_URL:', API_BASE_URL);
       console.log('Token available:', !!token);
       console.log('User ID:', user?.id);
+      console.log('User plan:', user?.plan);
       
       setIsLoading(true);
       const params = new URLSearchParams();
@@ -205,43 +206,89 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       const url = `${API_BASE_URL}/v1/domains/my?${params}`;
       console.log('Making request to:', url);
 
-      const response = await axios.get(url, {
+      // First, let's test if the endpoint exists with a simple fetch
+      console.log('🧪 Testing endpoint availability...');
+      
+      const testResponse = await fetch(url, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
 
-      console.log('Domains API response:', response.data);
+      console.log('Test response status:', testResponse.status);
+      console.log('Test response headers:', Object.fromEntries(testResponse.headers.entries()));
 
-      if (response.data.success) {
-        setDomains(response.data.domains || []);
-        console.log('✅ Domains loaded successfully:', response.data.domains?.length || 0);
+      let responseData;
+      const contentType = testResponse.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await testResponse.json();
       } else {
-        console.error('❌ Failed to load domains:', response.data.message);
+        const textData = await testResponse.text();
+        console.log('Non-JSON response:', textData);
+        responseData = { success: false, message: 'Invalid response format', rawResponse: textData };
+      }
+
+      console.log('Domains API response:', responseData);
+
+      if (testResponse.ok && responseData.success) {
+        setDomains(responseData.domains || []);
+        console.log('✅ Domains loaded successfully:', responseData.domains?.length || 0);
+        
+        // Show helpful messages for different scenarios
+        if (responseData.repositoryStatus === 'not_available') {
+          toast('Custom domains feature is being deployed. Please try again in a few minutes.', {
+            icon: 'ℹ️',
+            duration: 4000,
+          });
+        } else if (responseData.domains.length === 0) {
+          console.log('No domains found for user');
+        }
+      } else if (testResponse.status === 404) {
+        console.error('❌ Custom domains endpoint not found (404)');
         setDomains([]);
-        toast.error(`Failed to load domains: ${response.data.message}`);
+        toast.error('Custom domains feature is not available. The backend may need to be updated.');
+      } else if (testResponse.status === 401) {
+        console.error('❌ Authentication failed (401)');
+        setDomains([]);
+        toast.error('Authentication failed. Please log in again.');
+      } else if (testResponse.status === 403) {
+        console.error('❌ Access forbidden (403)');
+        setDomains([]);
+        toast.error('Access denied. You may not have permission to view custom domains.');
+      } else if (testResponse.status === 500) {
+        console.error('❌ Server error (500):', responseData);
+        setDomains([]);
+        
+        // More specific error handling for 500 errors
+        if (responseData.message && responseData.message.includes('repository')) {
+          toast.error('Custom domains database is not ready. Please try again in a few minutes.');
+        } else {
+          toast.error(`Server error: ${responseData.message || 'Internal server error'}`);
+        }
+      } else {
+        console.error('❌ Failed to load domains:', responseData.message || 'Unknown error');
+        setDomains([]);
+        toast.error(`Failed to load domains: ${responseData.message || 'Server error'}`);
       }
     } catch (error: any) {
       console.error('❌ Failed to load domains from backend:', error);
       console.error('Error details:', {
         message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data
+        name: error.name,
+        stack: error.stack
       });
       
       setDomains([]);
       
       // More specific error messages
-      if (error.response?.status === 401) {
-        toast.error('Authentication failed. Please log in again.');
-      } else if (error.response?.status === 403) {
-        toast.error('Access denied. You may not have permission to view custom domains.');
-      } else if (error.response?.status === 404) {
-        toast.error('Custom domains service not found. Please contact support.');
-      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        toast.error('Unable to connect to server. Please check your internet connection.');
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        toast.error('Network error: Unable to connect to the server. Please check your internet connection.');
+      } else if (error.message.includes('CORS')) {
+        toast.error('CORS error: The server is not allowing requests from this domain.');
       } else {
         toast.error(`Failed to load custom domains: ${error.message}`);
       }
@@ -474,19 +521,54 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Debug Info for Development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-          <strong>Debug:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
-          Domains: {domains.length}, Loading: {isLoading.toString()}
-          <button 
-            onClick={loadDomainsFromBackend}
-            className="ml-4 px-2 py-1 bg-blue-500 text-white rounded text-xs"
-          >
-            Retry Load
-          </button>
+      {/* Debug Info - Always show for troubleshooting */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <strong>Debug Info:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
+            Domains: {domains.length}, Loading: {isLoading.toString()}, API: {API_BASE_URL}
+          </div>
+          <div className="flex space-x-2">
+            <button 
+              onClick={loadDomainsFromBackend}
+              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+            >
+              Retry Load
+            </button>
+            <button 
+              onClick={() => {
+                console.log('=== Manual Debug Info ===');
+                console.log('User:', user);
+                console.log('Token:', token ? token.substring(0, 20) + '...' : 'null');
+                console.log('API_BASE_URL:', API_BASE_URL);
+                console.log('hasCustomDomainAccess:', hasCustomDomainAccess);
+                console.log('domains:', domains);
+                console.log('isLoading:', isLoading);
+              }}
+              className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+            >
+              Log Debug
+            </button>
+            <button 
+              onClick={async () => {
+                try {
+                  const testUrl = `${API_BASE_URL}/v1/auth/heartbeat`;
+                  console.log('Testing heartbeat:', testUrl);
+                  const response = await fetch(testUrl, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                  });
+                  console.log('Heartbeat response:', response.status, await response.text());
+                } catch (error) {
+                  console.error('Heartbeat test failed:', error);
+                }
+              }}
+              className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
+            >
+              Test API
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Error State - Show if not loading and no domains but has access */}
       {!isLoading && domains.length === 0 && hasCustomDomainAccess && (

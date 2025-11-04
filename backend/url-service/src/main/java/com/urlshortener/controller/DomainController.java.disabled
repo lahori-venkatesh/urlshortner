@@ -1,6 +1,6 @@
 package com.urlshortener.controller;
 
-import com.urlshortener.annotation.RequiresPlan;
+// import com.urlshortener.annotation.RequiresPlan; // Temporarily disabled
 import com.urlshortener.dto.DomainRequest;
 import com.urlshortener.dto.DomainResponse;
 import com.urlshortener.dto.DomainTransferRequest;
@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+// DISABLED - Using WorkingDomainController instead
+// This class is temporarily disabled to prevent conflicts
+/*
 @RestController
 @RequestMapping("/api/v1/domains")
 @CrossOrigin(origins = "*")
@@ -38,7 +41,6 @@ public class DomainController {
      * POST /api/v1/domains
      */
     @PostMapping
-    @RequiresPlan(feature = "customDomain")
     public ResponseEntity<?> reserveDomain(
             @Valid @RequestBody DomainRequest request,
             Authentication authentication) {
@@ -126,7 +128,16 @@ public class DomainController {
             Authentication authentication) {
         
         try {
+            if (authentication == null) {
+                logger.warn("No authentication provided for domains request");
+                return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Authentication required"
+                ));
+            }
+            
             String currentUserId = authentication.getName();
+            logger.info("Fetching domains for user: {}", currentUserId);
             
             // Default to user's personal domains
             if (ownerType == null) {
@@ -134,18 +145,31 @@ public class DomainController {
                 ownerId = currentUserId;
             }
             
+            if (domainService == null) {
+                logger.error("DomainService is null");
+                return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Domain service not available"
+                ));
+            }
+            
             List<DomainResponse> domains = domainService.getDomainsByOwner(ownerId, ownerType);
+            
+            logger.info("Found {} domains for user {}", domains.size(), currentUserId);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "domains", domains
+                "domains", domains,
+                "count", domains.size(),
+                "userId", currentUserId
             ));
             
         } catch (Exception e) {
-            logger.error("Error fetching user domains", e);
-            return ResponseEntity.internalServerError().body(Map.of(
+            logger.error("Error fetching user domains for user: " + (authentication != null ? authentication.getName() : "unknown"), e);
+            return ResponseEntity.status(500).body(Map.of(
                 "success", false,
-                "message", "Failed to fetch domains"
+                "message", "Failed to fetch domains: " + e.getMessage(),
+                "error", e.getClass().getSimpleName()
             ));
         }
     }
@@ -250,3 +274,4 @@ public class DomainController {
         }
     }
 }
+*/

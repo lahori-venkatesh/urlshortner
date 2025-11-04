@@ -47,7 +47,7 @@ public class DomainService {
     @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
     
-    @Autowired
+    @Autowired(required = false)
     private EmailService emailService;
     
     private final SecureRandom secureRandom = new SecureRandom();
@@ -362,6 +362,11 @@ public class DomainService {
     
     private void sendTransferConfirmationEmail(Domain domain, String reason) {
         try {
+            if (emailService == null) {
+                logger.warn("EmailService not available, skipping transfer confirmation email for domain: {}", domain.getDomainName());
+                return;
+            }
+            
             // Get owner details for email
             if ("USER".equals(domain.getOwnerType())) {
                 User user = userRepository.findById(domain.getOwnerId()).orElse(null);
