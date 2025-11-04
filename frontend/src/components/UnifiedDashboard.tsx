@@ -54,17 +54,26 @@ const UnifiedDashboard: React.FC = () => {
   // Set active section based on current URL
   useEffect(() => {
     const path = location.pathname;
+    console.log('🔍 UnifiedDashboard - URL pathname changed:', path);
+    console.log('🔍 Current activeSection:', activeSection);
+    
     if (path === '/dashboard') {
+      console.log('🔍 Setting activeSection to dashboard');
       setActiveSection('dashboard');
     } else if (path === '/dashboard/links') {
+      console.log('🔍 Setting activeSection to links');
       setActiveSection('links');
     } else if (path === '/dashboard/qr-codes') {
+      console.log('🔍 Setting activeSection to qr-codes');
       setActiveSection('qr-codes');
     } else if (path === '/dashboard/file-links') {
+      console.log('🔍 Setting activeSection to file-to-url');
       setActiveSection('file-to-url');
     } else if (path === '/dashboard/analytics') {
+      console.log('🔍 Setting activeSection to analytics');
       setActiveSection('analytics');
     } else if (path === '/dashboard/domains') {
+      console.log('🔍 Setting activeSection to domains');
       setActiveSection('domains');
     }
   }, [location.pathname]);
@@ -187,6 +196,8 @@ const UnifiedDashboard: React.FC = () => {
   };
 
   const renderContent = () => {
+    console.log('🔍 UnifiedDashboard - renderContent called with activeSection:', activeSection);
+    
     switch (activeSection) {
       case 'dashboard':
         return <DashboardOverview onCreateClick={handleCreateClick} />;
@@ -215,8 +226,10 @@ const UnifiedDashboard: React.FC = () => {
           ownerId: currentScope.type === 'TEAM' ? currentScope.id : user?.id,
           user: !!user
         });
-        // Temporarily use test component to verify routing
-        return <TestCustomDomains />;
+        return <CustomDomainManager 
+          ownerType={currentScope.type} 
+          ownerId={currentScope.type === 'TEAM' ? currentScope.id : user?.id} 
+        />;
       case 'team-members':
         return currentScope.type === 'TEAM' ? <TeamManagement teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
       case 'team-settings':
@@ -284,12 +297,18 @@ const UnifiedDashboard: React.FC = () => {
                 <div className="group">
                   <button
                     onClick={() => {
+                      console.log('🔍 Sidebar item clicked:', item.id);
+                      console.log('🔍 User plan:', user?.plan);
+                      
                       // Handle custom domains with upgrade check
                       if (item.id === 'domains') {
+                        console.log('🔍 Domains clicked - checking user plan');
                         if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
+                          console.log('🔍 Pro/Business user - navigating to domains');
                           setActiveSection(item.id);
                           navigate('/dashboard/domains');
                         } else {
+                          console.log('🔍 Free user - showing upgrade modal');
                           upgradeModal.open(
                             'Custom Domains',
                             'Unlock custom domains and advanced features for your team',

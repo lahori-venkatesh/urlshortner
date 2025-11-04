@@ -116,6 +116,17 @@ const AppContent: React.FC = () => {
               </AuthRedirect>
             } />
             
+            <Route path="/dashboard/domains" element={
+              <AuthRedirect requireAuth={true}>
+                <div className="min-h-screen bg-gray-50">
+                  <div className="sticky top-0 z-50">
+                    <Header />
+                  </div>
+                  <UnifiedDashboard />
+                </div>
+              </AuthRedirect>
+            } />
+            
             {/* Individual Analytics Routes */}
             <Route path="/dashboard/links/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
