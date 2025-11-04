@@ -36,6 +36,18 @@ class GoogleAuthService {
     }
   }
 
+  // Check backend configuration
+  async checkBackendConfig(): Promise<any> {
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const response = await fetch(`${apiUrl}/v1/auth/google/config`);
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to check backend config:', error);
+      return { success: false, error: 'Unable to connect to backend' };
+    }
+  }
+
   // Generate Google OAuth URL
   getAuthUrl(): string {
     const params = new URLSearchParams({
@@ -50,37 +62,52 @@ class GoogleAuthService {
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
 
-  // Exchange authorization code for access token (directly with Google)
+  // Exchange authorization code for access token (via backend)
   async exchangeCodeForToken(code: string): Promise<GoogleAuthResponse> {
-    const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+    console.log('=== Exchanging code for token ===');
+    console.log('Code length:', code.length);
+    console.log('Redirect URI:', this.redirectUri);
+    console.log('API URL:', process.env.REACT_APP_API_URL);
+
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+    const endpoint = `${apiUrl}/v1/auth/google/callback`;
     
-    const params = new URLSearchParams({
-      client_id: this.clientId,
-      client_secret: '', // We'll handle this differently for security
-      code: code,
-      grant_type: 'authorization_code',
-      redirect_uri: this.redirectUri
-    });
+    console.log('Calling endpoint:', endpoint);
 
-    // For security, we should use the backend to exchange the code
-    // Let's create a new endpoint for this
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/auth/google/callback`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        code: code,
-        redirectUri: this.redirectUri 
-      })
-    });
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          code: code,
+          redirectUri: this.redirectUri 
+        })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to exchange code for token');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.message || `HTTP ${response.status}: Failed to exchange code for token`);
+      }
+
+      if (!responseData.success) {
+        throw new Error(responseData.message || 'Backend authentication failed');
+      }
+
+      return responseData;
+    } catch (error) {
+      console.error('Token exchange error:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Unable to connect to authentication server. Please check your internet connection and try again.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   // Get user info from Google

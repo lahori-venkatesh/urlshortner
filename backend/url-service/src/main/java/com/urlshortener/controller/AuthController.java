@@ -156,10 +156,29 @@ public class AuthController {
             String code = request.get("code");
             String redirectUri = request.get("redirectUri");
             
+            // Debug logging
+            System.out.println("=== Google OAuth Callback Debug ===");
+            System.out.println("Code received: " + (code != null ? "YES" : "NO"));
+            System.out.println("Redirect URI: " + redirectUri);
+            System.out.println("Google Client ID configured: " + (googleClientId != null && !googleClientId.isEmpty() ? "YES" : "NO"));
+            System.out.println("Google Client Secret configured: " + (googleClientSecret != null && !googleClientSecret.isEmpty() ? "YES" : "NO"));
+            
             if (code == null) {
                 response.put("success", false);
                 response.put("message", "Authorization code is required");
                 return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (googleClientId == null || googleClientId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Google OAuth not configured: Client ID missing");
+                return ResponseEntity.status(500).body(response);
+            }
+            
+            if (googleClientSecret == null || googleClientSecret.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Google OAuth not configured: Client Secret missing");
+                return ResponseEntity.status(500).body(response);
             }
             
             // Exchange code for access token with Google
@@ -213,6 +232,19 @@ public class AuthController {
             response.put("message", "Authentication failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    @GetMapping("/google/config")
+    public ResponseEntity<Map<String, Object>> getGoogleConfig() {
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("success", true);
+        response.put("clientIdConfigured", googleClientId != null && !googleClientId.isEmpty());
+        response.put("clientSecretConfigured", googleClientSecret != null && !googleClientSecret.isEmpty());
+        response.put("clientIdPreview", googleClientId != null && googleClientId.length() > 10 ? 
+            googleClientId.substring(0, 10) + "..." : "NOT_SET");
+        
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/google")
@@ -569,6 +601,12 @@ public class AuthController {
         params.add("grant_type", "authorization_code");
         params.add("redirect_uri", redirectUri);
         
+        // Debug logging
+        System.out.println("=== Token Exchange Debug ===");
+        System.out.println("Client ID: " + (googleClientId != null ? googleClientId.substring(0, Math.min(20, googleClientId.length())) + "..." : "NULL"));
+        System.out.println("Redirect URI: " + redirectUri);
+        System.out.println("Code length: " + (code != null ? code.length() : 0));
+        
         // Prepare headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", "application/x-www-form-urlencoded");
@@ -584,12 +622,17 @@ public class AuthController {
             );
             
             Map<String, Object> responseBody = response.getBody();
+            System.out.println("Google token response status: " + response.getStatusCode());
+            
             if (responseBody != null && responseBody.containsKey("access_token")) {
+                System.out.println("Successfully obtained access token");
                 return (String) responseBody.get("access_token");
             } else {
-                throw new Exception("Failed to get access token from Google");
+                System.out.println("No access token in response: " + responseBody);
+                throw new Exception("Failed to get access token from Google: " + responseBody);
             }
         } catch (Exception e) {
+            System.out.println("Token exchange error: " + e.getMessage());
             throw new Exception("Failed to exchange code for access token: " + e.getMessage());
         }
     }

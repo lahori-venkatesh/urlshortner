@@ -421,9 +421,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = () => {
-    // Initiate Google OAuth flow
-    googleAuthService.initiateAuth();
+  const loginWithGoogle = async () => {
+    try {
+      // Check configuration before initiating auth
+      const backendConfig = await googleAuthService.checkBackendConfig();
+      
+      if (!backendConfig.success) {
+        throw new Error('Unable to connect to authentication server. Please try again later.');
+      }
+      
+      if (!backendConfig.clientIdConfigured) {
+        throw new Error('Google OAuth is not properly configured on the server. Please contact support.');
+      }
+      
+      if (!backendConfig.clientSecretConfigured) {
+        throw new Error('Google OAuth is not properly configured on the server. Please contact support.');
+      }
+      
+      // Initiate Google OAuth flow
+      googleAuthService.initiateAuth();
+    } catch (error) {
+      console.error('Google OAuth configuration error:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
