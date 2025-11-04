@@ -30,7 +30,6 @@ import * as QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 import LinkSuccessModal from '../LinkSuccessModal';
 import QRSuccessModal from '../QRSuccessModal';
-import PremiumField from '../PremiumField';
 import { createShortUrl, createQrCode, uploadFileToBackend } from '../../services/api';
 
 type CreateMode = 'url' | 'qr' | 'file';
@@ -2168,42 +2167,105 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                     <p className="text-xs text-gray-500 mt-1">Choose a domain for your shortened links</p>
                   </div>
 
-                  <PremiumField 
-                    feature="customAlias" 
-                    label="Custom Alias (Optional)"
-                    description="Create memorable branded short links"
-                  >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Custom Alias (Optional)
+                      </label>
+                      {!featureAccess.canUseCustomAlias && (
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                          onClick={() => upgradeModal.open(
+                            'Custom Alias',
+                            'Create memorable branded short links with custom aliases.',
+                            false
+                          )}
+                          title="Click to upgrade to Pro"
+                        >
+                          <Zap className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
-                      placeholder="my-custom-link"
+                      placeholder={featureAccess.canUseCustomAlias ? "my-custom-link" : "Upgrade to Pro for custom aliases"}
                       value={customAlias}
-                      onChange={(e) => setCustomAlias(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        if (!featureAccess.canUseCustomAlias && e.target.value.trim()) {
+                          upgradeModal.open(
+                            'Custom Alias',
+                            'Create memorable branded short links with custom aliases.',
+                            false
+                          );
+                          return;
+                        }
+                        setCustomAlias(e.target.value);
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        !featureAccess.canUseCustomAlias
+                          ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                          : 'border-gray-300'
+                      }`}
+                      disabled={!featureAccess.canUseCustomAlias}
                     />
-                  </PremiumField>
+                    <p className="text-xs text-gray-500 mt-1">Create memorable branded short links</p>
+                  </div>
 
-                  <PremiumField 
-                    feature="passwordProtection" 
-                    label="Password Protection (Optional)"
-                    description="Secure your links with password protection"
-                  >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Password Protection (Optional)
+                      </label>
+                      {!featureAccess.canUsePasswordProtection && (
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 border border-purple-200 cursor-pointer hover:from-purple-200 hover:to-blue-200 transition-all duration-200 hover:shadow-sm"
+                          onClick={() => upgradeModal.open(
+                            'Password Protection',
+                            'Secure your links with password protection.',
+                            false
+                          )}
+                          title="Click to upgrade to Pro"
+                        >
+                          <Lock className="w-3 h-3 mr-1" />
+                          Pro
+                        </span>
+                      )}
+                    </div>
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Optional password"
+                        placeholder={featureAccess.canUsePasswordProtection ? "Optional password" : "Upgrade to Pro for password protection"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onChange={(e) => {
+                          if (!featureAccess.canUsePasswordProtection && e.target.value.trim()) {
+                            upgradeModal.open(
+                              'Password Protection',
+                              'Secure your links with password protection.',
+                              false
+                            );
+                            return;
+                          }
+                          setPassword(e.target.value);
+                        }}
+                        className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          !featureAccess.canUsePasswordProtection
+                            ? 'border-purple-200 bg-purple-50 placeholder-purple-400'
+                            : 'border-gray-300'
+                        }`}
+                        disabled={!featureAccess.canUsePasswordProtection}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        disabled={!featureAccess.canUsePasswordProtection}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                  </PremiumField>
+                    <p className="text-xs text-gray-500 mt-1">Secure your links with password protection</p>
+                  </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
