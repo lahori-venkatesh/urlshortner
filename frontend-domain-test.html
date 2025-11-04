@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { border-left: 4px solid #4CAF50; background-color: #f1f8e9; }
+        .error { border-left: 4px solid #f44336; background-color: #ffebee; }
+        .warning { border-left: 4px solid #ff9800; background-color: #fff3e0; }
+        .info { border-left: 4px solid #2196F3; background-color: #e3f2fd; }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Domain API Test Suite</h1>
+        <p>This tool tests the custom domains API functionality. Make sure you're logged in to the app first.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Setup Instructions</h3>
+            <ol>
+                <li>Open <a href="https://pebly.vercel.app" target="_blank">https://pebly.vercel.app</a> in another tab</li>
+                <li>Log in with your PRO or BUSINESS account</li>
+                <li>Come back to this page and click "Auto-detect Token" or paste your token manually</li>
+                <li>Run the tests to verify API functionality</li>
+            </ol>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔑 Authentication Setup</h3>
+            <button onclick="autoDetectToken()">Auto-detect Token</button>
+            <button onclick="clearToken()">Clear Token</button>
+            <br>
+            <input type="text" id="tokenInput" placeholder="Or paste your token here manually..." />
+            <button onclick="setManualToken()">Set Token</button>
+            <div id="tokenStatus" class="log" style="max-height: 60px;">Token not set</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🚀 API Tests</h3>
+            <button onclick="runAllTests()" id="runAllBtn">Run All Tests</button>
+            <button onclick="testHealthCheck()">Test Health Check</button>
+            <button onclick="testGetDomains()">Test GET Domains</button>
+            <button onclick="testAddDomain()">Test ADD Domain</button>
+            <button onclick="clearLog()">Clear Log</button>
+            
+            <div class="stats" id="testStats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div>Passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div>Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDomains">0</div>
+                    <div>Total Domains</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="userDomains">0</div>
+                    <div>User Domains</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="testLog" class="log">Ready to run tests...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔍 Manual Test Commands</h3>
+            <p>Copy these commands to test in your browser console or terminal:</p>
+            <div id="manualCommands" class="log">Set a token first to see manual test commands</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://urlshortner-1-hpyu.onrender.com/api';
+        let authToken = null;
+        let testResults = { passed: 0, failed: 0 };
+
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function updateTokenStatus(token) {
+            const statusElement = document.getElementById('tokenStatus');
+            if (token) {
+                statusElement.textContent = `Token set: ${token.substring(0, 20)}...`;
+                statusElement.className = 'log success';
+                updateManualCommands(token);
+            } else {
+                statusElement.textContent = 'Token not set';
+                statusElement.className = 'log error';
+            }
+        }
+
+        function updateManualCommands(token) {
+            const commandsElement = document.getElementById('manualCommands');
+            if (token) {
+                const testDomain = `test-${Date.now()}.example.com`;
+                commandsElement.textContent = `# Test GET domains:
+fetch('${API_BASE}/v1/domains/my', {
+    headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json'
+    }
+}).then(r => r.json()).then(console.log);
+
+# Test ADD domain:
+fetch('${API_BASE}/v1/domains', {
+    method: 'POST',
+    headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        domainName: '${testDomain}',
+        ownerType: 'USER'
+    })
+}).then(r => r.json()).then(console.log);
+
+# Terminal commands:
+curl -X GET '${API_BASE}/v1/domains/my' \\
+  -H 'Authorization: Bearer ${token}' \\
+  -H 'Content-Type: application/json' | jq .
+
+curl -X POST '${API_BASE}/v1/domains' \\
+  -H 'Authorization: Bearer ${token}' \\
+  -H 'Content-Type: application/json' \\
+  -d '{"domainName": "${testDomain}", "ownerType": "USER"}' | jq .`;
+            } else {
+                commandsElement.textContent = 'Set a token first to see manual test commands';
+            }
+        }
+
+        function autoDetectToken() {
+            try {
+                // Try to get token from localStorage (if same origin)
+                const token = localStorage.getItem('token');
+                if (token) {
+                    authToken = token;
+                    document.getElementById('tokenInput').value = token;
+                    updateTokenStatus(token);
+                    log('Token auto-detected from localStorage', 'success');
+                } else {
+                    log('No token found in localStorage. Please set manually.', 'warning');
+                }
+            } catch (error) {
+                log('Cannot access localStorage (cross-origin). Please set token manually.', 'warning');
+            }
+        }
+
+        function setManualToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            if (token) {
+                authToken = token;
+                updateTokenStatus(token);
+                log('Token set manually', 'success');
+            } else {
+                log('Please enter a valid token', 'error');
+            }
+        }
+
+        function clearToken() {
+            authToken = null;
+            document.getElementById('tokenInput').value = '';
+            updateTokenStatus(null);
+            log('Token cleared', 'info');
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').textContent = 'Log cleared...\n';
+            testResults = { passed: 0, failed: 0 };
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            document.getElementById('testStats').style.display = 'grid';
+        }
+
+        async function testHealthCheck() {
+            log('Testing API health check...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/v1/domains/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log(`Health check passed - ${data.totalDomains} domains in database`, 'success');
+                    document.getElementById('totalDomains').textContent = data.totalDomains;
+                    testResults.passed++;
+                } else {
+                    log(`Health check failed: ${data.message || 'Unknown error'}`, 'error');
+                    testResults.failed++;
+                }
+            } catch (error) {
+                log(`Health check error: ${error.message}`, 'error');
+                testResults.failed++;
+            }
+            
+            updateStats();
+        }
+
+        async function testGetDomains() {
+            if (!authToken) {
+                log('Cannot test GET domains - no authentication token set', 'error');
+                testResults.failed++;
+                updateStats();
+                return;
+            }
+
+            log('Testing GET /domains/my...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/v1/domains/my`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log(`GET domains successful - found ${data.domains.length} domains`, 'success');
+                    document.getElementById('userDomains').textContent = data.domains.length;
+                    
+                    if (data.domains.length > 0) {
+                        log(`Domains: ${data.domains.map(d => `${d.domainName} (${d.status})`).join(', ')}`, 'info');
+                    }
+                    
+                    testResults.passed++;
+                } else {
+                    log(`GET domains failed: ${data.message || 'Unknown error'} (Status: ${response.status})`, 'error');
+                    testResults.failed++;
+                }
+            } catch (error) {
+                log(`GET domains error: ${error.message}`, 'error');
+                testResults.failed++;
+            }
+            
+            updateStats();
+        }
+
+        async function testAddDomain() {
+            if (!authToken) {
+                log('Cannot test ADD domain - no authentication token set', 'error');
+                testResults.failed++;
+                updateStats();
+                return;
+            }
+
+            const testDomain = `test-${Date.now()}.example.com`;
+            log(`Testing POST /domains with domain: ${testDomain}...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/v1/domains`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domainName: testDomain,
+                        ownerType: 'USER'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log(`ADD domain successful - Domain ID: ${data.domain.id}`, 'success');
+                    log(`Domain details: ${data.domain.domainName} (${data.domain.status})`, 'info');
+                    log(`Verification token: ${data.domain.verificationToken}`, 'info');
+                    testResults.passed++;
+                    
+                    // Test duplicate domain (should fail)
+                    setTimeout(() => testDuplicateDomain(testDomain), 1000);
+                } else {
+                    log(`ADD domain failed: ${data.message || 'Unknown error'} (Status: ${response.status})`, 'error');
+                    
+                    if (response.status === 403) {
+                        log('This might be a plan limitation - ensure you have PRO or BUSINESS plan', 'warning');
+                    }
+                    
+                    testResults.failed++;
+                }
+            } catch (error) {
+                log(`ADD domain error: ${error.message}`, 'error');
+                testResults.failed++;
+            }
+            
+            updateStats();
+        }
+
+        async function testDuplicateDomain(domainName) {
+            log(`Testing duplicate domain rejection for: ${domainName}...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/v1/domains`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domainName: domainName,
+                        ownerType: 'USER'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok && data.message && data.message.includes('already exists')) {
+                    log('Duplicate domain correctly rejected', 'success');
+                    testResults.passed++;
+                } else if (response.ok) {
+                    log('Duplicate domain was allowed - this should not happen', 'error');
+                    testResults.failed++;
+                } else {
+                    log(`Duplicate test inconclusive: ${data.message}`, 'warning');
+                }
+            } catch (error) {
+                log(`Duplicate domain test error: ${error.message}`, 'error');
+                testResults.failed++;
+            }
+            
+            updateStats();
+        }
+
+        async function runAllTests() {
+            const runBtn = document.getElementById('runAllBtn');
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running Tests...';
+            
+            clearLog();
+            log('Starting comprehensive API test suite...', 'info');
+            
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testGetDomains();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAddDomain();
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for duplicate test
+            
+            log(`\nTest suite completed: ${testResults.passed} passed, ${testResults.failed} failed`, 
+                testResults.failed === 0 ? 'success' : 'warning');
+            
+            if (testResults.failed === 0) {
+                log('🎉 All tests passed! Domain API is working correctly.', 'success');
+            } else {
+                log('⚠️ Some tests failed. Check the details above.', 'warning');
+            }
+            
+            runBtn.disabled = false;
+            runBtn.textContent = 'Run All Tests';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Domain API Test Suite loaded. Set your authentication token to begin.', 'info');
+            autoDetectToken(); // Try to auto-detect token
+        });
+    </script>
+</body>
+</html>

@@ -151,7 +151,15 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   useEffect(() => {
     if (user && token) {
       loadUserPlan();
-      loadDomainsFromBackend();
+      
+      // Only load domains if user has access to custom domains
+      if (hasCustomDomainAccess) {
+        loadDomainsFromBackend();
+      } else {
+        console.log('User does not have custom domain access, skipping domain load');
+        setIsLoading(false);
+        setDomains([]);
+      }
       
       // Add timeout fallback to prevent infinite loading
       const timeoutId = setTimeout(() => {
@@ -165,7 +173,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       return () => clearTimeout(timeoutId);
     } else {
       // If no user or token, don't show loading
+      console.log('No user or token available, setting loading to false');
       setIsLoading(false);
+      setDomains([]);
     }
     
     // Check for onboarding trigger from URL
@@ -193,10 +203,20 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       console.log('🔍 Loading domains from backend...');
       console.log('API_BASE_URL:', API_BASE_URL);
       console.log('Token available:', !!token);
+      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'null');
       console.log('User ID:', user?.id);
       console.log('User plan:', user?.plan);
       
       setIsLoading(true);
+      
+      // Check if we have authentication
+      if (!token) {
+        console.error('❌ No authentication token available');
+        setDomains([]);
+        toast.error('Please log in to view custom domains.');
+        return;
+      }
+      
       const params = new URLSearchParams();
       if (ownerType !== 'USER') {
         params.append('ownerType', ownerType);
@@ -205,11 +225,8 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
       const url = `${API_BASE_URL}/v1/domains/my?${params}`;
       console.log('Making request to:', url);
-
-      // First, let's test if the endpoint exists with a simple fetch
-      console.log('🧪 Testing endpoint availability...');
       
-      const testResponse = await fetch(url, {
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -218,23 +235,23 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         }
       });
 
-      console.log('Test response status:', testResponse.status);
-      console.log('Test response headers:', Object.fromEntries(testResponse.headers.entries()));
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
       let responseData;
-      const contentType = testResponse.headers.get('content-type');
+      const contentType = response.headers.get('content-type');
       
       if (contentType && contentType.includes('application/json')) {
-        responseData = await testResponse.json();
+        responseData = await response.json();
       } else {
-        const textData = await testResponse.text();
+        const textData = await response.text();
         console.log('Non-JSON response:', textData);
         responseData = { success: false, message: 'Invalid response format', rawResponse: textData };
       }
 
       console.log('Domains API response:', responseData);
 
-      if (testResponse.ok && responseData.success) {
+      if (response.ok && responseData.success) {
         setDomains(responseData.domains || []);
         console.log('✅ Domains loaded successfully:', responseData.domains?.length || 0);
         
@@ -247,19 +264,25 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         } else if (responseData.domains.length === 0) {
           console.log('No domains found for user');
         }
-      } else if (testResponse.status === 404) {
+      } else if (response.status === 404) {
         console.error('❌ Custom domains endpoint not found (404)');
         setDomains([]);
         toast.error('Custom domains feature is not available. The backend may need to be updated.');
-      } else if (testResponse.status === 401) {
+      } else if (response.status === 401) {
         console.error('❌ Authentication failed (401)');
         setDomains([]);
         toast.error('Authentication failed. Please log in again.');
-      } else if (testResponse.status === 403) {
+        // Optionally trigger re-authentication
+        // logout();
+      } else if (response.status === 403) {
         console.error('❌ Access forbidden (403)');
         setDomains([]);
-        toast.error('Access denied. You may not have permission to view custom domains.');
-      } else if (testResponse.status === 500) {
+        if (responseData.message && responseData.message.includes('PRO')) {
+          toast.error('Custom domains require a PRO or BUSINESS plan. Please upgrade your account.');
+        } else {
+          toast.error('Access denied. You may not have permission to view custom domains.');
+        }
+      } else if (response.status === 500) {
         console.error('❌ Server error (500):', responseData);
         setDomains([]);
         
@@ -289,6 +312,8 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         toast.error('Network error: Unable to connect to the server. Please check your internet connection.');
       } else if (error.message.includes('CORS')) {
         toast.error('CORS error: The server is not allowing requests from this domain.');
+      } else if (error.message.includes('Failed to fetch')) {
+        toast.error('Network error: Unable to reach the server. Please check your connection.');
       } else {
         toast.error(`Failed to load custom domains: ${error.message}`);
       }
@@ -527,13 +552,20 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           <div>
             <strong>Debug Info:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
             Domains: {domains.length}, Loading: {isLoading.toString()}, API: {API_BASE_URL}
+            <br />
+            <span className="text-xs text-gray-600">
+              Token: {token ? '✅ Available' : '❌ Missing'} | 
+              User: {user?.email || 'Not logged in'} | 
+              Auth: {user ? '✅ Authenticated' : '❌ Not authenticated'}
+            </span>
           </div>
           <div className="flex space-x-2">
             <button 
               onClick={loadDomainsFromBackend}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+              disabled={isLoading}
+              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:opacity-50"
             >
-              Retry Load
+              {isLoading ? 'Loading...' : 'Retry Load'}
             </button>
             <button 
               onClick={() => {
@@ -544,6 +576,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 console.log('hasCustomDomainAccess:', hasCustomDomainAccess);
                 console.log('domains:', domains);
                 console.log('isLoading:', isLoading);
+                console.log('featureAccess:', featureAccess);
               }}
               className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
             >
@@ -552,14 +585,39 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
             <button 
               onClick={async () => {
                 try {
-                  const testUrl = `${API_BASE_URL}/v1/auth/heartbeat`;
-                  console.log('Testing heartbeat:', testUrl);
-                  const response = await fetch(testUrl, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                  });
-                  console.log('Heartbeat response:', response.status, await response.text());
-                } catch (error) {
-                  console.error('Heartbeat test failed:', error);
+                  console.log('=== Testing API Connection ===');
+                  
+                  // Test 1: Health check
+                  const healthUrl = `${API_BASE_URL}/v1/domains/health`;
+                  console.log('Testing health:', healthUrl);
+                  const healthResponse = await fetch(healthUrl);
+                  const healthData = await healthResponse.json();
+                  console.log('Health response:', healthData);
+                  
+                  // Test 2: Auth test
+                  if (token) {
+                    const domainsUrl = `${API_BASE_URL}/v1/domains/my`;
+                    console.log('Testing domains with auth:', domainsUrl);
+                    const domainsResponse = await fetch(domainsUrl, {
+                      headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      }
+                    });
+                    const domainsData = await domainsResponse.json();
+                    console.log('Domains response:', domainsResponse.status, domainsData);
+                    
+                    if (domainsResponse.ok && domainsData.success) {
+                      toast.success(`API test successful! Found ${domainsData.domains?.length || 0} domains.`);
+                    } else {
+                      toast.error(`API test failed: ${domainsData.message || 'Unknown error'}`);
+                    }
+                  } else {
+                    toast.error('No authentication token available for testing');
+                  }
+                } catch (error: any) {
+                  console.error('API test failed:', error);
+                  toast.error(`API test failed: ${error.message || 'Unknown error'}`);
                 }
               }}
               className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"

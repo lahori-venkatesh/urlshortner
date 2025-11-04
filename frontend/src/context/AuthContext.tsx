@@ -487,14 +487,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.location.href = '/dashboard';
   };
 
-  // Session management functions
+  // Session management functions - TEMPORARILY DISABLED DUE TO BACKEND ISSUES
   const startSessionManagement = () => {
+    console.log('⚠️ Session management temporarily disabled due to backend connectivity issues');
+    
     // Clear any existing intervals
     if (window.authIntervals) {
       window.authIntervals.forEach(clearInterval);
+      window.authIntervals = [];
     }
-    window.authIntervals = [];
-
+    
+    // TODO: Re-enable when backend is stable
+    // For now, we'll rely on manual token validation only
+    
+    /* DISABLED - CAUSING TIMEOUTS
     // Proactive token refresh every 30 minutes
     const refreshInterval = setInterval(async () => {
       if (isAuthenticated) {
@@ -526,6 +532,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Store intervals for cleanup
     window.authIntervals.push(refreshInterval, heartbeatInterval);
+    */
   };
 
   return (

@@ -57,9 +57,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 com.urlshortener.model.User user = userOpt.get();
                 
-                // Create UserDetails for Spring Security
+                // Create UserDetails for Spring Security - use user ID as username for easier access
                 UserDetails userDetails = User.builder()
-                        .username(user.getEmail())
+                        .username(user.getId()) // Use user ID instead of email for easier access in controllers
                         .password("") // We don't need password for JWT auth
                         .authorities(new ArrayList<>())
                         .build();
@@ -70,6 +70,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 // Set the user in the request for easy access
                 request.setAttribute("currentUser", user);
+                request.setAttribute("currentUserId", user.getId());
+                request.setAttribute("currentUserEmail", user.getEmail());
                 
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }

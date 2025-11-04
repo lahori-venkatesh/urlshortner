@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,7 +41,8 @@ public class WorkingDomainController {
     public ResponseEntity<?> getMyDomains(
             @RequestParam(required = false) String ownerType,
             @RequestParam(required = false) String ownerId,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest request) {
         
         Map<String, Object> response = new HashMap<>();
         
@@ -54,6 +56,7 @@ public class WorkingDomainController {
                 return ResponseEntity.status(401).body(response);
             }
             
+            // Get user ID from authentication (JWT filter now sets this to user ID)
             String currentUserId = authentication.getName();
             logger.info("User ID from auth: {}", currentUserId);
             
@@ -118,8 +121,9 @@ public class WorkingDomainController {
      */
     @PostMapping
     public ResponseEntity<?> addDomain(
-            @RequestBody Map<String, Object> request,
-            Authentication authentication) {
+            @RequestBody Map<String, Object> requestBody,
+            Authentication authentication,
+            HttpServletRequest request) {
         
         Map<String, Object> response = new HashMap<>();
         
@@ -132,9 +136,10 @@ public class WorkingDomainController {
                 return ResponseEntity.status(401).body(response);
             }
             
+            // Get user ID from authentication (JWT filter now sets this to user ID)
             String currentUserId = authentication.getName();
-            String domainName = (String) request.get("domainName");
-            String ownerType = (String) request.getOrDefault("ownerType", "USER");
+            String domainName = (String) requestBody.get("domainName");
+            String ownerType = (String) requestBody.getOrDefault("ownerType", "USER");
             
             logger.info("Adding domain: {} for user: {}", domainName, currentUserId);
             
@@ -297,6 +302,17 @@ public class WorkingDomainController {
                 long count = domainRepository.count();
                 response.put("totalDomains", count);
                 response.put("repositoryWorking", true);
+                
+                // Additional health checks
+                long reservedCount = domainRepository.countByOwnerAndStatus("", "", "RESERVED");
+                long verifiedCount = domainRepository.countByOwnerAndStatus("", "", "VERIFIED");
+                
+                response.put("domainsByStatus", Map.of(
+                    "total", count,
+                    "reserved", reservedCount,
+                    "verified", verifiedCount
+                ));
+                
             } catch (Exception e) {
                 response.put("repositoryError", e.getMessage());
                 response.put("repositoryWorking", false);
@@ -304,6 +320,72 @@ public class WorkingDomainController {
         }
         
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Database verification endpoint - for testing purposes
+     */
+    @GetMapping("/db-verify")
+    public ResponseEntity<?> verifyDatabase(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (authentication == null) {
+                response.put("success", false);
+                response.put("message", "Authentication required");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            String currentUserId = authentication.getName();
+            
+            if (domainRepository == null) {
+                response.put("success", false);
+                response.put("message", "Domain repository not available");
+                return ResponseEntity.status(500).body(response);
+            }
+            
+            // Database connectivity tests
+            long totalDomains = domainRepository.count();
+            List<Domain> userDomains = domainRepository.findByOwnerIdAndOwnerType(currentUserId, "USER");
+            List<Domain> allDomains = domainRepository.findAll();
+            
+            // Sample domain data for verification
+            List<Map<String, Object>> sampleDomains = allDomains.stream()
+                .limit(5)
+                .map(domain -> Map.of(
+                    "id", domain.getId(),
+                    "domainName", domain.getDomainName(),
+                    "ownerId", domain.getOwnerId(),
+                    "status", domain.getStatus(),
+                    "createdAt", domain.getCreatedAt().toString()
+                ))
+                .collect(Collectors.toList());
+            
+            response.put("success", true);
+            response.put("databaseStats", Map.of(
+                "totalDomains", totalDomains,
+                "userDomains", userDomains.size(),
+                "currentUserId", currentUserId
+            ));
+            response.put("sampleDomains", sampleDomains);
+            response.put("repositoryMethods", Map.of(
+                "findByOwnerIdAndOwnerType", "Available",
+                "findVerifiedDomainsByOwner", "Available",
+                "existsByDomainName", "Available",
+                "save", "Available",
+                "count", "Available"
+            ));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Database verification failed", e);
+            response.put("success", false);
+            response.put("message", "Database verification failed: " + e.getMessage());
+            response.put("error", e.getClass().getSimpleName());
+            
+            return ResponseEntity.status(500).body(response);
+        }
     }
     
     // Helper method to convert Domain to response format
