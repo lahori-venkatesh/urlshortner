@@ -145,6 +145,20 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     if (user && token) {
       loadUserPlan();
       loadDomainsFromBackend();
+      
+      // Add timeout fallback to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        if (isLoading) {
+          console.warn('⚠️ Loading timeout reached, forcing loading to false');
+          setIsLoading(false);
+          toast.error('Loading took too long. Please refresh the page if domains are not visible.');
+        }
+      }, 10000); // 10 second timeout
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      // If no user or token, don't show loading
+      setIsLoading(false);
     }
     
     // Check for onboarding trigger from URL
@@ -169,6 +183,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   const loadDomainsFromBackend = async () => {
     try {
+      console.log('🔍 Loading domains from backend...');
+      console.log('API_BASE_URL:', API_BASE_URL);
+      console.log('Token available:', !!token);
+      console.log('User ID:', user?.id);
+      
       setIsLoading(true);
       const params = new URLSearchParams();
       if (ownerType !== 'USER') {
@@ -176,25 +195,52 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         params.append('ownerId', ownerId || '');
       }
 
-      const response = await axios.get(`${API_BASE_URL}/api/v1/domains/my?${params}`, {
+      const url = `${API_BASE_URL}/api/v1/domains/my?${params}`;
+      console.log('Making request to:', url);
+
+      const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
+      console.log('Domains API response:', response.data);
+
       if (response.data.success) {
         setDomains(response.data.domains || []);
+        console.log('✅ Domains loaded successfully:', response.data.domains?.length || 0);
       } else {
-        console.error('Failed to load domains:', response.data.message);
+        console.error('❌ Failed to load domains:', response.data.message);
         setDomains([]);
+        toast.error(`Failed to load domains: ${response.data.message}`);
       }
-    } catch (error) {
-      console.error('Failed to load domains from backend:', error);
+    } catch (error: any) {
+      console.error('❌ Failed to load domains from backend:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
       setDomains([]);
-      toast.error('Failed to load custom domains');
+      
+      // More specific error messages
+      if (error.response?.status === 401) {
+        toast.error('Authentication failed. Please log in again.');
+      } else if (error.response?.status === 403) {
+        toast.error('Access denied. You may not have permission to view custom domains.');
+      } else if (error.response?.status === 404) {
+        toast.error('Custom domains service not found. Please contact support.');
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        toast.error('Unable to connect to server. Please check your internet connection.');
+      } else {
+        toast.error(`Failed to load custom domains: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
+      console.log('🔍 Loading complete, isLoading set to false');
     }
   };
 
@@ -402,7 +448,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
   };
 
-  // Add loading state check
+  // Add loading state check with timeout fallback
   if (isLoading && domains.length === 0) {
     return (
       <div className="max-w-6xl mx-auto space-y-6">
@@ -410,6 +456,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 text-blue-500 mx-auto mb-4 animate-spin" />
             <p className="text-gray-500">Loading custom domains...</p>
+            <p className="text-xs text-gray-400 mt-2">
+              If this takes too long, please refresh the page
+            </p>
           </div>
         </div>
       </div>
@@ -423,6 +472,33 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
           <strong>Debug:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
           Domains: {domains.length}, Loading: {isLoading.toString()}
+          <button 
+            onClick={loadDomainsFromBackend}
+            className="ml-4 px-2 py-1 bg-blue-500 text-white rounded text-xs"
+          >
+            Retry Load
+          </button>
+        </div>
+      )}
+
+      {/* Error State - Show if not loading and no domains but has access */}
+      {!isLoading && domains.length === 0 && hasCustomDomainAccess && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <div>
+                <h3 className="font-medium text-red-900">Unable to load custom domains</h3>
+                <p className="text-sm text-red-700">There was an issue loading your domains. Please try again.</p>
+              </div>
+            </div>
+            <button
+              onClick={loadDomainsFromBackend}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       )}
 
