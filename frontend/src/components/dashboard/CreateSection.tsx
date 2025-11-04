@@ -134,6 +134,22 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  // Debug logging for plan info
+  useEffect(() => {
+    if (planInfo) {
+      console.log('🔍 CreateSection - Plan Info Debug:', {
+        plan: planInfo.plan,
+        hasProAccess: planInfo.hasProAccess,
+        inTrial: planInfo.inTrial,
+        shouldShowBanner: (planInfo.plan === 'FREE' || planInfo.plan === null || planInfo.plan === undefined) && 
+                         !planInfo.hasProAccess && 
+                         !planInfo.inTrial && 
+                         !planInfo.plan?.includes('PRO') && 
+                         !planInfo.plan?.includes('BUSINESS')
+      });
+    }
+  }, [planInfo]);
+
   // Handle edit mode when component loads with edit data
   useEffect(() => {
     const editData = (location.state as any)?.editQRData;
@@ -969,7 +985,12 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
       )}
 
       {/* Free Plan Usage Banner - Only show for Free users */}
-      {user?.id && planInfo && !planInfo.hasProAccess && (
+      {user?.id && planInfo && 
+       (planInfo.plan === 'FREE' || planInfo.plan === null || planInfo.plan === undefined) && 
+       !planInfo.hasProAccess && 
+       !planInfo.inTrial && 
+       !planInfo.plan?.includes('PRO') && 
+       !planInfo.plan?.includes('BUSINESS') && (
         <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
