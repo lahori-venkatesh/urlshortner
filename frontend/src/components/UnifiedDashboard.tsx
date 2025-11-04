@@ -28,6 +28,7 @@ import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
 import CustomDomainManager from './CustomDomainManager';
+import TestCustomDomains from './TestCustomDomains';
 // Removed unused import - UpgradeModal is now global
 
 type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'domains' | 'team-members' | 'team-settings';
@@ -209,10 +210,13 @@ const UnifiedDashboard: React.FC = () => {
       case 'analytics':
         return <AnalyticsSection />;
       case 'domains':
-        return <CustomDomainManager 
-          ownerType={currentScope.type} 
-          ownerId={currentScope.type === 'TEAM' ? currentScope.id : user?.id} 
-        />;
+        console.log('🔍 UnifiedDashboard - Rendering CustomDomainManager', {
+          currentScope: currentScope.type,
+          ownerId: currentScope.type === 'TEAM' ? currentScope.id : user?.id,
+          user: !!user
+        });
+        // Temporarily use test component to verify routing
+        return <TestCustomDomains />;
       case 'team-members':
         return currentScope.type === 'TEAM' ? <TeamManagement teamId={currentScope.id} /> : <DashboardOverview onCreateClick={handleCreateClick} />;
       case 'team-settings':

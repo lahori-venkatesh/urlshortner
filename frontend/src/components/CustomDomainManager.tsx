@@ -51,8 +51,15 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   ownerType = 'USER', 
   ownerId 
 }) => {
+  // Add immediate console log to verify component is being called
+  console.log('🚀 CustomDomainManager component started rendering');
+  
   const { user, token } = useAuth();
+  console.log('🔍 Auth data:', { user: !!user, token: !!token, userPlan: user?.plan });
+  
   const featureAccess = useFeatureAccess(user);
+  console.log('🔍 Feature access:', { canUseCustomDomain: featureAccess.canUseCustomDomain });
+  
   const upgradeModal = useUpgradeModal();
   const [userPlan, setUserPlan] = useState<UserPlanInfo | null>(null);
   
