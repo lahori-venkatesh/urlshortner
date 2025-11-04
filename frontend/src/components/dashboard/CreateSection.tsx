@@ -932,32 +932,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         </div>
       )}
 
-      {/* Usage Limits Banner - Only show for Free users */}
-      {user?.id && !planInfo?.hasProAccess && (
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Zap className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Free Plan Limits</h3>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                  <span>URLs: {planInfo?.remainingMonthlyUrls || 0}/75 this month</span>
-                  <span>QR Codes: {planInfo?.remainingMonthlyQrCodes || 0}/30 this month</span>
-                  <span>Files: {planInfo?.remainingMonthlyFiles || 0}/5 this month</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => showUpgradeModal()}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
-            >
-              Upgrade
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Anonymous Usage Banner */}
       {!user?.id && (
@@ -982,59 +957,81 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             </button>
           </div>
           
-          {/* Monthly Progress bars - Only show for Free users */}
-          {user?.id && planInfo && !planInfo.hasProAccess ? (
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-              <div className="bg-white/50 rounded-lg p-3">
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Short Links</span>
-                  <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-                    style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+          <div className="mt-4 p-4 bg-white/50 rounded-lg text-center">
+            <p className="text-sm text-gray-600 mb-2">
+              🚀 Create unlimited URLs, QR codes, and file conversions
+            </p>
+            <p className="text-xs text-gray-500">
+              Sign up to get monthly limits and track your usage
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Progress bars - Only show for Free users */}
+      {user?.id && planInfo && !planInfo.hasProAccess && (
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Zap className="w-5 h-5 text-orange-600" />
               </div>
-              <div className="bg-white/50 rounded-lg p-3">
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>QR Codes</span>
-                  <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">Free Plan Usage</h3>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                  <span>Track your monthly usage limits</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
-                    style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
-              </div>
-              <div className="bg-white/50 rounded-lg p-3">
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>File Conversions</span>
-                  <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
-                    style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
               </div>
             </div>
-          ) : !user?.id ? (
-            <div className="mt-4 p-4 bg-white/50 rounded-lg text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                🚀 Create unlimited URLs, QR codes, and file conversions
-              </p>
-              <p className="text-xs text-gray-500">
-                Sign up to get monthly limits and track your usage
-              </p>
+            <button
+              onClick={() => showUpgradeModal()}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              Upgrade
+            </button>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="bg-white/50 rounded-lg p-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Short Links</span>
+                <span>{(75 - (planInfo.remainingMonthlyUrls || 0))}/75</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((75 - (planInfo.remainingMonthlyUrls || 0)) / 75) * 100}%` }}
+                />
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
             </div>
-          ) : null}
+            <div className="bg-white/50 rounded-lg p-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>QR Codes</span>
+                <span>{(30 - (planInfo.remainingMonthlyQrCodes || 0))}/30</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((30 - (planInfo.remainingMonthlyQrCodes || 0)) / 30) * 100}%` }}
+                />
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+            </div>
+            <div className="bg-white/50 rounded-lg p-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>File Conversions</span>
+                <span>{(5 - (planInfo.remainingMonthlyFiles || 0))}/5</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all"
+                  style={{ width: `${((5 - (planInfo.remainingMonthlyFiles || 0)) / 5) * 100}%` }}
+                />
+              </div>
+              <div className="text-xs text-gray-500 mt-1">Resets monthly</div>
+            </div>
+          </div>
 
           {/* Trial offer */}
           {planInfo?.trialEligible && (
