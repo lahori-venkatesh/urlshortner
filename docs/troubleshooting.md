@@ -710,7 +710,49 @@ sudo chmod 755 /var/lib/redis/
 sudo systemctl restart redis
 ```
 
-## 🔐 Security Issues
+## 🔐 Authentication & Security Issues
+
+### Automatic Logout Problem (CRITICAL ISSUE RESOLVED)
+
+**Symptoms:**
+- Getting logged out automatically after a few minutes
+- Login works but session doesn't persist
+- Errors when trying to access protected features
+- Need to close app and wait before logging in again
+
+**Root Causes:**
+1. **JWT Token Expiration**: Tokens expire after 24 hours but refresh mechanism fails
+2. **Server Sleep Mode**: Backend on Render goes to sleep, causing 503 errors
+3. **Google OAuth Conflicts**: Google tokens expire independently of backend tokens
+4. **Browser Storage Issues**: localStorage gets cleared or corrupted
+5. **Network Connectivity**: Poor connection causes auth requests to fail
+
+**Solutions Applied:**
+
+#### Enhanced Authentication System:
+1. **Proactive Token Refresh**: Automatically refreshes tokens every 30 minutes
+2. **Session Heartbeat**: Validates session every 5 minutes
+3. **Better Error Handling**: Handles server sleep (503 errors) with automatic retries
+4. **Token Expiry Tracking**: Tracks token expiration and refreshes before expiry
+5. **Improved Session Management**: Better cleanup and state management
+
+#### Immediate User Fixes:
+```bash
+# Clear browser data
+localStorage.clear();
+sessionStorage.clear();
+
+# Or in browser DevTools Console:
+localStorage.removeItem('token');
+localStorage.removeItem('user');
+localStorage.removeItem('tokenExpiry');
+```
+
+#### Prevention Tips:
+- Keep the app tab active when possible
+- Don't clear browser data frequently
+- Use a stable internet connection
+- Update to the latest version of the app
 
 ### Authentication Issues
 

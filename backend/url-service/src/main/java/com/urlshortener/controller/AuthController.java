@@ -462,6 +462,49 @@ public class AuthController {
         }
     }
     
+    @GetMapping("/heartbeat")
+    public ResponseEntity<Map<String, Object>> sessionHeartbeat(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "Invalid authorization header");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String token = authHeader.substring(7);
+            
+            // Parse and validate JWT token
+            var claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            String userId = claims.getSubject();
+            
+            // Verify user still exists
+            var userOpt = userService.findById(userId);
+            if (userOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "User not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            response.put("success", true);
+            response.put("message", "Session is active");
+            response.put("userId", userId);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Invalid or expired token");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String authHeader) {
         Map<String, Object> response = new HashMap<>();

@@ -75,7 +75,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling with token refresh
+// Enhanced response interceptor with better token refresh and retry logic
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -88,63 +88,36 @@ apiClient.interceptors.response.use(
       // Don't retry refresh endpoint or if already retried
       if (originalRequest.url?.includes('/auth/refresh') || originalRequest._retry) {
         console.warn('Token refresh failed or already retried - clearing auth');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        // Dispatch a custom event to notify the app about logout
-        window.dispatchEvent(new CustomEvent('auth-logout'));
+        clearAuthData();
         return Promise.reject(error);
       }
 
-      // Try to refresh token
-      try {
-        console.log('Attempting token refresh due to 401/403 error...');
-        const token = localStorage.getItem('token');
+      // Try to refresh token with better error handling
+      const refreshSuccess = await attemptTokenRefresh();
+      if (refreshSuccess) {
+        // Update the original request with new token
+        const newToken = localStorage.getItem('token');
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        originalRequest._retry = true;
         
-        if (token) {
-          // Create a new axios instance to avoid interceptor loops
-          const refreshClient = axios.create({
-            baseURL: API_BASE_URL,
-            timeout: 10000,
-          });
-          
-          const refreshResponse = await refreshClient.post('/v1/auth/refresh', {}, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          
-          if (refreshResponse.data.success) {
-            const newToken = refreshResponse.data.token;
-            const userData = refreshResponse.data.user;
-            
-            // Update stored auth data
-            localStorage.setItem('token', newToken);
-            localStorage.setItem('user', JSON.stringify(userData));
-            
-            // Update the original request with new token
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            originalRequest._retry = true;
-            
-            console.log('Token refreshed successfully, retrying original request');
-            
-            // Dispatch event to notify app about successful token refresh
-            window.dispatchEvent(new CustomEvent('auth-token-refreshed', { 
-              detail: { token: newToken, user: userData } 
-            }));
-            
-            return apiClient(originalRequest);
-          }
-        }
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
+        console.log('Token refreshed successfully, retrying original request');
+        return apiClient(originalRequest);
+      } else {
+        clearAuthData();
+        return Promise.reject(error);
       }
-      
-      // If refresh fails, clear auth and notify app
-      console.warn('Token refresh failed - clearing auth');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.dispatchEvent(new CustomEvent('auth-logout'));
     } else if (error.response?.status === 503) {
       console.error('Service unavailable - backend may be suspended');
       error.message = 'Server is currently unavailable. Please try again later.';
+      
+      // For 503 errors, don't clear auth immediately - server might be waking up
+      // Instead, retry once after a short delay
+      if (!originalRequest._retryCount) {
+        originalRequest._retryCount = 1;
+        console.log('Retrying request after 503 error...');
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        return apiClient(originalRequest);
+      }
     } else if (!error.response) {
       console.error('Network error - no response from server');
       error.code = 'NETWORK_ERROR';
@@ -154,6 +127,58 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Helper function to clear auth data consistently
+const clearAuthData = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('tokenExpiry');
+  window.dispatchEvent(new CustomEvent('auth-logout'));
+};
+
+// Enhanced token refresh function with better error handling
+const attemptTokenRefresh = async (): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    console.log('Attempting token refresh...');
+    
+    // Create a new axios instance to avoid interceptor loops
+    const refreshClient = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 15000, // Longer timeout for refresh
+    });
+    
+    const refreshResponse = await refreshClient.post('/v1/auth/refresh', {}, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (refreshResponse.data.success && refreshResponse.data.token) {
+      const newToken = refreshResponse.data.token;
+      const userData = refreshResponse.data.user;
+      
+      // Update stored auth data with expiry tracking
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('tokenExpiry', (Date.now() + 86400000).toString()); // 24 hours from now
+      
+      console.log('Token refreshed successfully');
+      
+      // Dispatch event to notify app about successful token refresh
+      window.dispatchEvent(new CustomEvent('auth-token-refreshed', { 
+        detail: { token: newToken, user: userData } 
+      }));
+      
+      return true;
+    }
+    
+    return false;
+  } catch (refreshError) {
+    console.error('Token refresh failed:', refreshError);
+    return false;
+  }
+};
 
 // Types
 export interface ShortenUrlRequest {
@@ -688,6 +713,7 @@ export const updateSupportTicketStatus = async (ticketId: string, data: {
 };
 
 // Auth Token Management
+// Enhanced token refresh with proactive refresh capability
 export const refreshAuthToken = async (): Promise<any> => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -702,6 +728,51 @@ export const refreshAuthToken = async (): Promise<any> => {
   
   return response.data;
 };
+
+// Check if token needs refresh (refresh when 2 hours left)
+export const shouldRefreshToken = (): boolean => {
+  const tokenExpiry = localStorage.getItem('tokenExpiry');
+  if (!tokenExpiry) return false;
+  
+  const expiryTime = parseInt(tokenExpiry);
+  const twoHoursFromNow = Date.now() + (2 * 60 * 60 * 1000); // 2 hours in ms
+  
+  return expiryTime < twoHoursFromNow;
+};
+
+// Proactive token refresh - call this periodically
+export const proactiveTokenRefresh = async (): Promise<boolean> => {
+  if (!shouldRefreshToken()) return true;
+  
+  try {
+    console.log('Proactively refreshing token...');
+    const result = await attemptTokenRefresh();
+    return result;
+  } catch (error) {
+    console.error('Proactive token refresh failed:', error);
+    return false;
+  }
+};
+
+// Session heartbeat - validates session is still active
+export const sessionHeartbeat = async (): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    const response = await apiClient.get('/v1/auth/heartbeat', {
+      timeout: 5000 // Quick timeout for heartbeat
+    });
+    
+    return response.data.success;
+  } catch (error) {
+    console.error('Session heartbeat failed:', error);
+    return false;
+  }
+};
+
+// Export the helper functions for use in AuthContext
+export { attemptTokenRefresh, clearAuthData };
 
 export default {
   // Legacy functions (keep for backward compatibility)

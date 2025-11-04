@@ -3,6 +3,13 @@ import { googleAuthService, GoogleUserInfo } from '../services/googleAuth';
 import { normalizePlanName } from '../constants/planPolicy';
 import * as api from '../services/api';
 
+// Extend window interface for auth intervals
+declare global {
+  interface Window {
+    authIntervals: NodeJS.Timeout[];
+  }
+}
+
 interface User {
   id: string;
   name: string;
@@ -93,6 +100,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
+      // Clear any intervals
+      if (window.authIntervals) {
+        window.authIntervals.forEach(clearInterval);
+        window.authIntervals = [];
+      }
       // Redirect to home page
       if (window.location.pathname !== '/') {
         window.location.href = '/';
@@ -190,6 +202,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUser(user);
               setToken(savedToken);
               setIsAuthenticated(true);
+              
+              // Set up token expiry tracking
+              localStorage.setItem('tokenExpiry', (Date.now() + 86400000).toString());
+              
+              // Start session management
+              startSessionManagement();
+              
               console.log('Authentication restored successfully');
             } else {
               throw new Error('Token validation failed');
@@ -360,6 +379,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         console.log('Setting user with token:', user.email);
         setUserWithAuth(user, response.token);
+        
+        // Set up token expiry tracking and session management
+        localStorage.setItem('tokenExpiry', (Date.now() + 86400000).toString());
+        startSessionManagement();
       } else {
         console.error('Login failed - invalid response:', response);
         throw new Error(response.message || 'Login failed - invalid credentials');
@@ -412,6 +435,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setUserWithAuth(user, response.token);
+        
+        // Set up token expiry tracking and session management
+        localStorage.setItem('tokenExpiry', (Date.now() + 86400000).toString());
+        startSessionManagement();
       } else {
         throw new Error(response.message || 'Signup failed');
       }
@@ -458,6 +485,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const redirectAfterAuth = () => {
     // This will be called by components that have access to navigate
     window.location.href = '/dashboard';
+  };
+
+  // Session management functions
+  const startSessionManagement = () => {
+    // Clear any existing intervals
+    if (window.authIntervals) {
+      window.authIntervals.forEach(clearInterval);
+    }
+    window.authIntervals = [];
+
+    // Proactive token refresh every 30 minutes
+    const refreshInterval = setInterval(async () => {
+      if (isAuthenticated) {
+        try {
+          const success = await api.proactiveTokenRefresh();
+          if (!success) {
+            console.warn('Proactive token refresh failed, user may be logged out soon');
+          }
+        } catch (error) {
+          console.error('Proactive token refresh error:', error);
+        }
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+
+    // Session heartbeat every 5 minutes
+    const heartbeatInterval = setInterval(async () => {
+      if (isAuthenticated) {
+        try {
+          const isValid = await api.sessionHeartbeat();
+          if (!isValid) {
+            console.warn('Session heartbeat failed, logging out user');
+            logout();
+          }
+        } catch (error) {
+          console.error('Session heartbeat error:', error);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Store intervals for cleanup
+    window.authIntervals.push(refreshInterval, heartbeatInterval);
   };
 
   return (
