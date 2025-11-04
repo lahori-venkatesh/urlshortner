@@ -352,13 +352,15 @@ public class WorkingDomainController {
             // Sample domain data for verification
             List<Map<String, Object>> sampleDomains = allDomains.stream()
                 .limit(5)
-                .map(domain -> Map.of(
-                    "id", domain.getId(),
-                    "domainName", domain.getDomainName(),
-                    "ownerId", domain.getOwnerId(),
-                    "status", domain.getStatus(),
-                    "createdAt", domain.getCreatedAt().toString()
-                ))
+                .map(domain -> {
+                    Map<String, Object> domainMap = new HashMap<>();
+                    domainMap.put("id", domain.getId());
+                    domainMap.put("domainName", domain.getDomainName());
+                    domainMap.put("ownerId", domain.getOwnerId());
+                    domainMap.put("status", domain.getStatus());
+                    domainMap.put("createdAt", domain.getCreatedAt().toString());
+                    return domainMap;
+                })
                 .collect(Collectors.toList());
             
             response.put("success", true);
