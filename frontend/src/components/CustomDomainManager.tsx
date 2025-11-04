@@ -69,6 +69,24 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
+  // Debug logging for custom domain access
+  useEffect(() => {
+    console.log('🔍 CustomDomainManager - Debug Info:', {
+      userPlan: user?.plan,
+      subscriptionPlan: user?.subscriptionPlan,
+      hasCustomDomainAccess,
+      featureAccess: {
+        canUseCustomDomain: featureAccess.canUseCustomDomain,
+        isFree: featureAccess.isFree,
+        isPaid: featureAccess.isPaid,
+        limits: featureAccess.limits
+      },
+      domainsCount: domains.length,
+      isLoading,
+      showOnboarding
+    });
+  }, [user, hasCustomDomainAccess, featureAccess, domains.length, isLoading, showOnboarding]);
+
   // Handle Add Custom Domain button click with centralized policy
   const handleAddCustomDomain = () => {
     console.log('🔍 Add Custom Domain clicked - Using centralized policy');
@@ -384,8 +402,30 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
   };
 
+  // Add loading state check
+  if (isLoading && domains.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <div className="text-center py-12">
+            <RefreshCw className="w-8 h-8 text-blue-500 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-500">Loading custom domains...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* Debug Info for Development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
+          <strong>Debug:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
+          Domains: {domains.length}, Loading: {isLoading.toString()}
+        </div>
+      )}
+
       {/* Upgrade Prompt for Free Users */}
       {!hasCustomDomainAccess && (
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl shadow-lg p-6">
