@@ -74,7 +74,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
   // Debug logging for custom domain access
   useEffect(() => {
@@ -202,7 +202,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         params.append('ownerId', ownerId || '');
       }
 
-      const url = `${API_BASE_URL}/api/v1/domains/my?${params}`;
+      const url = `${API_BASE_URL}/v1/domains/my?${params}`;
       console.log('Making request to:', url);
 
       const response = await axios.get(url, {
@@ -275,7 +275,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         ownerId: ownerId || user?.id
       };
 
-      const response = await axios.post(`${API_BASE_URL}/api/v1/domains`, requestData, {
+      const response = await axios.post(`${API_BASE_URL}/v1/domains`, requestData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -314,7 +314,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     try {
       setIsVerifying(domainId);
       
-      const response = await axios.post(`${API_BASE_URL}/api/v1/domains/verify?domainId=${domainId}`, {}, {
+      const response = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -374,7 +374,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   const refreshDomainStatus = async (domainId: string) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/v1/domains/${domainId}/status`, {
+      const response = await axios.get(`${API_BASE_URL}/v1/domains/${domainId}/status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

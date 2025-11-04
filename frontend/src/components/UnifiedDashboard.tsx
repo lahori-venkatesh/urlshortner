@@ -28,7 +28,6 @@ import QRManageSection from './dashboard/QRManageSection';
 import FileToUrlManager from './dashboard/FileToUrlManager';
 import AnalyticsSection from './dashboard/AnalyticsSection';
 import CustomDomainManager from './CustomDomainManager';
-import TestCustomDomains from './TestCustomDomains';
 // Removed unused import - UpgradeModal is now global
 
 type SidebarSection = 'dashboard' | 'create' | 'links' | 'qr-codes' | 'file-to-url' | 'analytics' | 'domains' | 'team-members' | 'team-settings';
