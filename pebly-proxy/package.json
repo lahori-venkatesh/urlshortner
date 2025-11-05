@@ -1,0 +1,13 @@
+{
+  "name": "pebly-proxy",
+  "version": "1.0.0",
+  "description": "Universal custom domain proxy for Pebly URL shortener",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["proxy", "url-shortener", "custom-domain"],
+  "author": "Pebly",
+  "license": "MIT"
+}
