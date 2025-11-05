@@ -86,14 +86,16 @@ public class RedirectController {
         // For custom domains coming through Cloudflare Worker proxy
         String xForwardedHost = request.getHeader("X-Forwarded-Host");
         if (xForwardedHost != null && !xForwardedHost.isEmpty() && 
-            !xForwardedHost.contains("onrender.com")) { // Ignore if it's just the backend domain
+            !xForwardedHost.contains("onrender.com") &&
+            !xForwardedHost.contains("pebly.vercel.app")) { // Don't treat default domain as custom
             System.out.println("🌐 Custom Domain via X-Forwarded-Host: " + xForwardedHost);
             return xForwardedHost;
         }
         
         String xOriginalHost = request.getHeader("X-Original-Host");
         if (xOriginalHost != null && !xOriginalHost.isEmpty() && 
-            !xOriginalHost.contains("onrender.com")) { // Ignore if it's just the backend domain
+            !xOriginalHost.contains("onrender.com") &&
+            !xOriginalHost.contains("pebly.vercel.app")) { // Don't treat default domain as custom
             System.out.println("🌐 Custom Domain via X-Original-Host: " + xOriginalHost);
             return xOriginalHost;
         }
