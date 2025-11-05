@@ -54,6 +54,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   // Add immediate console log to verify component is being called
   console.log('🚀 CustomDomainManager component started rendering');
   
+  // Universal proxy domain configuration
+  const PROXY_DOMAIN = process.env.REACT_APP_PROXY_DOMAIN || 'pebly.lahorivenkatesh709.workers.dev';
+  
   const { user, token } = useAuth();
   console.log('🔍 Auth data:', { user: !!user, token: !!token, userPlan: user?.plan });
   
@@ -379,7 +382,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         if (cnameRecord) {
           const resolvedTarget = cnameRecord.data.replace(/\.$/, ''); // Remove trailing dot
           console.log('🔍 CNAME resolves to:', resolvedTarget);
-          const expectedTarget = 'pebly-proxy.vercel.app';
+          const expectedTarget = PROXY_DOMAIN;
           console.log('🔍 Expected target:', expectedTarget);
           
           if (resolvedTarget === expectedTarget) {
@@ -418,7 +421,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           console.log('🔍 Expected verification logic:');
           console.log('  - Domain:', domain.domainName);
           console.log('  - CNAME resolves to:', resolvedTarget);
-          const expectedTarget = 'pebly-proxy.vercel.app';
+          const expectedTarget = PROXY_DOMAIN;
           console.log('  - Expected target:', expectedTarget);
           console.log('  - Match:', resolvedTarget === expectedTarget);
           
@@ -463,7 +466,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       
       const resolvedTarget = cnameRecord.data.replace(/\.$/, '');
       
-      const expectedTarget = 'pebly-proxy.vercel.app';
+      const expectedTarget = PROXY_DOMAIN;
       if (resolvedTarget !== expectedTarget) {
         throw new Error(`DNS configuration error: CNAME points to ${resolvedTarget}, but should point to ${expectedTarget}`);
       }
@@ -476,7 +479,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       
       const verifyResponse = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domain.id}`, {
         dnsVerified: true,
-        cnameTarget: 'pebly-proxy.vercel.app',
+        cnameTarget: PROXY_DOMAIN,
         verificationMethod: 'client-side-dns'
       }, {
         headers: {
@@ -567,7 +570,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       console.log('🔍 Starting domain verification:', {
         domainId,
         domainName: domain.domainName,
-        cnameTarget: 'pebly-proxy.vercel.app',
+        cnameTarget: PROXY_DOMAIN,
         verificationToken: domain.verificationToken,
         apiUrl: `${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`,
         hasToken: !!token,
@@ -972,7 +975,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 
                 <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-4">
                   <p className="text-blue-800 text-sm font-medium">
-                    📋 <strong>Quick Setup:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">pebly-proxy.vercel.app</code>
+                    📋 <strong>Quick Setup:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">{PROXY_DOMAIN}</code>
                   </p>
                 </div>
                 {(() => {
@@ -1039,10 +1042,10 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                       <span className="font-medium text-gray-600">Value:</span>
                       <div className="flex items-center space-x-2 mt-1">
                         <code className="flex-1 bg-gray-100 p-2 rounded text-xs break-all">
-                          pebly-proxy.vercel.app
+                          {PROXY_DOMAIN}
                         </code>
                         <button
-                          onClick={() => copyToClipboard('pebly-proxy.vercel.app')}
+                          onClick={() => copyToClipboard(PROXY_DOMAIN)}
                           className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-100 rounded"
                           title="Copy value"
                         >
@@ -1092,7 +1095,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                       );
                     }
                   })()}
-                  <li>• The CNAME should point to: <code className="bg-yellow-100 px-1 rounded">pebly-proxy.vercel.app</code></li>
+                  <li>• The CNAME should point to: <code className="bg-yellow-100 px-1 rounded">{PROXY_DOMAIN}</code></li>
                   <li>• SSL certificate will be automatically provisioned after verification</li>
                   <li>• Contact your DNS provider if you need help</li>
                   {(() => {

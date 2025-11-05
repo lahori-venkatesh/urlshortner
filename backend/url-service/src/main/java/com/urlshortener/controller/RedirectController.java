@@ -5,7 +5,7 @@ import com.urlshortener.service.UrlShorteningService;
 import com.urlshortener.service.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,8 +24,8 @@ public class RedirectController {
     @GetMapping("/{shortCode}")
     public RedirectView redirect(@PathVariable String shortCode, HttpServletRequest request) {
         try {
-            // Get the host domain from the request
-            String hostDomain = request.getServerName();
+            // Get the host domain from the request - check proxy headers first
+            String hostDomain = getOriginalHostDomain(request);
             
             // Find URL by shortCode and domain for multi-tenant support
             Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
@@ -77,6 +77,31 @@ public class RedirectController {
             redirectView.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             return redirectView;
         }
+    }
+    
+    /**
+     * Get the original host domain, checking proxy headers first for custom domains
+     */
+    private String getOriginalHostDomain(HttpServletRequest request) {
+        // For custom domains coming through Cloudflare Worker proxy
+        String xForwardedHost = request.getHeader("X-Forwarded-Host");
+        if (xForwardedHost != null && !xForwardedHost.isEmpty() && 
+            !xForwardedHost.contains("onrender.com")) { // Ignore if it's just the backend domain
+            System.out.println("🌐 Custom Domain via X-Forwarded-Host: " + xForwardedHost);
+            return xForwardedHost;
+        }
+        
+        String xOriginalHost = request.getHeader("X-Original-Host");
+        if (xOriginalHost != null && !xOriginalHost.isEmpty() && 
+            !xOriginalHost.contains("onrender.com")) { // Ignore if it's just the backend domain
+            System.out.println("🌐 Custom Domain via X-Original-Host: " + xOriginalHost);
+            return xOriginalHost;
+        }
+        
+        // For direct access to pebly.vercel.app or backend domain
+        String serverName = request.getServerName();
+        System.out.println("🌐 Direct Access via Server Name: " + serverName);
+        return serverName;
     }
     
     private String getClientIpAddress(HttpServletRequest request) {

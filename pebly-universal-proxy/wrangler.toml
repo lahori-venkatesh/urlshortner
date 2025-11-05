@@ -1,0 +1,29 @@
+name = "pebly-proxy"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables
+[vars]
+BACKEND_URL = "https://urlshortner-1-hpyu.onrender.com"
+PROXY_VERSION = "2.0"
+CACHE_TTL = "300"
+
+# Production environment
+[env.production]
+name = "pebly"
+vars = { BACKEND_URL = "https://urlshortner-1-hpyu.onrender.com", PROXY_VERSION = "2.0" }
+
+# Development environment
+[env.development]
+name = "pebly-proxy-dev"
+vars = { BACKEND_URL = "http://localhost:8080", PROXY_VERSION = "2.0-dev" }
+
+# Optional: Custom domain for the worker
+# Uncomment and configure if you want to use your own domain
+# routes = [
+#   { pattern = "proxy.pebly.com/*", zone_name = "pebly.com" }
+# ]
+
+# Analytics and monitoring
+[observability]
+enabled = true

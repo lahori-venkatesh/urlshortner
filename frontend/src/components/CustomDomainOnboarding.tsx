@@ -23,6 +23,9 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [addedDomain, setAddedDomain] = useState<any>(null);
 
+  // Universal proxy domain configuration
+  const proxyDomain = process.env.REACT_APP_PROXY_DOMAIN || 'pebly.lahorivenkatesh709.workers.dev';
+
   if (!isOpen) return null;
 
   const handleAddDomain = async () => {
@@ -95,8 +98,6 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
   };
 
   const getDNSInstructions = () => {
-    // Universal proxy domain that works with ALL providers
-    const proxyDomain = 'pebly-proxy.vercel.app';
     
     if (setupType === 'subdomain') {
       return {
@@ -324,7 +325,7 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
                   
                   <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-4">
                     <p className="text-blue-800 text-sm font-medium">
-                      📋 <strong>Quick Copy:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">pebly-proxy.vercel.app</code>
+                      📋 <strong>Quick Copy:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">{proxyDomain}</code>
                     </p>
                   </div>
                   
@@ -417,7 +418,7 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
                   <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
                     <h5 className="font-semibold text-green-900 mb-2">✅ Universal Setup Summary</h5>
                     <div className="text-sm text-green-800 space-y-1">
-                      <div><strong>Target Domain:</strong> <code className="bg-white px-2 py-1 rounded">pebly-proxy.vercel.app</code></div>
+                      <div><strong>Target Domain:</strong> <code className="bg-white px-2 py-1 rounded">{proxyDomain}</code></div>
                       <div><strong>Works with:</strong> Hostinger, GoDaddy, Namecheap, Cloudflare, Domain.com, and ALL providers!</div>
                       <div><strong>Setup Time:</strong> 5-10 minutes for DNS propagation</div>
                     </div>

@@ -1,0 +1,32 @@
+{
+  "name": "pebly-universal-proxy",
+  "version": "1.0.0",
+  "description": "Universal custom domain proxy for Pebly URL shortener - handles unlimited domains automatically",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler deploy --env production",
+    "deploy:development": "wrangler deploy --env development",
+    "test": "node test-proxy.js",
+    "logs": "wrangler tail --env production",
+    "logs:dev": "wrangler tail --env development",
+    "health": "curl -s https://pebly-universal-proxy.your-subdomain.workers.dev/health | jq",
+    "setup": "./deploy.sh",
+    "validate": "node validate-config.js",
+    "presetup": "node validate-config.js"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "proxy",
+    "url-shortener",
+    "custom-domain",
+    "universal",
+    "pebly"
+  ],
+  "author": "Pebly",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
