@@ -227,6 +227,18 @@ const UrlShortener: React.FC = () => {
 
       if (activeTab === 'url') {
         console.log('Creating short URL...');
+        console.log('🔍 Request parameters:', {
+          originalUrl: urlInput,
+          userId,
+          customAlias: finalCustomAlias || undefined,
+          password: finalPassword || undefined,
+          expirationDays: finalExpirationDays ? parseInt(finalExpirationDays.toString()) : undefined,
+          maxClicks: finalMaxClicks ? parseInt(finalMaxClicks.toString()) : undefined,
+          title: `Short link for ${urlInput}`,
+          description: 'Created via URL Shortener',
+          customDomain: finalDomain !== 'pebly.vercel.app' ? finalDomain : undefined
+        });
+        
         result = await createShortUrl({
           originalUrl: urlInput,
           userId,
@@ -240,6 +252,10 @@ const UrlShortener: React.FC = () => {
         });
 
         if (result.success) {
+          console.log('🔍 Backend response for URL creation:', result.data);
+          console.log('🔍 Selected domain:', finalDomain);
+          console.log('🔍 Returned shortUrl:', result.data.shortUrl);
+          
           newLink = {
             id: result.data.id,
             shortCode: result.data.shortCode,
