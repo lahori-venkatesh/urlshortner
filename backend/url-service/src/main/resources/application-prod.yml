@@ -1,5 +1,7 @@
 server:
   port: ${PORT:8080}
+  # Accept requests from any host/domain
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -38,7 +40,9 @@ spring:
         - ${FRONTEND_URL:https://pebly.vercel.app}
         - "https://pebly.vercel.app"
         - "https://*.vercel.app"
-        - "https://urlshortner-mrrl.onrender.com"
+        - "https://urlshortner-1-hpyu.onrender.com"
+        - "https://links.pdfcircle.com"
+        - "https://*.pdfcircle.com"
         - "http://localhost:3000"
         - "*"
       allowed-methods:

@@ -132,7 +132,8 @@ public class OptimizedDomain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        this.cnameTarget = "pebly.vercel.app";
+        String backendUrl = System.getenv("BACKEND_URL");
+        this.cnameTarget = backendUrl != null ? backendUrl.replace("https://", "") : "urlshortner-1-hpyu.onrender.com";
         
         // Initialize ownership history
         this.ownershipHistory.add(new OwnershipHistory(

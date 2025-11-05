@@ -21,7 +21,7 @@ spring:
         - ${FRONTEND_URL:http://localhost:3000}
         - "https://pebly.vercel.app"
         - "https://*.vercel.app"
-        - "https://urlshortner-mrrl.onrender.com"
+        - "https://urlshortner-1-hpyu.onrender.com"
       allowed-methods: 
         - GET
         - POST

@@ -16,7 +16,7 @@ services:
       - key: FRONTEND_URL
         value: https://pebly.vercel.app
       - key: SHORT_URL_DOMAIN
-        value: https://pebly.vercel.app
+        value: https://links.pdfcircle.com
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -31,3 +31,7 @@ services:
         value: -Dspring.profiles.active=prod
       - key: CACHE_TYPE
         value: simple
+      - key: BACKEND_URL
+        value: https://urlshortner-1-hpyu.onrender.com
+      - key: ACCEPT_ALL_HOSTS
+        value: true

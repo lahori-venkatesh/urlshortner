@@ -341,7 +341,7 @@ public class FileController {
             // Return the download URL (full backend URL for actual file download)
             String backendUrl = System.getenv("BACKEND_URL");
             if (backendUrl == null) {
-                backendUrl = "https://urlshortner-mrrl.onrender.com"; // fallback to production backend
+                backendUrl = "https://urlshortner-1-hpyu.onrender.com"; // fallback to production backend
             }
             
             Map<String, Object> fileData = new HashMap<>();

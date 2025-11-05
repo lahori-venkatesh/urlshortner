@@ -30,6 +30,11 @@ public class RedirectController {
             // Find URL by shortCode and domain for multi-tenant support
             Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
             
+            // If not found with custom domain, try with default domain (fallback)
+            if (urlOpt.isEmpty()) {
+                urlOpt = urlShorteningService.getByShortCode(shortCode);
+            }
+            
             if (urlOpt.isEmpty()) {
                 // Redirect to a 404 page or error page
                 RedirectView redirectView = new RedirectView();

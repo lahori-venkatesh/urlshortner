@@ -95,18 +95,21 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
   };
 
   const getDNSInstructions = () => {
+    const backendUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-1-hpyu.onrender.com/api';
+    const backendHost = backendUrl.replace('/api', '').replace('https://', '');
+    
     if (setupType === 'subdomain') {
       return {
         type: 'CNAME',
         name: subdomain,
-        value: 'pebly.vercel.app',
+        value: backendHost,
         example: `${subdomain}.${domainName}/abc123`
       };
     } else {
       return {
-        type: 'A',
+        type: 'CNAME',
         name: '@',
-        value: '76.76.19.123', // Vercel IP - this should be dynamic
+        value: backendHost,
         example: `${domainName}/abc123`
       };
     }
@@ -367,7 +370,7 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
                     <Globe className="w-4 h-4 mr-2" />
                     Quick Setup for Popular Providers
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                     <div className="bg-white rounded p-3 border">
                       <h5 className="font-medium text-yellow-800 mb-2">🏠 Hostinger</h5>
                       <ol className="text-yellow-700 space-y-1 text-xs">
@@ -395,9 +398,18 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
                         <li>• Save (up to 1 hour)</li>
                       </ol>
                     </div>
+                    <div className="bg-white rounded p-3 border">
+                      <h5 className="font-medium text-yellow-800 mb-2">🔗 Namecheap</h5>
+                      <ol className="text-yellow-700 space-y-1 text-xs">
+                        <li>• Domain List → Manage</li>
+                        <li>• Advanced DNS</li>
+                        <li>• Add New Record</li>
+                        <li>• Save (30 min to apply)</li>
+                      </ol>
+                    </div>
                   </div>
                   <div className="mt-3 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
-                    💡 <strong>Can't find DNS settings?</strong> Search for "DNS", "Domain Management", or "Zone Editor" in your provider's dashboard.
+                    💡 <strong>Works with ANY domain provider:</strong> Hostinger, GoDaddy, Namecheap, Cloudflare, Domain.com, etc. Just add the CNAME record above!
                   </div>
                 </div>
 

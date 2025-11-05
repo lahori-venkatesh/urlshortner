@@ -317,9 +317,13 @@ public class DomainService {
         try {
             InetAddress[] addresses = InetAddress.getAllByName(domain.getCnameTarget());
             
-            // Check if CNAME points to our verification subdomain
+            // Check if CNAME points to our backend domain
+            String backendUrl = System.getenv("BACKEND_URL");
+            String backendHost = backendUrl != null ? backendUrl.replace("https://", "") : "urlshortner-1-hpyu.onrender.com";
+            
             for (InetAddress addr : addresses) {
-                if (addr.getHostName().contains("pebly.vercel.app")) {
+                if (addr.getHostName().contains(backendHost) || 
+                    addr.getHostName().contains("onrender.com")) {
                     return true;
                 }
             }
