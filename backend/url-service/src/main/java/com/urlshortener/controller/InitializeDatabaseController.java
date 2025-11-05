@@ -149,7 +149,7 @@ public class InitializeDatabaseController {
             domain.put("verificationToken", "test-token-" + System.currentTimeMillis());
             domain.put("status", "RESERVED");
             domain.put("sslStatus", "PENDING");
-            domain.put("cnameTarget", domain.get("verificationToken") + ".verify.bitaurl.com");
+            domain.put("cnameTarget", "pebly.vercel.app");
             domain.put("verificationAttempts", 0);
             domain.put("totalRedirects", 0L);
             domain.put("isBlacklisted", false);
@@ -531,7 +531,7 @@ public class InitializeDatabaseController {
                 sampleDomain.put("verificationToken", "sample-token-123");
                 sampleDomain.put("status", "VERIFIED");
                 sampleDomain.put("sslStatus", "ACTIVE");
-                sampleDomain.put("cnameTarget", "sample-token-123.verify.bitaurl.com");
+                sampleDomain.put("cnameTarget", "pebly.vercel.app");
                 sampleDomain.put("verificationAttempts", 1);
                 sampleDomain.put("sslProvider", "CLOUDFLARE");
                 sampleDomain.put("totalRedirects", 0L);

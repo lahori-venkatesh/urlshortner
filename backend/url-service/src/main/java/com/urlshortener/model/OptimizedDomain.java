@@ -132,7 +132,7 @@ public class OptimizedDomain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        this.cnameTarget = verificationToken + ".verify.bitaurl.com";
+        this.cnameTarget = "pebly.vercel.app";
         
         // Initialize ownership history
         this.ownershipHistory.add(new OwnershipHistory(

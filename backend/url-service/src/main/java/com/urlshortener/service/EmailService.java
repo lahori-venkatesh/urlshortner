@@ -549,7 +549,7 @@ public class EmailService {
             
             Type: CNAME
             Name: %s
-            Value: verify.bitaurl.com
+            Value: pebly.vercel.app
             
             Once you've updated your DNS settings, you can retry verification in your dashboard.
             

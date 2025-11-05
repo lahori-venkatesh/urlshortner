@@ -319,7 +319,7 @@ public class DomainService {
             
             // Check if CNAME points to our verification subdomain
             for (InetAddress addr : addresses) {
-                if (addr.getHostName().contains("verify.bitaurl.com")) {
+                if (addr.getHostName().contains("pebly.vercel.app")) {
                     return true;
                 }
             }

@@ -80,7 +80,7 @@ public class Domain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        this.cnameTarget = verificationToken + ".verify.bitaurl.com";
+        this.cnameTarget = "pebly.vercel.app";
         this.reservedUntil = LocalDateTime.now().plusMinutes(15);
     }
     
