@@ -398,6 +398,47 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
   };
 
+  // Simulate what backend verification should do
+  const simulateBackendVerification = async (domain: CustomDomain) => {
+    try {
+      console.log('🔍 Simulating backend verification process...');
+      
+      // Step 1: Check DNS resolution (what backend should do)
+      const dnsResponse = await fetch(`https://dns.google/resolve?name=${domain.domainName}&type=CNAME`);
+      const dnsData = await dnsResponse.json();
+      
+      console.log('🔍 Backend DNS check result:', dnsData);
+      
+      if (dnsData.Answer && dnsData.Answer.length > 0) {
+        const cnameRecord = dnsData.Answer.find((record: any) => record.type === 5);
+        if (cnameRecord) {
+          const resolvedTarget = cnameRecord.data.replace(/\.$/, '');
+          
+          console.log('🔍 Expected verification logic:');
+          console.log('  - Domain:', domain.domainName);
+          console.log('  - CNAME resolves to:', resolvedTarget);
+          console.log('  - Expected target:', domain.cnameTarget);
+          console.log('  - Match:', resolvedTarget === domain.cnameTarget);
+          
+          if (resolvedTarget === domain.cnameTarget) {
+            toast.success('✅ Simulation: Domain verification should succeed!');
+            return true;
+          } else {
+            toast.error(`❌ Simulation: CNAME mismatch - ${resolvedTarget} vs ${domain.cnameTarget}`);
+            return false;
+          }
+        }
+      }
+      
+      toast.error('❌ Simulation: No CNAME record found');
+      return false;
+    } catch (error) {
+      console.error('Simulation failed:', error);
+      toast.error('❌ Simulation failed');
+      return false;
+    }
+  };
+
   // Test backend endpoint availability
   const testBackendEndpoint = async () => {
     try {
@@ -1002,15 +1043,19 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">3.</span>
-                    <span>Ensure Cloudflare proxy is OFF (gray cloud, not orange)</span>
+                    <span>Click "Simulate" to test what backend verification should do</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">4.</span>
-                    <span>Open browser console (F12) and check for detailed error logs</span>
+                    <span>Use "Force Verify" as temporary workaround if backend is broken</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">5.</span>
-                    <span>If DNS ✅ and Backend ✅ but verification fails → Backend bug</span>
+                    <span>Open browser console (F12) and check for detailed error logs</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">6.</span>
+                    <span>If all tests pass but verification fails → Backend implementation bug</span>
                   </div>
                 </div>
               </div>
@@ -1043,6 +1088,13 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                   Test Backend
                 </button>
                 <button
+                  onClick={() => simulateBackendVerification(showVerificationModal)}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Simulate
+                </button>
+                <button
                   onClick={() => {
                     verifyDomain(showVerificationModal.id);
                     setShowVerificationModal(null);
@@ -1058,6 +1110,22 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                   ) : (
                     'Verify Domain'
                   )}
+                </button>
+                <button
+                  onClick={() => {
+                    // Temporary workaround - mark domain as verified locally
+                    setDomains(prev => prev.map(d => 
+                      d.id === showVerificationModal.id 
+                        ? { ...d, status: 'VERIFIED', sslStatus: 'ACTIVE' } 
+                        : d
+                    ));
+                    setShowVerificationModal(null);
+                    toast.success('🚧 Domain marked as verified (temporary workaround)');
+                  }}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Force Verify
                 </button>
                 <button
                   onClick={() => setShowVerificationModal(null)}
