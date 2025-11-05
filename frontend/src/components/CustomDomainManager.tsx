@@ -363,6 +363,41 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     return domainRegex.test(domain) && domain.includes('.');
   };
 
+  // Manual DNS check function for debugging
+  const checkDNSManually = async (domain: CustomDomain) => {
+    try {
+      console.log('🔍 Manual DNS check for:', domain.domainName);
+      
+      // Try to resolve the domain using a public DNS API
+      const dnsResponse = await fetch(`https://dns.google/resolve?name=${domain.domainName}&type=CNAME`);
+      const dnsData = await dnsResponse.json();
+      
+      console.log('🔍 DNS API response:', dnsData);
+      
+      if (dnsData.Answer && dnsData.Answer.length > 0) {
+        const cnameRecord = dnsData.Answer.find((record: any) => record.type === 5); // CNAME type
+        if (cnameRecord) {
+          const resolvedTarget = cnameRecord.data.replace(/\.$/, ''); // Remove trailing dot
+          console.log('🔍 CNAME resolves to:', resolvedTarget);
+          console.log('🔍 Expected target:', domain.cnameTarget);
+          
+          if (resolvedTarget === domain.cnameTarget) {
+            toast.success('✅ DNS is correctly configured! The backend verification might have an issue.');
+          } else {
+            toast.error(`❌ DNS mismatch: Found ${resolvedTarget}, expected ${domain.cnameTarget}`);
+          }
+        } else {
+          toast.error('❌ No CNAME record found');
+        }
+      } else {
+        toast.error('❌ Domain not found in DNS');
+      }
+    } catch (error) {
+      console.error('DNS check failed:', error);
+      toast.error('Failed to check DNS. Please verify manually.');
+    }
+  };
+
   const verifyDomain = async (domainId: string) => {
     const domain = domains.find(d => d.id === domainId);
     if (!domain) return;
@@ -370,12 +405,21 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     try {
       setIsVerifying(domainId);
       
+      console.log('🔍 Starting domain verification:', {
+        domainId,
+        domainName: domain.domainName,
+        cnameTarget: domain.cnameTarget,
+        verificationToken: domain.verificationToken
+      });
+      
       const response = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      console.log('🔍 Verification response:', response.data);
 
       if (response.data.success) {
         // Update the domain in state
@@ -392,11 +436,28 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           });
         }
       } else {
+        console.error('❌ Verification failed:', response.data);
         toast.error(response.data.message || 'Verification failed');
       }
     } catch (error: any) {
-      console.error('Failed to verify domain:', error);
-      const errorMessage = error.response?.data?.message || 'Verification failed. Please try again.';
+      console.error('❌ Failed to verify domain:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      let errorMessage = 'Verification failed. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Domain verification endpoint not found. Please contact support.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error during verification. Please try again in a few minutes.';
+      }
+      
       toast.error(errorMessage);
     } finally {
       setIsVerifying(null);
@@ -883,7 +944,40 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 </div>
               )}
 
+              {/* Troubleshooting section */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-2 text-blue-500" />
+                  Troubleshooting Tips
+                </h4>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">1.</span>
+                    <span>Click "Check DNS" to verify your CNAME record is working</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">2.</span>
+                    <span>Ensure Cloudflare proxy is OFF (gray cloud, not orange)</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">3.</span>
+                    <span>Wait 5-10 minutes after DNS changes before verifying</span>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">4.</span>
+                    <span>Check browser console (F12) for detailed error messages</span>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => checkDNSManually(showVerificationModal)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  Check DNS
+                </button>
                 <button
                   onClick={() => {
                     verifyDomain(showVerificationModal.id);
