@@ -971,7 +971,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                   <p className="text-blue-800 text-sm font-medium">
                     📋 <strong>Quick Setup:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">pebly-proxy.vercel.app</code>
                   </p>
-                </div>obe>
+                </div>
                 {(() => {
                   const domain = showVerificationModal.domainName;
                   const parts = domain.split('.');
