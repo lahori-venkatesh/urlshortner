@@ -94,23 +94,12 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     });
   }, [user, hasCustomDomainAccess, featureAccess, domains.length, isLoading, showOnboarding]);
 
-  // Handle Add Custom Domain button click with centralized policy
+  // Handle Add Custom Domain button click
   const handleAddCustomDomain = () => {
-    console.log('🔍 Add Custom Domain clicked - Using centralized policy');
-    
     const verifiedDomainCount = domains.filter(d => d.status === 'VERIFIED').length;
     
-    console.log('🔍 Policy Check:', {
-      userPlan: user?.plan,
-      verifiedDomainCount,
-      canUseCustomDomain: featureAccess.canUseCustomDomain,
-      canAddDomain: featureAccess.canAddDomain(verifiedDomainCount),
-      domainLimit: featureAccess.domainLimit
-    });
-    
-    // 🚫 FREE user - show upgrade modal via context
+    // Check if user has access to custom domains
     if (!featureAccess.canUseCustomDomain) {
-      console.log('✅ FREE user - showing upgrade modal via context');
       upgradeModal.open(
         'Custom Domains',
         'Use your own branded domains for professional short links with SSL certificates included.',
@@ -119,32 +108,22 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       return;
     }
     
-    // 🟡 Has feature but reached limit
+    // Check if user has reached domain limit
     if (!featureAccess.canAddDomain(verifiedDomainCount)) {
       if (user?.plan === 'PRO') {
-        console.log('✅ PRO user at limit - showing upgrade modal for Business via context');
         upgradeModal.open(
           'Upgrade to Business for more domains',
           'Get up to 3 custom domains and advanced team features with our Business plan.',
           true
         );
       } else {
-        console.log('✅ BUSINESS user at limit - showing limit message');
         toast.error(featureAccess.getUpgradeReason('Custom Domains', verifiedDomainCount));
       }
       return;
     }
     
-    // ✅ Can add domain - check if they have existing domains
-    const hasExistingDomains = domains && domains.length > 0;
-    
-    if (!hasExistingDomains) {
-      console.log('✅ User with no domains - showing onboarding');
-      setShowOnboarding(true);
-    } else {
-      console.log('✅ User with existing domains - showing domain management');
-      setIsAddingDomain(true);
-    }
+    // Always use onboarding for consistent experience
+    setShowOnboarding(true);
   };
 
   // Load user plan and domains from backend API
@@ -551,119 +530,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Debug Info - Always show for troubleshooting */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <strong>Debug Info:</strong> Plan: {user?.plan}, HasAccess: {hasCustomDomainAccess.toString()}, 
-            Domains: {domains.length}, Loading: {isLoading.toString()}, API: {API_BASE_URL}
-            <br />
-            <span className="text-xs text-gray-600">
-              Token: {token ? '✅ Available' : '❌ Missing'} | 
-              User: {user?.email || 'Not logged in'} | 
-              Auth: {user ? '✅ Authenticated' : '❌ Not authenticated'}
-            </span>
-          </div>
-          <div className="flex space-x-2">
-            <button 
-              onClick={loadDomainsFromBackend}
-              disabled={isLoading}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isLoading ? 'Loading...' : 'Retry Load'}
-            </button>
-            <button 
-              onClick={() => {
-                console.log('=== Manual Debug Info ===');
-                console.log('User:', user);
-                console.log('Token:', token ? token.substring(0, 20) + '...' : 'null');
-                console.log('API_BASE_URL:', API_BASE_URL);
-                console.log('hasCustomDomainAccess:', hasCustomDomainAccess);
-                console.log('domains:', domains);
-                console.log('isLoading:', isLoading);
-                console.log('featureAccess:', featureAccess);
-              }}
-              className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-            >
-              Log Debug
-            </button>
-            <button 
-              onClick={async () => {
-                try {
-                  console.log('=== Testing API Connection ===');
-                  
-                  // Test 1: Health check
-                  const healthUrl = `${API_BASE_URL}/v1/domains/health`;
-                  console.log('Testing health:', healthUrl);
-                  const healthResponse = await fetch(healthUrl);
-                  const healthData = await healthResponse.json();
-                  console.log('Health response:', healthData);
-                  
-                  // Test 2: Auth test
-                  if (token) {
-                    const domainsUrl = `${API_BASE_URL}/v1/domains/my`;
-                    console.log('Testing domains with auth:', domainsUrl);
-                    const domainsResponse = await fetch(domainsUrl, {
-                      headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                      }
-                    });
-                    const domainsData = await domainsResponse.json();
-                    console.log('Domains response:', domainsResponse.status, domainsData);
-                    
-                    if (domainsResponse.ok && domainsData.success) {
-                      toast.success(`API test successful! Found ${domainsData.domains?.length || 0} domains.`);
-                    } else {
-                      toast.error(`API test failed: ${domainsData.message || 'Unknown error'}`);
-                    }
-                  } else {
-                    toast.error('No authentication token available for testing');
-                  }
-                } catch (error: any) {
-                  console.error('API test failed:', error);
-                  toast.error(`API test failed: ${error.message || 'Unknown error'}`);
-                }
-              }}
-              className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
-            >
-              Test API
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Error State - Show if not loading and no domains but has access */}
-      {!isLoading && domains.length === 0 && hasCustomDomainAccess && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <div>
-                <h3 className="font-medium text-red-900">Unable to load custom domains</h3>
-                <p className="text-sm text-red-700">There was an issue loading your domains. This might be a temporary backend issue.</p>
-                <p className="text-xs text-red-600 mt-1">
-                  💡 Try: Refresh page, check internet connection, or start fresh with onboarding
-                </p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setShowOnboarding(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-              >
-                Add Domain
-              </button>
-              <button
-                onClick={loadDomainsFromBackend}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Upgrade Prompt for Free Users */}
       {!hasCustomDomainAccess && (
@@ -733,57 +600,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           </button>
         </div>
 
-        {/* Add Domain Form */}
-        {isAddingDomain && hasCustomDomainAccess && (
-          <div className="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50">
-            <h3 className="font-semibold text-gray-900 mb-4">Add New Domain</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Domain Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="example.com"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Verification Method
-                </label>
-                <select
-                  value={verificationMethod}
-                  onChange={(e) => setVerificationMethod(e.target.value as 'dns' | 'file')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="dns">DNS Record</option>
-                  <option value="file">File Upload</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 mt-4">
-              <button
-                onClick={addDomain}
-                disabled={!newDomain.trim()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                Add Domain
-              </button>
-              <button
-                onClick={() => {
-                  setIsAddingDomain(false);
-                  setNewDomain('');
-                }}
-                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+
 
         {/* Domains List */}
         {isLoading ? (
@@ -799,11 +616,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               <div>
                 <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
                 <button
-                  onClick={() => setShowOnboarding(true)}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center space-x-2"
+                  onClick={handleAddCustomDomain}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center space-x-2 mx-auto"
                 >
                   <Sparkles className="w-5 h-5" />
-                  <span>Add Your First Domain</span>
+                  <span>Add Custom Domain</span>
                 </button>
                 <p className="text-xs text-gray-500 mt-2">
                   Simple 3-step process • Takes 2-5 minutes • SSL included
