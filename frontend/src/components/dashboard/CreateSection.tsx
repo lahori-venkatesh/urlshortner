@@ -636,6 +636,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         
         if (mode === 'url') {
           // Call URL shortening API using centralized function
+          console.log('🔍 CreateSection - Creating URL with domain:', selectedDomain);
           backendResult = await createShortUrl({
             originalUrl: originalUrl,
             userId: user?.id || 'anonymous-user',
@@ -644,8 +645,10 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             expirationDays: finalExpirationDays || undefined,
             maxClicks: finalMaxClicks || undefined,
             title: `Dashboard URL - ${shortCode}`,
-            description: 'Created via Dashboard'
+            description: 'Created via Dashboard',
+            customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined
           });
+          console.log('🔍 CreateSection - Backend response:', backendResult);
         } else if (mode === 'qr') {
           // Call QR code API using centralized function
           if (isEditMode && editQRId) {
@@ -679,13 +682,19 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
         }
         
         if (backendResult && backendResult.success) {
-          console.log('Successfully saved to MongoDB:', backendResult);
+          console.log('🔍 CreateSection - Backend result:', backendResult);
+          console.log('🔍 CreateSection - Backend shortUrl:', backendResult.data?.shortUrl);
+          console.log('🔍 CreateSection - Original constructed URL:', newLink.shortUrl);
           
           // Update newLink with the actual shortUrl from backend
           if (backendResult.data && backendResult.data.shortUrl) {
+            console.log('🔍 CreateSection - Updating shortUrl from backend');
             newLink.shortUrl = backendResult.data.shortUrl;
             newLink.id = backendResult.data.id || newLink.id;
             newLink.shortCode = backendResult.data.shortCode || newLink.shortCode;
+            console.log('🔍 CreateSection - Final shortUrl:', newLink.shortUrl);
+          } else {
+            console.warn('⚠️ CreateSection - No shortUrl in backend response, keeping constructed URL');
           }
           
           toast.success(isEditMode ? 'QR code updated successfully!' : 'Link created and saved to database!');
