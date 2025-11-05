@@ -127,13 +127,8 @@ public class UrlShorteningService {
             shortenedUrl.setMaxClicks(maxClicks);
         }
         
-        // Extract domain from URL
-        try {
-            java.net.URL url = new java.net.URL(originalUrl);
-            shortenedUrl.setDomain(url.getHost());
-        } catch (Exception e) {
-            // If URL parsing fails, just store as is
-        }
+        // Note: Domain is already set above for custom domains
+        // Don't overwrite the custom domain with the original URL's domain
         
         // Save to database
         ShortenedUrl saved = shortenedUrlRepository.save(shortenedUrl);

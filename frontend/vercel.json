@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/([a-zA-Z0-9]{4,12})",
+      "destination": "https://urlshortner-1-hpyu.onrender.com/$1",
+      "statusCode": 307
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
