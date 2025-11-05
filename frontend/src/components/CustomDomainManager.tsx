@@ -961,11 +961,17 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
             </div>
 
             <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">DNS Verification</h4>
-                <p className="text-blue-800 text-sm mb-4">
-                  Add the following CNAME record to your domain's DNS settings:
-                </p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                <h4 className="font-bold text-blue-900 mb-4 flex items-center">
+                  <Globe className="w-5 h-5 mr-2" />
+                  DNS Configuration Required
+                </h4>
+                
+                <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-4">
+                  <p className="text-blue-800 text-sm font-medium">
+                    📋 <strong>Quick Setup:</strong> Point your domain to <code className="bg-white px-2 py-1 rounded font-mono">pebly-proxy.vercel.app</code>
+                  </p>
+                </div>obe>
                 {(() => {
                   const domain = showVerificationModal.domainName;
                   const parts = domain.split('.');
@@ -1030,10 +1036,10 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                       <span className="font-medium text-gray-600">Value:</span>
                       <div className="flex items-center space-x-2 mt-1">
                         <code className="flex-1 bg-gray-100 p-2 rounded text-xs break-all">
-                          {showVerificationModal.cnameTarget}
+                          pebly-proxy.vercel.app
                         </code>
                         <button
-                          onClick={() => copyToClipboard(showVerificationModal.cnameTarget)}
+                          onClick={() => copyToClipboard('pebly-proxy.vercel.app')}
                           className="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-100 rounded"
                           title="Copy value"
                         >
@@ -1083,7 +1089,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                       );
                     }
                   })()}
-                  <li>• The CNAME should point to: <code className="bg-yellow-100 px-1 rounded">{showVerificationModal.cnameTarget}</code></li>
+                  <li>• The CNAME should point to: <code className="bg-yellow-100 px-1 rounded">pebly-proxy.vercel.app</code></li>
                   <li>• SSL certificate will be automatically provisioned after verification</li>
                   <li>• Contact your DNS provider if you need help</li>
                   {(() => {
@@ -1108,61 +1114,48 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 </div>
               )}
 
-              {/* Troubleshooting section */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-2 text-blue-500" />
-                  Troubleshooting Steps
+              {/* Verification Process */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Verification Process
                 </h4>
-                <div className="space-y-2 text-sm text-gray-700">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">1.</span>
-                    <span>Click "Check DNS" to verify your CNAME record is working</span>
+                <div className="space-y-3 text-sm text-blue-800">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</div>
+                    <div>
+                      <div className="font-semibold">Add DNS Record</div>
+                      <div className="text-blue-700">Add the CNAME record above to your domain provider</div>
+                    </div>
                   </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">2.</span>
-                    <span>Click "Test Backend" to check if the server is reachable</span>
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</div>
+                    <div>
+                      <div className="font-semibold">Wait for Propagation</div>
+                      <div className="text-blue-700">DNS changes typically take 5-10 minutes (up to 24 hours)</div>
+                    </div>
                   </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">3.</span>
-                    <span><strong>"Verify Domain"</strong> now uses client-side verification (recommended)</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">4.</span>
-                    <span>Use "Legacy Verify" to test the original broken backend method</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">5.</span>
-                    <span>Use "Force Verify" for immediate local verification (temporary)</span>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 font-bold">6.</span>
-                    <span>Check browser console (F12) for detailed verification logs</span>
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</div>
+                    <div>
+                      <div className="font-semibold">Verify Domain</div>
+                      <div className="text-blue-700">Click "Verify Domain" to complete the setup</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* New Verification Method */}
+              {/* Quick Help */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="font-semibold text-green-900 mb-2">� Enhamnced Verification</h4>
+                <h4 className="font-semibold text-green-900 mb-2 flex items-center">
+                  <Globe className="w-4 h-4 mr-2" />
+                  Universal Compatibility
+                </h4>
                 <div className="text-sm text-green-800 space-y-1">
-                  <div>• <strong>Client-Side Verification:</strong> Bypasses broken backend verification</div>
-                  <div>• <strong>DNS Check:</strong> Verifies CNAME record using Google DNS API</div>
-                  <div>• <strong>Backend Update:</strong> Updates domain status directly in database</div>
-                  <div>• <strong>Persistent:</strong> Verification persists after page refresh</div>
-                  <div>• <strong>Reliable:</strong> Works even when original verification endpoint is broken</div>
-                </div>
-              </div>
-
-              {/* Common Issues */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-semibold text-yellow-900 mb-2">🔍 Legacy Backend Issues</h4>
-                <div className="text-sm text-yellow-800 space-y-1">
-                  <div>• <strong>404 Error:</strong> Verification endpoint not implemented</div>
-                  <div>• <strong>500 Error:</strong> Server-side DNS resolution failing</div>
-                  <div>• <strong>403 Error:</strong> Authentication or permission issues</div>
-                  <div>• <strong>Timeout:</strong> Backend taking too long to respond</div>
-                  <div>• <strong>Wrong CNAME target:</strong> Backend expecting different target</div>
+                  <div>✅ <strong>Works with all providers:</strong> Hostinger, GoDaddy, Namecheap, Cloudflare, etc.</div>
+                  <div>✅ <strong>Automatic SSL:</strong> HTTPS certificate provisioned automatically</div>
+                  <div>✅ <strong>Global CDN:</strong> Fast redirects worldwide via Vercel Edge Network</div>
+                  <div>✅ <strong>No conflicts:</strong> Universal proxy eliminates provider-specific issues</div>
                 </div>
               </div>
 
