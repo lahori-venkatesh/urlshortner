@@ -636,15 +636,26 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               <AlertCircle className="w-5 h-5 text-red-500" />
               <div>
                 <h3 className="font-medium text-red-900">Unable to load custom domains</h3>
-                <p className="text-sm text-red-700">There was an issue loading your domains. Please try again.</p>
+                <p className="text-sm text-red-700">There was an issue loading your domains. This might be a temporary backend issue.</p>
+                <p className="text-xs text-red-600 mt-1">
+                  💡 Try: Refresh page, check internet connection, or start fresh with onboarding
+                </p>
               </div>
             </div>
-            <button
-              onClick={loadDomainsFromBackend}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Retry
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Add Domain
+              </button>
+              <button
+                onClick={loadDomainsFromBackend}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -784,10 +795,14 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 <p className="text-gray-500 mb-4">Add your first custom domain to get started</p>
                 <button
                   onClick={() => setShowOnboarding(true)}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center space-x-2"
                 >
-                  Add Your First Domain
+                  <Sparkles className="w-5 h-5" />
+                  <span>Add Your First Domain</span>
                 </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Simple 3-step process • Takes 2-5 minutes • SSL included
+                </p>
               </div>
             ) : (
               <div>
@@ -1009,12 +1024,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       <CustomDomainOnboarding
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
-        onComplete={() => {
-          loadDomainsFromBackend();
+        onComplete={(domain) => {
+          setDomains(prev => [...prev, domain]);
           setShowOnboarding(false);
+          toast.success('🎉 Custom domain added successfully! DNS propagation may take 5-60 minutes.');
         }}
-        context={ownerType === 'TEAM' ? 'team' : 'individual'}
-        teamId={ownerType === 'TEAM' ? ownerId : undefined}
       />
 
       {/* Upgrade Modal is now mounted globally in App.tsx */}
