@@ -741,6 +741,40 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 <p className="text-blue-800 text-sm mb-4">
                   Add the following CNAME record to your domain's DNS settings:
                 </p>
+                {(() => {
+                  const domain = showVerificationModal.domainName;
+                  const parts = domain.split('.');
+                  const isSubdomain = parts.length > 2;
+                  
+                  if (isSubdomain) {
+                    const subdomain = parts[0];
+                    const rootDomain = parts.slice(1).join('.');
+                    return (
+                      <div className="bg-blue-100 border border-blue-300 rounded p-3 mb-4 text-sm">
+                        <p className="text-blue-900 font-medium">📝 For subdomain setup:</p>
+                        <p className="text-blue-800">
+                          You're setting up <code className="bg-white px-1 rounded">{domain}</code>
+                        </p>
+                        <p className="text-blue-800">
+                          In your DNS provider for <code className="bg-white px-1 rounded">{rootDomain}</code>, 
+                          add a CNAME record with name <code className="bg-white px-1 rounded">{subdomain}</code>
+                        </p>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="bg-blue-100 border border-blue-300 rounded p-3 mb-4 text-sm">
+                        <p className="text-blue-900 font-medium">📝 For root domain setup:</p>
+                        <p className="text-blue-800">
+                          You're setting up <code className="bg-white px-1 rounded">{domain}</code>
+                        </p>
+                        <p className="text-blue-800">
+                          Use <code className="bg-white px-1 rounded">@</code> as the name (represents root domain)
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
                 
                 <div className="bg-white rounded border p-3">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
@@ -750,7 +784,18 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">Name:</span>
-                      <div className="font-mono break-all">{showVerificationModal.domainName}</div>
+                      <div className="font-mono break-all">
+                        {(() => {
+                          const domain = showVerificationModal.domainName;
+                          const parts = domain.split('.');
+                          // If it's a subdomain (more than 2 parts), show only the subdomain part
+                          if (parts.length > 2) {
+                            return parts[0]; // e.g., "links" from "links.pdfcircle.com"
+                          }
+                          // If it's a root domain, show @ or the full domain
+                          return '@';
+                        })()}
+                      </div>
                     </div>
                     <div>
                       <span className="font-medium text-gray-600">TTL:</span>
@@ -798,10 +843,36 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 <h4 className="font-semibold text-yellow-900 mb-2">Important Notes</h4>
                 <ul className="text-yellow-800 text-sm space-y-1">
                   <li>• DNS changes can take up to 24 hours to propagate</li>
-                  <li>• Remove any existing A records for this domain</li>
+                  {(() => {
+                    const domain = showVerificationModal.domainName;
+                    const parts = domain.split('.');
+                    const isSubdomain = parts.length > 2;
+                    
+                    if (isSubdomain) {
+                      return (
+                        <li>• For subdomains: Remove any existing A records for <code className="bg-yellow-100 px-1 rounded">{domain}</code></li>
+                      );
+                    } else {
+                      return (
+                        <li>• For root domains: Remove any existing A records for <code className="bg-yellow-100 px-1 rounded">{domain}</code></li>
+                      );
+                    }
+                  })()}
                   <li>• The CNAME should point to: <code className="bg-yellow-100 px-1 rounded">{showVerificationModal.cnameTarget}</code></li>
                   <li>• SSL certificate will be automatically provisioned after verification</li>
                   <li>• Contact your DNS provider if you need help</li>
+                  {(() => {
+                    const domain = showVerificationModal.domainName;
+                    const parts = domain.split('.');
+                    const isSubdomain = parts.length > 2;
+                    
+                    if (isSubdomain) {
+                      return (
+                        <li>• 💡 <strong>Cloudflare users:</strong> Make sure the proxy is OFF (gray cloud, not orange)</li>
+                      );
+                    }
+                    return null;
+                  })()}
                 </ul>
               </div>
 
