@@ -57,6 +57,11 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
         setAddedDomain(response.data.domain);
         setStep(2);
         toast.success('Domain reserved successfully!');
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('custom-domain-added', { 
+          detail: response.data.domain 
+        }));
       } else {
         toast.error(response.data.message || 'Failed to add domain');
       }

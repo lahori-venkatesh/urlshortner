@@ -362,6 +362,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         setShowVerificationModal(newCustomDomain);
 
         toast.success('Domain reserved! Please complete DNS verification.');
+        
+        // Dispatch event to notify other components
+        window.dispatchEvent(new CustomEvent('custom-domain-added', { 
+          detail: newCustomDomain 
+        }));
       } else {
         toast.error(response.data.message || 'Failed to add domain');
       }
@@ -1028,6 +1033,11 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           setDomains(prev => [...prev, domain]);
           setShowOnboarding(false);
           toast.success('🎉 Custom domain added successfully! DNS propagation may take 5-60 minutes.');
+          
+          // Dispatch event to notify other components
+          window.dispatchEvent(new CustomEvent('custom-domain-added', { 
+            detail: domain 
+          }));
         }}
       />
 

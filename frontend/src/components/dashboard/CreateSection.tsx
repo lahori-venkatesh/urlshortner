@@ -21,7 +21,8 @@ import {
   Crown,
   Download,
   Save,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import QRCodeGenerator from '../QRCodeGenerator';
@@ -225,12 +226,59 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
   // Load custom domains from backend
   useEffect(() => {
     loadCustomDomainsFromBackend();
+    
+    // Listen for custom domain updates
+    const handleDomainUpdate = () => {
+      console.log('🔄 Domain update detected, refreshing domains in Create section');
+      loadCustomDomainsFromBackend();
+    };
+    
+    window.addEventListener('custom-domain-updated', handleDomainUpdate);
+    window.addEventListener('custom-domain-added', handleDomainUpdate);
+    
+    return () => {
+      window.removeEventListener('custom-domain-updated', handleDomainUpdate);
+      window.removeEventListener('custom-domain-added', handleDomainUpdate);
+    };
   }, []);
 
   const loadCustomDomainsFromBackend = async () => {
     try {
-      // TODO: Load from backend API instead of localStorage
-      setCustomDomains(['pebly.vercel.app']); // Default domain only
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCustomDomains(['pebly.vercel.app']);
+        return;
+      }
+
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-1-hpyu.onrender.com/api';
+      
+      const response = await fetch(`${API_BASE_URL}/v1/domains/verified`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.domains) {
+          // Extract verified domain names and add to the list
+          const verifiedDomains = data.domains
+            .filter((domain: any) => domain.status === 'VERIFIED')
+            .map((domain: any) => domain.domainName);
+          
+          // Always include default domain first, then verified custom domains
+          const allDomains = ['pebly.vercel.app', ...verifiedDomains];
+          setCustomDomains(allDomains);
+          
+          console.log('✅ Loaded custom domains for Create section:', allDomains);
+        } else {
+          setCustomDomains(['pebly.vercel.app']);
+        }
+      } else {
+        console.warn('Failed to load custom domains:', response.status);
+        setCustomDomains(['pebly.vercel.app']);
+      }
     } catch (error) {
       console.error('Failed to load custom domains:', error);
       setCustomDomains(['pebly.vercel.app']);
@@ -2097,9 +2145,23 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Custom Domain
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Custom Domain
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('🔄 Refreshing custom domains...');
+                          loadCustomDomainsFromBackend();
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                        title="Refresh domains"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Refresh</span>
+                      </button>
+                    </div>
                     <select
                       value={selectedDomain}
                       onChange={(e) => {
