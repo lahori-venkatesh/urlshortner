@@ -1,0 +1,27 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://urlshortner-1-hpyu.onrender.com/api/$1"
+    },
+    {
+      "source": "/actuator/(.*)",
+      "destination": "https://urlshortner-1-hpyu.onrender.com/actuator/$1"
+    },
+    {
+      "source": "/([a-zA-Z0-9]{6,8})$",
+      "destination": "https://urlshortner-1-hpyu.onrender.com/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/([a-zA-Z0-9]{6,8})$",
+      "headers": [
+        {
+          "key": "X-Forwarded-Host",
+          "value": "pebly.vercel.app"
+        }
+      ]
+    }
+  ]
+}

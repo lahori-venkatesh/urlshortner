@@ -212,7 +212,7 @@ const AppContent: React.FC = () => {
             } />
             
             <Route path="/file/:fileId" element={<FileViewer />} />
-            <Route path="/:shortCode" element={<RedirectPage />} />
+            <Route path="/redirect/:shortCode" element={<RedirectPage />} />
           </Routes>
           <Toaster position="top-right" />
         </div>
