@@ -439,98 +439,82 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
   };
 
-  // Client-side verification with backend update
-  const clientSideVerification = async (domain: CustomDomain) => {
+  // Simple and reliable domain verification
+  const verifyDomainReliably = async (domain: CustomDomain) => {
     try {
-      console.log('🔍 Starting client-side verification...');
+      console.log('🔍 Starting domain verification...');
       setIsVerifying(domain.id);
       
-      // Step 1: Verify DNS using client-side check
+      // Step 1: Client-side DNS verification for immediate feedback
+      console.log('🔍 Checking DNS configuration...');
       const dnsResponse = await fetch(`https://dns.google/resolve?name=${domain.domainName}&type=CNAME`);
       const dnsData = await dnsResponse.json();
       
       if (!dnsData.Answer || dnsData.Answer.length === 0) {
-        throw new Error('No CNAME record found');
+        throw new Error('No CNAME record found. Please check your DNS configuration.');
       }
       
       const cnameRecord = dnsData.Answer.find((record: any) => record.type === 5);
       if (!cnameRecord) {
-        throw new Error('No CNAME record found');
+        throw new Error('No CNAME record found. Please add the CNAME record to your DNS.');
       }
       
       const resolvedTarget = cnameRecord.data.replace(/\.$/, '');
       
       if (resolvedTarget !== domain.cnameTarget) {
-        throw new Error(`CNAME mismatch: Found ${resolvedTarget}, expected ${domain.cnameTarget}`);
+        throw new Error(`DNS configuration error: CNAME points to ${resolvedTarget}, but should point to ${domain.cnameTarget}`);
       }
       
-      console.log('✅ Client-side DNS verification passed');
+      console.log('✅ DNS verification passed');
+      toast.success('✅ DNS configuration verified!');
       
-      // Step 2: Update backend directly using PATCH/PUT request
-      console.log('🔍 Updating domain status in backend...');
+      // Step 2: Call backend verification endpoint
+      console.log('🔍 Calling backend verification...');
       
-      const updateResponse = await axios.patch(`${API_BASE_URL}/v1/domains/${domain.id}`, {
-        status: 'VERIFIED',
-        sslStatus: 'ACTIVE',
-        verificationError: null,
-        lastVerificationAttempt: new Date().toISOString()
+      const verifyResponse = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domain.id}`, {
+        dnsVerified: true,
+        cnameTarget: resolvedTarget,
+        verificationMethod: 'client-side-dns'
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 15000 // 15 second timeout
       });
       
-      console.log('🔍 Backend update response:', updateResponse.data);
+      console.log('🔍 Backend verification response:', verifyResponse.data);
       
-      if (updateResponse.data.success || updateResponse.status === 200) {
-        // Update local state
+      if (verifyResponse.data.success && verifyResponse.data.verified) {
+        // Update local state with backend response
         setDomains(prev => prev.map(d => 
-          d.id === domain.id 
-            ? { ...d, status: 'VERIFIED' as const, sslStatus: 'ACTIVE' as const, verificationError: undefined }
-            : d
+          d.id === domain.id ? { ...d, ...verifyResponse.data.domain } : d
         ));
         
-        toast.success('✅ Domain verified successfully using client-side verification!');
+        toast.success('✅ Domain verified successfully! SSL certificate is being provisioned.');
         return true;
       } else {
-        throw new Error('Backend update failed');
+        throw new Error(verifyResponse.data.message || 'Backend verification failed');
       }
       
     } catch (error: any) {
-      console.error('❌ Client-side verification failed:', error);
+      console.error('❌ Domain verification failed:', error);
       
-      // If PATCH fails, try alternative approaches
-      if (error.response?.status === 404 || error.response?.status === 405) {
-        console.log('🔍 PATCH not supported, trying PUT...');
-        
-        try {
-          const putResponse = await axios.put(`${API_BASE_URL}/v1/domains/${domain.id}/status`, {
-            status: 'VERIFIED',
-            sslStatus: 'ACTIVE'
-          }, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (putResponse.data.success || putResponse.status === 200) {
-            setDomains(prev => prev.map(d => 
-              d.id === domain.id 
-                ? { ...d, status: 'VERIFIED' as const, sslStatus: 'ACTIVE' as const, verificationError: undefined }
-                : d
-            ));
-            
-            toast.success('✅ Domain verified successfully using alternative method!');
-            return true;
-          }
-        } catch (putError) {
-          console.error('PUT also failed:', putError);
-        }
+      // Provide specific error messages
+      if (error.message.includes('DNS')) {
+        toast.error(`❌ ${error.message}`);
+      } else if (error.response?.status === 404) {
+        toast.error('❌ Domain not found. Please try adding the domain again.');
+      } else if (error.response?.status === 403) {
+        toast.error('❌ Access denied. You may not own this domain.');
+      } else if (error.response?.status === 401) {
+        toast.error('❌ Authentication failed. Please log in again.');
+      } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        toast.error('❌ Verification timed out. Please try again.');
+      } else {
+        toast.error(`❌ Verification failed: ${error.response?.data?.message || error.message}`);
       }
       
-      toast.error(`❌ Verification failed: ${error.message}`);
       return false;
     } finally {
       setIsVerifying(null);
@@ -1182,77 +1166,34 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => checkDNSManually(showVerificationModal)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Check DNS
-                </button>
-                <button
-                  onClick={testBackendEndpoint}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Test Backend
-                </button>
-                <button
-                  onClick={() => simulateBackendVerification(showVerificationModal)}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Simulate
-                </button>
-                <button
-                  onClick={() => {
-                    verifyDomain(showVerificationModal.id);
-                  }}
-                  disabled={isVerifying === showVerificationModal.id}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 flex items-center text-sm"
-                >
-                  Legacy Verify
-                </button>
-                <button
-                  onClick={async () => {
-                    const success = await clientSideVerification(showVerificationModal);
-                    if (success) {
-                      setShowVerificationModal(null);
-                    }
-                  }}
-                  disabled={isVerifying === showVerificationModal.id}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
-                >
-                  {isVerifying === showVerificationModal.id ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    'Verify Domain'
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    // Temporary workaround - mark domain as verified locally
-                    setDomains(prev => prev.map(d => 
-                      d.id === showVerificationModal.id 
-                        ? { ...d, status: 'VERIFIED', sslStatus: 'ACTIVE' } 
-                        : d
-                    ));
-                    setShowVerificationModal(null);
-                    toast.success('🚧 Domain marked as verified (temporary workaround)');
-                  }}
-                  className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Force Verify
-                </button>
+              <div className="flex items-center justify-between">
                 <button
                   onClick={() => setShowVerificationModal(null)}
                   className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                 >
                   Close
+                </button>
+                <button
+                  onClick={async () => {
+                    const success = await verifyDomainReliably(showVerificationModal);
+                    if (success) {
+                      setShowVerificationModal(null);
+                    }
+                  }}
+                  disabled={isVerifying === showVerificationModal.id}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center font-semibold"
+                >
+                  {isVerifying === showVerificationModal.id ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                      Verifying Domain...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      Verify Domain
+                    </>
+                  )}
                 </button>
               </div>
             </div>
