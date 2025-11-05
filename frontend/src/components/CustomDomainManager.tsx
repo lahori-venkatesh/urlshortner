@@ -379,12 +379,13 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         if (cnameRecord) {
           const resolvedTarget = cnameRecord.data.replace(/\.$/, ''); // Remove trailing dot
           console.log('🔍 CNAME resolves to:', resolvedTarget);
-          console.log('🔍 Expected target:', domain.cnameTarget);
+          const expectedTarget = 'pebly-proxy.vercel.app';
+          console.log('🔍 Expected target:', expectedTarget);
           
-          if (resolvedTarget === domain.cnameTarget) {
+          if (resolvedTarget === expectedTarget) {
             toast.success('✅ DNS is correctly configured! The backend verification might have an issue.');
           } else {
-            toast.error(`❌ DNS mismatch: Found ${resolvedTarget}, expected ${domain.cnameTarget}`);
+            toast.error(`❌ DNS mismatch: Found ${resolvedTarget}, expected ${expectedTarget}`);
           }
         } else {
           toast.error('❌ No CNAME record found');
@@ -417,14 +418,15 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
           console.log('🔍 Expected verification logic:');
           console.log('  - Domain:', domain.domainName);
           console.log('  - CNAME resolves to:', resolvedTarget);
-          console.log('  - Expected target:', domain.cnameTarget);
-          console.log('  - Match:', resolvedTarget === domain.cnameTarget);
+          const expectedTarget = 'pebly-proxy.vercel.app';
+          console.log('  - Expected target:', expectedTarget);
+          console.log('  - Match:', resolvedTarget === expectedTarget);
           
-          if (resolvedTarget === domain.cnameTarget) {
+          if (resolvedTarget === expectedTarget) {
             toast.success('✅ Simulation: Domain verification should succeed!');
             return true;
           } else {
-            toast.error(`❌ Simulation: CNAME mismatch - ${resolvedTarget} vs ${domain.cnameTarget}`);
+            toast.error(`❌ Simulation: CNAME mismatch - ${resolvedTarget} vs ${expectedTarget}`);
             return false;
           }
         }
@@ -461,8 +463,9 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       
       const resolvedTarget = cnameRecord.data.replace(/\.$/, '');
       
-      if (resolvedTarget !== domain.cnameTarget) {
-        throw new Error(`DNS configuration error: CNAME points to ${resolvedTarget}, but should point to ${domain.cnameTarget}`);
+      const expectedTarget = 'pebly-proxy.vercel.app';
+      if (resolvedTarget !== expectedTarget) {
+        throw new Error(`DNS configuration error: CNAME points to ${resolvedTarget}, but should point to ${expectedTarget}`);
       }
       
       console.log('✅ DNS verification passed');
@@ -473,7 +476,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       
       const verifyResponse = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domain.id}`, {
         dnsVerified: true,
-        cnameTarget: resolvedTarget,
+        cnameTarget: 'pebly-proxy.vercel.app',
         verificationMethod: 'client-side-dns'
       }, {
         headers: {
@@ -564,7 +567,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
       console.log('🔍 Starting domain verification:', {
         domainId,
         domainName: domain.domainName,
-        cnameTarget: domain.cnameTarget,
+        cnameTarget: 'pebly-proxy.vercel.app',
         verificationToken: domain.verificationToken,
         apiUrl: `${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`,
         hasToken: !!token,
