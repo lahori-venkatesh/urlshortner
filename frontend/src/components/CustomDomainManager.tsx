@@ -398,6 +398,39 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
   };
 
+  // Test backend endpoint availability
+  const testBackendEndpoint = async () => {
+    try {
+      console.log('🔍 Testing backend endpoint availability...');
+      console.log('🔍 API Base URL:', API_BASE_URL);
+      console.log('🔍 Token available:', !!token);
+      
+      // Test if the domains endpoint exists
+      const testResponse = await fetch(`${API_BASE_URL}/v1/domains/my`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('🔍 Backend test response:', {
+        status: testResponse.status,
+        statusText: testResponse.statusText,
+        headers: Object.fromEntries(testResponse.headers.entries())
+      });
+      
+      if (testResponse.ok) {
+        toast.success('✅ Backend is reachable. The verification endpoint might have specific issues.');
+      } else {
+        toast.error(`❌ Backend issue: ${testResponse.status} ${testResponse.statusText}`);
+      }
+    } catch (error) {
+      console.error('Backend test failed:', error);
+      toast.error('❌ Cannot reach backend server');
+    }
+  };
+
   const verifyDomain = async (domainId: string) => {
     const domain = domains.find(d => d.id === domainId);
     if (!domain) return;
@@ -409,17 +442,25 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
         domainId,
         domainName: domain.domainName,
         cnameTarget: domain.cnameTarget,
-        verificationToken: domain.verificationToken
+        verificationToken: domain.verificationToken,
+        apiUrl: `${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`,
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'null'
       });
       
-      const response = await axios.post(`${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`, {}, {
+      const verifyUrl = `${API_BASE_URL}/v1/domains/verify?domainId=${domainId}`;
+      console.log('🔍 Making verification request to:', verifyUrl);
+      
+      const response = await axios.post(verifyUrl, {}, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
-      console.log('🔍 Verification response:', response.data);
+      console.log('🔍 Verification response status:', response.status);
+      console.log('🔍 Verification response headers:', response.headers);
+      console.log('🔍 Verification response data:', response.data);
 
       if (response.data.success) {
         // Update the domain in state
@@ -948,7 +989,7 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                   <AlertCircle className="w-4 h-4 mr-2 text-blue-500" />
-                  Troubleshooting Tips
+                  Troubleshooting Steps
                 </h4>
                 <div className="space-y-2 text-sm text-gray-700">
                   <div className="flex items-start space-x-2">
@@ -957,16 +998,32 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">2.</span>
-                    <span>Ensure Cloudflare proxy is OFF (gray cloud, not orange)</span>
+                    <span>Click "Test Backend" to check if the server is reachable</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">3.</span>
-                    <span>Wait 5-10 minutes after DNS changes before verifying</span>
+                    <span>Ensure Cloudflare proxy is OFF (gray cloud, not orange)</span>
                   </div>
                   <div className="flex items-start space-x-2">
                     <span className="text-blue-500 font-bold">4.</span>
-                    <span>Check browser console (F12) for detailed error messages</span>
+                    <span>Open browser console (F12) and check for detailed error logs</span>
                   </div>
+                  <div className="flex items-start space-x-2">
+                    <span className="text-blue-500 font-bold">5.</span>
+                    <span>If DNS ✅ and Backend ✅ but verification fails → Backend bug</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Common Issues */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 className="font-semibold text-yellow-900 mb-2">🔍 Common Backend Issues</h4>
+                <div className="text-sm text-yellow-800 space-y-1">
+                  <div>• <strong>404 Error:</strong> Verification endpoint not implemented</div>
+                  <div>• <strong>500 Error:</strong> Server-side DNS resolution failing</div>
+                  <div>• <strong>403 Error:</strong> Authentication or permission issues</div>
+                  <div>• <strong>Timeout:</strong> Backend taking too long to respond</div>
+                  <div>• <strong>Wrong CNAME target:</strong> Backend expecting different target</div>
                 </div>
               </div>
 
@@ -977,6 +1034,13 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
                 >
                   <Globe className="w-4 h-4 mr-2" />
                   Check DNS
+                </button>
+                <button
+                  onClick={testBackendEndpoint}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Test Backend
                 </button>
                 <button
                   onClick={() => {
