@@ -38,13 +38,16 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
       return;
     }
 
+    // Construct the full domain based on setup type
+    const fullDomain = setupType === 'subdomain' ? `${subdomain}.${cleanDomain}` : cleanDomain;
+
     try {
       setIsAdding(true);
       
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-1-hpyu.onrender.com/api';
       
       const response = await axios.post(`${API_BASE_URL}/v1/domains`, {
-        domainName: cleanDomain,
+        domainName: fullDomain,
         ownerType: 'USER'
       }, {
         headers: {
