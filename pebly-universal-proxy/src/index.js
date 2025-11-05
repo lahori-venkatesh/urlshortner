@@ -50,10 +50,48 @@ export default {
       });
     }
     
-    // Skip if it's your main domains or worker domain
-    if (hostname.includes('pebly.vercel.app') || 
-        hostname.includes('workers.dev') ||
-        hostname.includes('pebly-universal-proxy')) {
+    // Handle root path visits to worker domain
+    if (hostname.includes('workers.dev') && pathname === '/') {
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Pebly Universal Proxy</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .status { color: #28a745; font-size: 18px; margin: 20px 0; }
+            .info { color: #666; margin: 10px 0; }
+            code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🔗 Pebly Universal Proxy</h1>
+            <div class="status">✅ Proxy is running successfully!</div>
+            <div class="info">This is the universal custom domain proxy for Pebly URL shortener.</div>
+            <div class="info">
+              <strong>For users:</strong> Point your custom domain CNAME to:<br>
+              <code>${hostname}</code>
+            </div>
+            <div class="info">
+              <strong>Example:</strong> links.yourdomain.com → CNAME → ${hostname}
+            </div>
+            <hr style="margin: 30px 0;">
+            <div class="info">
+              <a href="/health" style="color: #007bff;">Health Check</a> | 
+              <a href="/debug" style="color: #007bff;">Debug Info</a>
+            </div>
+          </div>
+        </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+    
+    // Skip if it's your main domains
+    if (hostname.includes('pebly.vercel.app')) {
       return fetch(request);
     }
     
