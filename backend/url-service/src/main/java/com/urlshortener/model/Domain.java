@@ -80,8 +80,9 @@ public class Domain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        String backendUrl = System.getenv("BACKEND_URL");
-        this.cnameTarget = backendUrl != null ? backendUrl.replace("https://", "") : "urlshortner-1-hpyu.onrender.com";
+        // Set CNAME target to universal proxy domain (not backend URL)
+        String proxyDomain = System.getenv("PROXY_DOMAIN");
+        this.cnameTarget = proxyDomain != null ? proxyDomain : "pebly.lahorivenkatesh709.workers.dev";
         this.reservedUntil = LocalDateTime.now().plusMinutes(15);
     }
     
