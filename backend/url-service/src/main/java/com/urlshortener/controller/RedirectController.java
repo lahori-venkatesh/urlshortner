@@ -27,6 +27,8 @@ public class RedirectController {
             // Get the host domain from the request - check proxy headers first
             String hostDomain = getOriginalHostDomain(request);
             
+            System.out.println("🔍 Redirect Request - ShortCode: " + shortCode + ", HostDomain: " + hostDomain);
+            
             // Find URL by shortCode and domain for multi-tenant support
             Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
             
@@ -35,7 +37,17 @@ public class RedirectController {
                 urlOpt = urlShorteningService.getByShortCode(shortCode);
             }
             
+            // Additional fallback: try to find by shortCode only (for URLs with wrong domain values)
             if (urlOpt.isEmpty()) {
+                System.out.println("🔍 Trying fallback search for shortCode: " + shortCode);
+                urlOpt = urlShorteningService.findByShortCodeIgnoreDomain(shortCode);
+                if (urlOpt.isPresent()) {
+                    System.out.println("✅ Found URL with fallback search: " + urlOpt.get().getOriginalUrl());
+                }
+            }
+            
+            if (urlOpt.isEmpty()) {
+                System.out.println("❌ URL not found for shortCode: " + shortCode);
                 // Redirect to a 404 page or error page
                 RedirectView redirectView = new RedirectView();
                 redirectView.setUrl("https://pebly.vercel.app/404?error=url-not-found");

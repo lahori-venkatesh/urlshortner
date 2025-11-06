@@ -170,6 +170,14 @@ public class UrlShorteningService {
         return urlOpt;
     }
     
+    /**
+     * Fallback method to find URL by shortCode only, ignoring domain
+     * Used for URLs created with incorrect domain values
+     */
+    public Optional<ShortenedUrl> findByShortCodeIgnoreDomain(String shortCode) {
+        return shortenedUrlRepository.findByShortCode(shortCode);
+    }
+    
     private String extractDomainFromUrl(String url) {
         try {
             java.net.URL parsedUrl = new java.net.URL(url);
