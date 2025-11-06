@@ -1,12 +1,25 @@
 {
+  "functions": {
+    "api/proxy.js": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/debug",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/((?!api|public|_next|favicon.ico|health|debug).*)",
+      "destination": "/api/proxy"
+    },
     {
       "source": "/",
       "destination": "/public/index.html"
-    },
-    {
-      "source": "/((?!api|public|_next|favicon.ico).*)",
-      "destination": "/api/proxy"
     }
   ],
   "buildCommand": "echo 'No build required'",
