@@ -112,9 +112,16 @@ public class RedirectController {
             return xOriginalHost;
         }
         
-        // For direct access to pebly.vercel.app or backend domain
+        // For default domain requests (either direct backend access or via Vercel)
         String serverName = request.getServerName();
-        System.out.println("🌐 Direct Access via Server Name: " + serverName);
+        System.out.println("🌐 Server Name: " + serverName);
+        
+        // Normalize default domain requests to use the frontend domain
+        if (serverName.contains("onrender.com") || serverName.contains("pebly.vercel.app")) {
+            System.out.println("🌐 Normalized to Default Domain: pebly.vercel.app");
+            return "pebly.vercel.app";
+        }
+        
         return serverName;
     }
     
