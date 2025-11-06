@@ -104,7 +104,12 @@ public class UrlShorteningService {
         
         // Store the domain for multi-tenant support
         if (customDomain != null) {
+            // For custom domains, store the custom domain
             shortenedUrl.setDomain(customDomain);
+        } else {
+            // For default domain URLs, store the default domain (not the original URL's domain)
+            String defaultDomain = extractDomainFromUrl(shortUrlDomain);
+            shortenedUrl.setDomain(defaultDomain);
         }
         
         shortenedUrl.setCustomAlias(customAlias);
