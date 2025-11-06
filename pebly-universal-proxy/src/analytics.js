@@ -91,7 +91,7 @@ export class ProxyAnalytics {
 export class HealthCheck {
   static async checkBackendHealth(backendUrl) {
     try {
-      const response = await fetch(`${backendUrl}/api/health`, {
+      const response = await fetch(`${backendUrl}/actuator/health`, {
         method: 'GET',
         headers: { 'User-Agent': 'Pebly-Proxy-HealthCheck/2.0' }
       });

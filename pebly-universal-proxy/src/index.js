@@ -35,7 +35,7 @@ export default {
         search,
         method: request.method,
         headers: Object.fromEntries(request.headers.entries()),
-        backendUrl: BACKEND_URL,
+        backendUrl: env.BACKEND_URL || 'https://urlshortner-1-hpyu.onrender.com',
         proxyVersion: '2.0',
         cloudflareRay: request.headers.get('CF-Ray'),
         country: request.headers.get('CF-IPCountry'),
