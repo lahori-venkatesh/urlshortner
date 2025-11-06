@@ -5,6 +5,7 @@ import com.urlshortener.service.UrlShorteningService;
 import com.urlshortener.service.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -21,6 +22,42 @@ public class RedirectController {
     @Autowired(required = false)
     private AnalyticsService analyticsService;
     
+    @GetMapping("/debug/{shortCode}")
+    public ResponseEntity<String> debugUrl(@PathVariable String shortCode, HttpServletRequest request) {
+        try {
+            String hostDomain = getOriginalHostDomain(request);
+            
+            StringBuilder debug = new StringBuilder();
+            debug.append("🔍 DEBUG INFO:\n");
+            debug.append("ShortCode: ").append(shortCode).append("\n");
+            debug.append("HostDomain: ").append(hostDomain).append("\n");
+            debug.append("ServerName: ").append(request.getServerName()).append("\n");
+            
+            // Try all lookup methods
+            Optional<ShortenedUrl> urlOpt1 = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
+            debug.append("Lookup 1 (shortCode + domain): ").append(urlOpt1.isPresent() ? "FOUND" : "NOT FOUND").append("\n");
+            
+            Optional<ShortenedUrl> urlOpt2 = urlShorteningService.getByShortCode(shortCode);
+            debug.append("Lookup 2 (shortCode only): ").append(urlOpt2.isPresent() ? "FOUND" : "NOT FOUND").append("\n");
+            
+            Optional<ShortenedUrl> urlOpt3 = urlShorteningService.findByShortCodeIgnoreDomain(shortCode);
+            debug.append("Lookup 3 (ignore domain): ").append(urlOpt3.isPresent() ? "FOUND" : "NOT FOUND").append("\n");
+            
+            if (urlOpt3.isPresent()) {
+                ShortenedUrl url = urlOpt3.get();
+                debug.append("Found URL:\n");
+                debug.append("  Original: ").append(url.getOriginalUrl()).append("\n");
+                debug.append("  Domain: ").append(url.getDomain()).append("\n");
+                debug.append("  ShortUrl: ").append(url.getShortUrl()).append("\n");
+            }
+            
+            return ResponseEntity.ok(debug.toString());
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/{shortCode}")
     public RedirectView redirect(@PathVariable String shortCode, HttpServletRequest request) {
         try {
