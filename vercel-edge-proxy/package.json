@@ -1,0 +1,14 @@
+{
+  "name": "pebly-edge-proxy",
+  "version": "1.0.0",
+  "description": "Universal Custom Domain Proxy for Pebly URL Shortener",
+  "main": "edge-functions/proxy.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["proxy", "custom-domain", "url-shortener", "edge-function"],
+  "author": "Pebly",
+  "license": "MIT"
+}

@@ -18,11 +18,10 @@ vars = { BACKEND_URL = "https://urlshortner-1-hpyu.onrender.com", PROXY_VERSION 
 name = "pebly-proxy-dev"
 vars = { BACKEND_URL = "http://localhost:8080", PROXY_VERSION = "2.0-dev" }
 
-# Optional: Custom domain for the worker
-# Uncomment and configure if you want to use your own domain
-# routes = [
-#   { pattern = "proxy.pebly.com/*", zone_name = "pebly.com" }
-# ]
+# Custom domain routes for the worker
+routes = [
+  { pattern = "go.pdfcircle.com/*", zone_name = "pdfcircle.com" }
+]
 
 # Analytics and monitoring
 [observability]

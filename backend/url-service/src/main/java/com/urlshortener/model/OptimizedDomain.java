@@ -132,9 +132,9 @@ public class OptimizedDomain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        // Set CNAME target to universal proxy domain (not backend URL)
+        // Set CNAME target to universal proxy domain (Vercel Edge Proxy)
         String proxyDomain = System.getenv("PROXY_DOMAIN");
-        this.cnameTarget = proxyDomain != null ? proxyDomain : "pebly.lahorivenkatesh709.workers.dev";
+        this.cnameTarget = proxyDomain != null ? proxyDomain : "pebly-with-proxy.vercel.app";
         
         // Initialize ownership history
         this.ownershipHistory.add(new OwnershipHistory(

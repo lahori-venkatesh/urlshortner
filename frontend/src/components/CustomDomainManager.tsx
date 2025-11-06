@@ -54,8 +54,8 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
   // Add immediate console log to verify component is being called
   console.log('🚀 CustomDomainManager component started rendering');
   
-  // Universal proxy domain configuration
-  const PROXY_DOMAIN = process.env.REACT_APP_PROXY_DOMAIN || 'pebly.lahorivenkatesh709.workers.dev';
+  // Universal proxy domain configuration - now using Vercel Edge Proxy
+  const PROXY_DOMAIN = process.env.REACT_APP_PROXY_DOMAIN || 'pebly-with-proxy.vercel.app';
   
   const { user, token } = useAuth();
   console.log('🔍 Auth data:', { user: !!user, token: !!token, userPlan: user?.plan });

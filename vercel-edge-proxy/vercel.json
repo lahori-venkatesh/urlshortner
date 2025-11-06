@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/public/index.html"
+    },
+    {
+      "source": "/((?!api|public|_next|favicon.ico).*)",
+      "destination": "/api/proxy"
+    }
+  ],
+  "buildCommand": "echo 'No build required'",
+  "outputDirectory": "public"
+}

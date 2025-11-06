@@ -23,8 +23,8 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [addedDomain, setAddedDomain] = useState<any>(null);
 
-  // Universal proxy domain configuration
-  const proxyDomain = process.env.REACT_APP_PROXY_DOMAIN || 'pebly.lahorivenkatesh709.workers.dev';
+  // Universal proxy domain configuration - now using Vercel Edge Proxy
+  const proxyDomain = process.env.REACT_APP_PROXY_DOMAIN || 'pebly-with-proxy.vercel.app';
 
   if (!isOpen) return null;
 

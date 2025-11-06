@@ -1,12 +1,35 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "installCommand": "npm install",
   "redirects": [
     {
       "source": "/([a-zA-Z0-9]{4,12})",
       "destination": "https://urlshortner-1-hpyu.onrender.com/$1",
-      "statusCode": 307
+      "statusCode": 307,
+      "has": [
+        {
+          "type": "host",
+          "value": "pebly.vercel.app"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/proxy/(.*)",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/([a-zA-Z0-9]{4,12})",
+      "destination": "/api/proxy",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?!pebly\\.vercel\\.app).*"
+        }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "destination": "https://urlshortner-1-hpyu.onrender.com/api/$1"
