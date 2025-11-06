@@ -66,20 +66,53 @@ public class RedirectController {
             
             System.out.println("🔍 Redirect Request - ShortCode: " + shortCode + ", HostDomain: " + hostDomain);
             
-            // Find URL by shortCode and domain for multi-tenant support
-            Optional<ShortenedUrl> urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
+            // Enhanced URL lookup with multiple fallback strategies
+            Optional<ShortenedUrl> urlOpt = Optional.empty();
             
-            // If not found with custom domain, try with default domain (fallback)
-            if (urlOpt.isEmpty()) {
-                urlOpt = urlShorteningService.getByShortCode(shortCode);
+            try {
+                // Strategy 1: Find by shortCode and exact domain match
+                urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, hostDomain);
+                if (urlOpt.isPresent()) {
+                    System.out.println("✅ Found URL with exact domain match: " + hostDomain);
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Domain lookup failed, trying fallbacks: " + e.getMessage());
             }
             
-            // Additional fallback: try to find by shortCode only (for URLs with wrong domain values)
+            // Strategy 2: For default domain, try with null domain (legacy URLs)
+            if (urlOpt.isEmpty() && "pebly.vercel.app".equals(hostDomain)) {
+                try {
+                    urlOpt = urlShorteningService.getByShortCodeAndDomain(shortCode, null);
+                    if (urlOpt.isPresent()) {
+                        System.out.println("✅ Found URL with null domain (legacy default domain URL)");
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Null domain lookup failed: " + e.getMessage());
+                }
+            }
+            
+            // Strategy 3: Try shortCode only (most permissive fallback)
             if (urlOpt.isEmpty()) {
-                System.out.println("🔍 Trying fallback search for shortCode: " + shortCode);
-                urlOpt = urlShorteningService.findByShortCodeIgnoreDomain(shortCode);
-                if (urlOpt.isPresent()) {
-                    System.out.println("✅ Found URL with fallback search: " + urlOpt.get().getOriginalUrl());
+                try {
+                    urlOpt = urlShorteningService.getByShortCode(shortCode);
+                    if (urlOpt.isPresent()) {
+                        System.out.println("✅ Found URL with shortCode-only lookup");
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ ShortCode-only lookup failed: " + e.getMessage());
+                }
+            }
+            
+            // Strategy 4: Final fallback using ignore domain method
+            if (urlOpt.isEmpty()) {
+                try {
+                    System.out.println("🔍 Trying final fallback search for shortCode: " + shortCode);
+                    urlOpt = urlShorteningService.findByShortCodeIgnoreDomain(shortCode);
+                    if (urlOpt.isPresent()) {
+                        System.out.println("✅ Found URL with fallback search: " + urlOpt.get().getOriginalUrl());
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Final fallback failed: " + e.getMessage());
                 }
             }
             

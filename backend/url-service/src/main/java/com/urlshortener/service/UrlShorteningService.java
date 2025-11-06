@@ -157,22 +157,53 @@ public class UrlShorteningService {
     
     /**
      * Find URL by shortCode and domain for multi-tenant support
+     * Enhanced with better error handling and fallback logic
      */
-    @Cacheable(value = "short_urls", key = "#shortCode + ':' + #domain")
     public Optional<ShortenedUrl> getByShortCodeAndDomain(String shortCode, String domain) {
-        // First try to find by shortCode and exact domain match
-        Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, domain);
-        
-        // If not found and domain is not the default, try default domain
-        if (urlOpt.isEmpty() && !domain.equals(extractDomainFromUrl(shortUrlDomain))) {
-            urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, null);
-            // Also try finding by shortCode only (for backward compatibility)
-            if (urlOpt.isEmpty()) {
-                urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
-            }
+        try {
+            // Try with caching first
+            return getByShortCodeAndDomainCached(shortCode, domain);
+        } catch (Exception e) {
+            logger.warn("Cache lookup failed for shortCode: {} domain: {}, falling back to direct DB query: {}", 
+                       shortCode, domain, e.getMessage());
+            // Fallback to direct database query without caching
+            return getByShortCodeAndDomainDirect(shortCode, domain);
         }
-        
-        return urlOpt;
+    }
+    
+    @Cacheable(value = "short_urls", key = "#shortCode + ':' + #domain")
+    public Optional<ShortenedUrl> getByShortCodeAndDomainCached(String shortCode, String domain) {
+        return getByShortCodeAndDomainDirect(shortCode, domain);
+    }
+    
+    /**
+     * Direct database lookup without caching (fallback method)
+     */
+    public Optional<ShortenedUrl> getByShortCodeAndDomainDirect(String shortCode, String domain) {
+        try {
+            // First try to find by shortCode and exact domain match
+            Optional<ShortenedUrl> urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, domain);
+            
+            // If not found and we have a domain, try some fallback strategies
+            if (urlOpt.isEmpty() && domain != null) {
+                String defaultDomain = extractDomainFromUrl(shortUrlDomain);
+                
+                // For default domain requests, also try with null domain (legacy URLs)
+                if (domain.equals(defaultDomain)) {
+                    urlOpt = shortenedUrlRepository.findByShortCodeAndDomain(shortCode, null);
+                }
+                
+                // If still not found, try shortCode only (most permissive)
+                if (urlOpt.isEmpty()) {
+                    urlOpt = shortenedUrlRepository.findByShortCode(shortCode);
+                }
+            }
+            
+            return urlOpt;
+        } catch (Exception e) {
+            logger.error("Database lookup failed for shortCode: {} domain: {}", shortCode, domain, e);
+            return Optional.empty();
+        }
     }
     
     /**

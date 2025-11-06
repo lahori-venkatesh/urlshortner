@@ -36,7 +36,8 @@ public class CacheConfig {
             "dashboardOverview",
             "realtimeAnalytics",
             "clickCounts",
-            "countryStats"
+            "countryStats",
+            "short_urls"  // Added missing cache for URL lookups
         ));
         
         cacheManager.setAllowNullValues(false);
