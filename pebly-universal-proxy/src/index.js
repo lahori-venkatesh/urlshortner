@@ -131,34 +131,46 @@ export default {
       // Create request to your backend
       const backendUrl = `${BACKEND_URL}${pathname}${search}`;
       
+      // ✅ CRITICAL FIX: Clone ALL incoming headers first (preserves Auth, cookies, etc.)
+      const headers = new Headers(request.headers);
+      
+      // Override only what must change for Render's host validation
+      headers.set('Host', new URL(BACKEND_URL).hostname);
+      
+      // Only remove Origin for non-GET requests to avoid CORS preflight issues
+      // GET requests for redirects should keep Origin for proper CORS handling
+      if (request.method !== 'GET' && request.method !== 'HEAD') {
+        headers.delete('Origin');
+      }
+      
+      // Custom domain headers for backend to recognize original domain
+      headers.set('X-Forwarded-Host', hostname);
+      headers.set('X-Original-Host', hostname);
+      headers.set('X-Forwarded-Proto', 'https');
+      headers.set('X-Forwarded-For', request.headers.get('CF-Connecting-IP') || 'unknown');
+      headers.set('X-Real-IP', request.headers.get('CF-Connecting-IP') || 'unknown');
+      
+      // Cloudflare specific headers for analytics
+      headers.set('CF-Ray', request.headers.get('CF-Ray') || 'unknown');
+      headers.set('CF-Country', request.headers.get('CF-IPCountry') || 'unknown');
+      
+      // Proxy metadata
+      headers.set('X-Proxy-Version', '2.0');
+      headers.set('X-Proxy-Timestamp', new Date().toISOString());
+      
+      // Optional cleanup of Cloudflare internal headers
+      headers.delete('cf-connecting-ip');
+      headers.delete('cf-visitor');
+      
+      // Debug logging (only if enabled)
+      if (env.DEBUG === 'true') {
+        console.log(`🔍 Proxying: ${hostname}${pathname} → ${backendUrl}`);
+        console.log(`📋 Headers: Host=${headers.get('Host')}, X-Forwarded-Host=${headers.get('X-Forwarded-Host')}`);
+      }
+      
       const backendRequest = new Request(backendUrl, {
         method: request.method,
-        headers: {
-          // Forward important headers
-          'User-Agent': request.headers.get('User-Agent') || 'Pebly-Universal-Proxy/2.0',
-          'Accept': request.headers.get('Accept') || '*/*',
-          'Accept-Language': request.headers.get('Accept-Language') || 'en-US,en;q=0.9',
-          'Accept-Encoding': request.headers.get('Accept-Encoding') || 'gzip, deflate, br',
-          
-          // Custom headers for your backend
-          'X-Forwarded-Host': hostname,
-          'X-Original-Host': hostname,
-          'X-Forwarded-Proto': 'https',
-          'X-Forwarded-For': request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown',
-          'X-Real-IP': request.headers.get('CF-Connecting-IP') || 'unknown',
-          
-          // Cloudflare specific headers for analytics
-          'CF-Ray': request.headers.get('CF-Ray') || 'unknown',
-          'CF-Country': request.headers.get('CF-IPCountry') || 'unknown',
-          'CF-Visitor': request.headers.get('CF-Visitor') || '{"scheme":"https"}',
-          
-          // Additional analytics headers
-          'X-Proxy-Version': '2.0',
-          'X-Proxy-Timestamp': new Date().toISOString(),
-          
-          // Set host to backend
-          'Host': new URL(BACKEND_URL).hostname
-        },
+        headers: headers,
         body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
       });
       
@@ -172,17 +184,23 @@ export default {
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get('location');
         if (location) {
-          console.log(`🔄 Redirecting to: ${location}`);
+          if (env.DEBUG === 'true') {
+            console.log(`🔄 Redirecting to: ${location}`);
+          }
           
-          // Create redirect response with analytics headers
-          const redirectResponse = Response.redirect(location, response.status);
+          // Create redirect response with proper headers
+          const redirectResponse = new Response(null, {
+            status: response.status,
+            headers: {
+              'Location': location,
+              'X-Proxy-Host': hostname,
+              'X-Proxy-Version': '2.0',
+              'X-Redirect-Time': new Date().toISOString(),
+              'Cache-Control': 'public, max-age=300'
+            }
+          });
           
-          // Add analytics headers to redirect
-          redirectResponse.headers.set('X-Proxy-Host', hostname);
-          redirectResponse.headers.set('X-Proxy-Version', '2.0');
-          redirectResponse.headers.set('X-Redirect-Time', new Date().toISOString());
-          
-          // Cache successful redirects briefly
+          // Cache successful 301 redirects only
           if (request.method === 'GET' && response.status === 301) {
             ctx.waitUntil(cache.put(request, redirectResponse.clone()));
           }
@@ -204,9 +222,11 @@ export default {
           statusText: response.statusText,
           headers: {
             'Content-Type': contentType,
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': request.headers.get('Origin') || '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Credentials': 'true',
+            'Vary': 'Origin',
             'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=300',
             'X-Powered-By': 'Pebly Universal Proxy v2.0',
             'X-Proxy-Host': hostname,

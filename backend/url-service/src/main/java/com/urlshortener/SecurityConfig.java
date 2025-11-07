@@ -38,6 +38,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/database/**").permitAll()
                 .requestMatchers("/api/domains/**").permitAll()
                 .requestMatchers("/api/monitoring/**").permitAll()
+                // Redirect endpoints - CRITICAL for custom domains
+                .requestMatchers("/{shortCode}").permitAll()
+                .requestMatchers("/debug/{shortCode}").permitAll()
+                .requestMatchers("/health").permitAll()
+                .requestMatchers("/_health").permitAll()
+                .requestMatchers("/debug").permitAll()
+                .requestMatchers("/_debug").permitAll()
                 // Allow anonymous creation but protect management endpoints
                 .requestMatchers(HttpMethod.POST, "/api/v1/urls").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/qr").permitAll()
