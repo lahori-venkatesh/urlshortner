@@ -70,7 +70,19 @@ const UnifiedDashboard: React.FC = () => {
       setActiveSection('file-to-url');
     } else if (path === '/dashboard/analytics') {
       console.log('🔍 Setting activeSection to analytics');
-      setActiveSection('analytics');
+      // Check if user has PRO or BUSINESS plan
+      if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
+        setActiveSection('analytics');
+      } else {
+        // Redirect free users to dashboard and show upgrade modal
+        console.log('🔍 Free user trying to access analytics - redirecting to dashboard');
+        navigate('/dashboard');
+        upgradeModal.open(
+          'Analytics',
+          'Unlock detailed analytics and insights with PRO or BUSINESS plan',
+          false
+        );
+      }
     } else if (path === '/dashboard/domains') {
       console.log('🔍 Setting activeSection to domains');
       setActiveSection('domains');
@@ -149,12 +161,13 @@ const UnifiedDashboard: React.FC = () => {
       icon: Upload,
       description: currentScope.type === 'TEAM' ? 'Team File Links' : 'File to URL Links'
     },
-    {
+    // Analytics (PRO and BUSINESS only)
+    ...(user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS') ? [{
       id: 'analytics' as SidebarSection,
       label: 'Analytics',
       icon: BarChart3,
       description: currentScope.type === 'TEAM' ? 'Team Performance' : 'Performance Insights'
-    },
+    }] : []),
     // Custom Domains (Available for all users, with upgrade prompts for free users)
     {
       id: 'domains' as SidebarSection,
@@ -218,7 +231,19 @@ const UnifiedDashboard: React.FC = () => {
           setActiveSection('create');
         }} />;
       case 'analytics':
-        return <AnalyticsSection />;
+        // Only allow PRO and BUSINESS users to access analytics
+        if (user?.plan?.includes('PRO') || user?.plan?.includes('BUSINESS')) {
+          return <AnalyticsSection />;
+        } else {
+          // Redirect free users to dashboard
+          navigate('/dashboard');
+          upgradeModal.open(
+            'Analytics',
+            'Unlock detailed analytics and insights with PRO or BUSINESS plan',
+            false
+          );
+          return <DashboardOverview onCreateClick={handleCreateClick} />;
+        }
       case 'domains':
         console.log('🔍 UnifiedDashboard - Rendering CustomDomainManager', {
           currentScope: currentScope.type,
