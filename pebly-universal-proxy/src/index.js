@@ -95,6 +95,14 @@ export default {
       return fetch(request);
     }
     
+    // Handle worker domain requests - map to customer domains
+    let actualHostname = hostname;
+    if (hostname.includes('workers.dev')) {
+      // Map worker domain to customer domain based on URL pattern
+      // This is a temporary solution until custom domains are properly configured
+      actualHostname = mapWorkerDomainToCustomer(pathname, hostname);
+    }
+    
     // Your backend URL - can be configured via environment variables
     const BACKEND_URL = env.BACKEND_URL || 'https://urlshortner-1-hpyu.onrender.com';
     

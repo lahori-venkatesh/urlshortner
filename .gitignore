@@ -184,3 +184,7 @@ CREDENTIALS.md
 credentials.md
 secrets.md
 SECRETS.md
+
+# Cloudflare API credentials (use environment variables instead)
+**/application-cloudflare.properties
+application-cloudflare.properties
