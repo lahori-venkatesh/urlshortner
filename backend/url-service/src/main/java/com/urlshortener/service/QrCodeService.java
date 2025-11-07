@@ -182,15 +182,13 @@ public class QrCodeService {
             throw new RuntimeException("Unauthorized to delete this QR Code");
         }
         
-        // Soft delete
-        existing.setActive(false);
-        existing.setUpdatedAt(LocalDateTime.now());
-        qrCodeRepository.save(existing);
+        // Hard delete - actually remove from database
+        qrCodeRepository.delete(existing);
         
         // Invalidate relevant caches
         cacheService.clearCache("userQRCodes", userId);
         
-        logger.info("Deleted QR code: {} for user: {}", qrCodeId, userId);
+        logger.info("Permanently deleted QR code: {} for user: {}", qrCodeId, userId);
     }
     
     public void recordScan(String qrCodeId, String ipAddress, String userAgent, 

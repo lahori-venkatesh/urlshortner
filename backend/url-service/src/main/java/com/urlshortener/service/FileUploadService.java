@@ -270,23 +270,21 @@ public class FileUploadService {
             throw new RuntimeException("Unauthorized to delete this file");
         }
         
-        // Delete from GridFS
+        // Delete from GridFS (actual file content)
         if (gridFsTemplate != null) {
             gridFsTemplate.delete(new Query(Criteria.where("filename").is(fileCode)));
+            logger.info("Deleted file content from GridFS: {}", fileCode);
         } else {
             logger.warn("GridFS not available, skipping file content deletion");
         }
         
-        // Soft delete from database
-        existing.setActive(false);
-        existing.setStatus("DELETED");
-        existing.setUpdatedAt(LocalDateTime.now());
-        uploadedFileRepository.save(existing);
+        // Hard delete from database - actually remove the record
+        uploadedFileRepository.delete(existing);
         
         // Invalidate relevant caches
         cacheService.clearCache("userFiles", userId);
         
-        logger.info("Deleted file: {} for user: {}", fileCode, userId);
+        logger.info("Permanently deleted file: {} for user: {}", fileCode, userId);
     }
     
     private void validateFile(MultipartFile file) {

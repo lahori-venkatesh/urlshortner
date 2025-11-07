@@ -309,16 +309,14 @@ public class UrlShorteningService {
             throw new RuntimeException("Unauthorized to delete this URL");
         }
         
-        // Soft delete
-        existing.setActive(false);
-        existing.setUpdatedAt(LocalDateTime.now());
-        shortenedUrlRepository.save(existing);
+        // Hard delete - actually remove from database
+        shortenedUrlRepository.delete(existing);
         
         // Invalidate relevant caches
         cacheService.clearCache("userUrls", userId);
         cacheService.invalidateUrlAnalytics(shortCode, userId);
         
-        logger.info("Deleted URL: {} for user: {}", shortCode, userId);
+        logger.info("Permanently deleted URL: {} for user: {}", shortCode, userId);
     }
     
     private String generateUniqueShortCode() {
