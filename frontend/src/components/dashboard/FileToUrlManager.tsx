@@ -51,6 +51,8 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'image' | 'document' | 'video' | 'audio' | 'other'>('all');
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Format the raw data from API
   const fileLinks: FileLink[] = rawFiles ? rawFiles.map((file: any) => ({
@@ -173,6 +175,75 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
     } catch (error) {
       console.error('Failed to delete file:', error);
       toast.error('Failed to delete file');
+    }
+  };
+
+  const toggleSelectFile = (fileId: string) => {
+    const newSelected = new Set(selectedFiles);
+    if (newSelected.has(fileId)) {
+      newSelected.delete(fileId);
+    } else {
+      newSelected.add(fileId);
+    }
+    setSelectedFiles(newSelected);
+  };
+
+  const toggleSelectAll = (filteredLinks: FileLink[]) => {
+    if (selectedFiles.size === filteredLinks.length) {
+      setSelectedFiles(new Set());
+    } else {
+      setSelectedFiles(new Set(filteredLinks.map(file => file.id)));
+    }
+  };
+
+  const bulkDeleteFiles = async () => {
+    if (selectedFiles.size === 0) {
+      toast.error('No files selected');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedFiles.size} file(s)? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const fileCodesToDelete = Array.from(selectedFiles)
+        .map(fileId => fileLinks.find(file => file.id === fileId)?.shortCode)
+        .filter(Boolean);
+
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/files/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileCodes: fileCodesToDelete,
+          userId: user?.id
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setSelectedFiles(new Set());
+        refetch();
+        toast.success(`Successfully deleted ${result.successCount} file(s)`);
+        if (result.failCount > 0) {
+          toast.error(`Failed to delete ${result.failCount} file(s)`);
+        }
+      } else {
+        toast.error(result.message || 'Failed to delete files');
+      }
+    } catch (error) {
+      console.error('Failed to bulk delete files:', error);
+      toast.error('Failed to delete files');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -361,7 +432,17 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
       {/* File Links Management */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Your File Links ({fileLinks.length})</h3>
+          <div className="flex items-center space-x-3">
+            {filteredLinks.length > 0 && (
+              <input
+                type="checkbox"
+                checked={selectedFiles.size === filteredLinks.length && filteredLinks.length > 0}
+                onChange={() => toggleSelectAll(filteredLinks)}
+                className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+              />
+            )}
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Your File Links ({fileLinks.length})</h3>
+          </div>
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="relative">
@@ -389,6 +470,31 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
             </select>
           </div>
         </div>
+
+        {/* Bulk Actions */}
+        {selectedFiles.size > 0 && (
+          <div className="mb-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-orange-900">
+                {selectedFiles.size} file(s) selected
+              </span>
+              <button
+                onClick={() => setSelectedFiles(new Set())}
+                className="text-sm text-orange-600 hover:text-orange-800"
+              >
+                Clear selection
+              </button>
+            </div>
+            <button
+              onClick={bulkDeleteFiles}
+              disabled={isDeleting}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{isDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+            </button>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -446,7 +552,16 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
             {filteredLinks.map((fileLink) => (
               <div key={fileLink.id} className="border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow bg-white">
                 {/* Mobile-First File Card Layout */}
-                <div className="flex flex-col space-y-3">
+                <div className="flex items-start space-x-3">
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.has(fileLink.id)}
+                    onChange={() => toggleSelectFile(fileLink.id)}
+                    className="mt-1 w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  
+                  <div className="flex-1 flex flex-col space-y-3">
                   {/* Header Row - File Icon, Name and Size */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -559,6 +674,7 @@ const FileToUrlManager: React.FC<FileToUrlManagerProps> = ({ onCreateClick }) =>
                       </button>
                     </div>
                   </div>
+                </div>
                 </div>
               </div>
             ))}

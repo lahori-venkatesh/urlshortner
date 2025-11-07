@@ -121,6 +121,8 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
   const [filterBy, setFilterBy] = useState<'all' | 'favorites' | 'hidden' | 'dynamic'>('all');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [selectedQRCodes, setSelectedQRCodes] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Format the raw data from API
   const qrCodes: QRCodeData[] = rawQRCodes ? rawQRCodes.map((qr: any) => ({
@@ -282,6 +284,73 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       toast.error('Failed to delete QR code');
     }
     setActiveDropdown(null);
+  };
+
+  const toggleSelectQR = (qrId: string) => {
+    const newSelected = new Set(selectedQRCodes);
+    if (newSelected.has(qrId)) {
+      newSelected.delete(qrId);
+    } else {
+      newSelected.add(qrId);
+    }
+    setSelectedQRCodes(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedQRCodes.size === filteredQRCodes.length) {
+      setSelectedQRCodes(new Set());
+    } else {
+      setSelectedQRCodes(new Set(filteredQRCodes.map(qr => qr.id)));
+    }
+  };
+
+  const bulkDeleteQRCodes = async () => {
+    if (selectedQRCodes.size === 0) {
+      toast.error('No QR codes selected');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedQRCodes.size} QR code(s)? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const qrCodeIds = Array.from(selectedQRCodes);
+
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/qr/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          qrCodeIds: qrCodeIds,
+          userId: user?.id
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setSelectedQRCodes(new Set());
+        refetch();
+        toast.success(`Successfully deleted ${result.successCount} QR code(s)`);
+        if (result.failCount > 0) {
+          toast.error(`Failed to delete ${result.failCount} QR code(s)`);
+        }
+      } else {
+        toast.error(result.message || 'Failed to delete QR codes');
+      }
+    } catch (error) {
+      console.error('Failed to bulk delete QR codes:', error);
+      toast.error('Failed to delete QR codes');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const downloadQR = async (qr: QRCodeData) => {
@@ -538,9 +607,19 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
       {/* Controls */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-            Your QR Codes ({filteredQRCodes.length})
-          </h3>
+          <div className="flex items-center space-x-3">
+            {filteredQRCodes.length > 0 && (
+              <input
+                type="checkbox"
+                checked={selectedQRCodes.size === filteredQRCodes.length && filteredQRCodes.length > 0}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+              />
+            )}
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+              Your QR Codes ({filteredQRCodes.length})
+            </h3>
+          </div>
           
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             {/* Search */}
@@ -608,6 +687,31 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
             </button>
           </div>
         </div>
+
+        {/* Bulk Actions */}
+        {selectedQRCodes.size > 0 && (
+          <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-purple-900">
+                {selectedQRCodes.size} QR code(s) selected
+              </span>
+              <button
+                onClick={() => setSelectedQRCodes(new Set())}
+                className="text-sm text-purple-600 hover:text-purple-800"
+              >
+                Clear selection
+              </button>
+            </div>
+            <button
+              onClick={bulkDeleteQRCodes}
+              disabled={isDeleting}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{isDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+            </button>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -683,7 +787,16 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                 className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-all duration-200"
               >
                 {/* Mobile-First QR Card Layout */}
-                <div className="flex flex-col space-y-3">
+                <div className="flex items-start space-x-3">
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedQRCodes.has(qr.id)}
+                    onChange={() => toggleSelectQR(qr.id)}
+                    className="mt-1 w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  
+                  <div className="flex-1 flex flex-col space-y-3">
                   {/* Header Row - Title and Status */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -786,6 +899,7 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                     </div>
                   </div>
                 </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -799,6 +913,14 @@ const QRManageSection: React.FC<QRManageSectionProps> = ({ onCreateClick }) => {
                 className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 group"
               >
                 <div className="flex items-center justify-between">
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedQRCodes.has(qr.id)}
+                    onChange={() => toggleSelectQR(qr.id)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mr-4"
+                  />
+                  
                   <div className="flex items-center space-x-4 flex-1 min-w-0">
                     {/* QR Preview */}
                     <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
