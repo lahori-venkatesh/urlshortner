@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @RestController
@@ -288,6 +289,58 @@ public class QrCodeController {
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/bulk-delete")
+    public ResponseEntity<Map<String, Object>> bulkDeleteQrCodes(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> qrCodeIds = (List<String>) request.get("qrCodeIds");
+            String userId = (String) request.get("userId");
+            
+            if (qrCodeIds == null || qrCodeIds.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "No QR codes selected for deletion");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (userId == null || userId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "User ID is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            List<String> errors = new ArrayList<>();
+            
+            for (String qrCodeId : qrCodeIds) {
+                try {
+                    qrCodeService.deleteQrCode(qrCodeId, userId);
+                    successCount++;
+                } catch (Exception e) {
+                    failCount++;
+                    errors.add(qrCodeId + ": " + e.getMessage());
+                }
+            }
+            
+            response.put("success", true);
+            response.put("message", String.format("Deleted %d QR codes successfully", successCount));
+            response.put("successCount", successCount);
+            response.put("failCount", failCount);
+            if (!errors.isEmpty()) {
+                response.put("errors", errors);
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Bulk delete failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
     

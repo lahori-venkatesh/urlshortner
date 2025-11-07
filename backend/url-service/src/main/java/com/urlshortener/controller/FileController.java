@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @RestController
@@ -254,6 +255,58 @@ public class FileController {
             response.put("success", false);
             response.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/bulk-delete")
+    public ResponseEntity<Map<String, Object>> bulkDeleteFiles(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> fileCodes = (List<String>) request.get("fileCodes");
+            String userId = (String) request.get("userId");
+            
+            if (fileCodes == null || fileCodes.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "No files selected for deletion");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (userId == null || userId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "User ID is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            List<String> errors = new ArrayList<>();
+            
+            for (String fileCode : fileCodes) {
+                try {
+                    fileUploadService.deleteFile(fileCode, userId);
+                    successCount++;
+                } catch (Exception e) {
+                    failCount++;
+                    errors.add(fileCode + ": " + e.getMessage());
+                }
+            }
+            
+            response.put("success", true);
+            response.put("message", String.format("Deleted %d files successfully", successCount));
+            response.put("successCount", successCount);
+            response.put("failCount", failCount);
+            if (!errors.isEmpty()) {
+                response.put("errors", errors);
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Bulk delete failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
     

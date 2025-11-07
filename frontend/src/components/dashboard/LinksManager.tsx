@@ -46,6 +46,8 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'clicks' | 'url'>('date');
   const [filterBy, setFilterBy] = useState<'all' | 'url' | 'qr' | 'file'>('all');
+  const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Format the raw data from API
   const links: ShortenedLink[] = rawLinks ? rawLinks.map((link: any) => ({
@@ -130,6 +132,75 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
     } catch (error) {
       console.error('Failed to delete link:', error);
       toast.error('Failed to delete link');
+    }
+  };
+
+  const toggleSelectLink = (linkId: string) => {
+    const newSelected = new Set(selectedLinks);
+    if (newSelected.has(linkId)) {
+      newSelected.delete(linkId);
+    } else {
+      newSelected.add(linkId);
+    }
+    setSelectedLinks(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLinks.size === filteredLinks.length) {
+      setSelectedLinks(new Set());
+    } else {
+      setSelectedLinks(new Set(filteredLinks.map(link => link.id)));
+    }
+  };
+
+  const bulkDeleteLinks = async () => {
+    if (selectedLinks.size === 0) {
+      toast.error('No links selected');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedLinks.size} link(s)? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const shortCodesToDelete = Array.from(selectedLinks)
+        .map(linkId => links.find(link => link.id === linkId)?.shortCode)
+        .filter(Boolean);
+
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${apiUrl}/v1/urls/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          shortCodes: shortCodesToDelete,
+          userId: user?.id
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setSelectedLinks(new Set());
+        refetch();
+        toast.success(`Successfully deleted ${result.successCount} link(s)`);
+        if (result.failCount > 0) {
+          toast.error(`Failed to delete ${result.failCount} link(s)`);
+        }
+      } else {
+        toast.error(result.message || 'Failed to delete links');
+      }
+    } catch (error) {
+      console.error('Failed to bulk delete links:', error);
+      toast.error('Failed to delete links');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -377,6 +448,31 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
           </div>
         </div>
 
+        {/* Bulk Actions */}
+        {selectedLinks.size > 0 && (
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedLinks.size} link(s) selected
+              </span>
+              <button
+                onClick={() => setSelectedLinks(new Set())}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Clear selection
+              </button>
+            </div>
+            <button
+              onClick={bulkDeleteLinks}
+              disabled={isDeleting}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{isDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+            </button>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
@@ -406,9 +502,21 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
 
       {/* Links List */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Your Links ({filteredLinks.length})
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            {filteredLinks.length > 0 && (
+              <input
+                type="checkbox"
+                checked={selectedLinks.size === filteredLinks.length && filteredLinks.length > 0}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+            )}
+            <h3 className="text-lg font-semibold text-gray-900">
+              Your Links ({filteredLinks.length})
+            </h3>
+          </div>
+        </div>
         
         {filteredLinks.length === 0 ? (
           <div className="text-center py-8">
@@ -420,7 +528,16 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
             {filteredLinks.map((link) => (
               <div key={link.id} className="border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-shadow bg-white">
                 {/* Mobile-First Layout */}
-                <div className="flex flex-col space-y-3">
+                <div className="flex items-start space-x-3">
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedLinks.has(link.id)}
+                    onChange={() => toggleSelectLink(link.id)}
+                    className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  
+                  <div className="flex-1 flex flex-col space-y-3">
                   {/* Header Row - Type and Domain */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -515,6 +632,7 @@ const LinksManager: React.FC<LinksManagerProps> = ({ onCreateClick }) => {
                       </button>
                     </div>
                   </div>
+                </div>
                 </div>
               </div>
             ))}
