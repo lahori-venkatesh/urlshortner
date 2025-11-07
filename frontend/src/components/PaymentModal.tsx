@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Shield, CheckCircle } from 'lucide-react';
 import { paymentService, PaymentRequest } from '../services/paymentService';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 interface PaymentModalProps {
@@ -20,12 +21,24 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   planPrice,
   onSuccess
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Prefill user information when modal opens
+  useEffect(() => {
+    if (isOpen && user) {
+      setFormData({
+        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '',
+        email: user.email || '',
+        phone: user.phone || ''
+      });
+    }
+  }, [isOpen, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

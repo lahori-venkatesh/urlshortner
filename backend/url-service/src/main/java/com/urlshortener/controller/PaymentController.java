@@ -1,6 +1,7 @@
 package com.urlshortener.controller;
 
 import com.urlshortener.service.PaymentService;
+import com.urlshortener.service.BillingService;
 import com.urlshortener.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ public class PaymentController {
     
     @Autowired
     private PaymentService paymentService;
+    
+    @Autowired
+    private BillingService billingService;
     
     @Autowired
     private UserRepository userRepository;
@@ -87,8 +91,16 @@ public class PaymentController {
             boolean isValid = paymentService.verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature);
             
             if (isValid) {
-                // Activate subscription for user
-                paymentService.activateSubscription(userId, planType, razorpayPaymentId);
+                // Get payment amount from request
+                Integer amount = request.get("amount") != null ? (Integer) request.get("amount") : 0;
+                
+                // Process payment success with billing service (sends email)
+                Map<String, Object> paymentDetails = new HashMap<>();
+                paymentDetails.put("razorpayOrderId", razorpayOrderId);
+                paymentDetails.put("razorpayPaymentId", razorpayPaymentId);
+                
+                billingService.processPaymentSuccess(userId, planType, razorpayPaymentId, 
+                                                    razorpayOrderId, amount.doubleValue(), paymentDetails);
                 
                 // Get updated user data to return to frontend
                 Optional<com.urlshortener.model.User> userOpt = userRepository.findById(userId);
@@ -120,6 +132,34 @@ public class PaymentController {
                 response.put("success", false);
                 response.put("message", "Payment verification failed");
             }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/payment-failed")
+    public ResponseEntity<Map<String, Object>> handlePaymentFailure(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String userId = (String) request.get("userId");
+            String planType = (String) request.get("planType");
+            String orderId = (String) request.get("orderId");
+            String errorMessage = (String) request.get("errorMessage");
+            
+            // Process payment failure with billing service (sends email)
+            Map<String, Object> paymentDetails = new HashMap<>();
+            paymentDetails.putAll(request);
+            
+            billingService.processPaymentFailure(userId, planType, orderId, errorMessage, paymentDetails);
+            
+            response.put("success", true);
+            response.put("message", "Payment failure processed");
             
             return ResponseEntity.ok(response);
             
