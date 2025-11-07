@@ -648,14 +648,18 @@ const CustomDomainManager: React.FC<CustomDomainManagerProps> = ({
     }
 
     try {
-      // Note: Delete endpoint would need to be implemented in backend
-      // For now, we'll just remove from local state
+      // Call backend API to delete domain from database
+      await axios.delete(`${API_BASE_URL}/domains/${domain.domainName}`, {
+        params: { userId: user?.id }
+      });
+
+      // Remove from local state after successful deletion
       setDomains(prev => prev.filter(d => d.id !== domainId));
 
       toast.success('Domain deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete domain:', error);
-      toast.error('Failed to delete domain. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to delete domain. Please try again.');
     }
   };
 
