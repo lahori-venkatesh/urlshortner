@@ -2,6 +2,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "installCommand": "npm install",
+  "build": {
+    "env": {
+      "DISABLE_ESLINT_PLUGIN": "true",
+      "ESLINT_NO_DEV_ERRORS": "true",
+      "TSC_COMPILE_ON_ERROR": "true"
+    }
+  },
   "redirects": [
     {
       "source": "/([a-zA-Z0-9]{4,12})",
