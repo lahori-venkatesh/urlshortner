@@ -75,15 +75,21 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Enhanced response interceptor with better token refresh and retry logic
+// Enhanced response interceptor with proper retry limits to prevent infinite loops
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    // Only log unique errors to prevent console spam
+    if (!error.config?._errorLogged) {
+      console.error('API Error:', error.response?.data || error.message);
+      if (error.config) {
+        error.config._errorLogged = true;
+      }
+    }
     
     const originalRequest = error.config;
     
-    // Handle different types of errors
+    // Handle 401/403 - Token refresh
     if (error.response?.status === 401 || error.response?.status === 403) {
       // Don't retry refresh endpoint or if already retried
       if (originalRequest.url?.includes('/auth/refresh') || originalRequest._retry) {
@@ -106,19 +112,34 @@ apiClient.interceptors.response.use(
         clearAuthData();
         return Promise.reject(error);
       }
-    } else if (error.response?.status === 503) {
-      console.error('Service unavailable - backend may be suspended');
-      error.message = 'Server is currently unavailable. Please try again later.';
-      
-      // For 503 errors, don't clear auth immediately - server might be waking up
-      // Instead, retry once after a short delay
+    } 
+    
+    // Handle 503 - Service Unavailable with retry limit to prevent infinite loops
+    else if (error.response?.status === 503) {
+      // Initialize retry count if not exists
       if (!originalRequest._retryCount) {
-        originalRequest._retryCount = 1;
-        console.log('Retrying request after 503 error...');
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-        return apiClient(originalRequest);
+        originalRequest._retryCount = 0;
       }
-    } else if (!error.response) {
+      
+      // Maximum 2 retries (3 total attempts) to prevent infinite loop
+      if (originalRequest._retryCount < 2) {
+        originalRequest._retryCount++;
+        const attemptNumber = originalRequest._retryCount + 1;
+        console.log(`🔄 Retrying request after 503 error (attempt ${attemptNumber}/3)...`);
+        
+        // Exponential backoff: 2s, 4s
+        const delay = 2000 * originalRequest._retryCount;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        return apiClient(originalRequest);
+      } else {
+        console.error('❌ Max retries (3) reached for 503 error - giving up');
+        error.message = 'Server is currently unavailable after multiple attempts. Please try again later.';
+      }
+    } 
+    
+    // Handle network errors
+    else if (!error.response) {
       console.error('Network error - no response from server');
       error.code = 'NETWORK_ERROR';
       error.message = 'Unable to connect to server. Please check your internet connection.';
