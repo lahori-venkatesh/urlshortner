@@ -198,6 +198,12 @@ public class BillingService {
         String billingCycle = planType.contains("YEARLY") ? "Yearly" : "Monthly";
         LocalDateTime now = LocalDateTime.now();
         
+        // Get the updated user to fetch subscription expiry date
+        Optional<User> updatedUserOpt = userRepository.findById(user.getId());
+        LocalDateTime subscriptionExpiry = updatedUserOpt.isPresent() && updatedUserOpt.get().getSubscriptionExpiry() != null 
+            ? updatedUserOpt.get().getSubscriptionExpiry() 
+            : (planType.contains("YEARLY") ? now.plusYears(1) : now.plusMonths(1));
+        
         return String.format("""
             <!DOCTYPE html>
             <html>
@@ -252,7 +258,11 @@ public class BillingService {
                                                             <td style="color: #28a745; font-size: 18px; text-align: right; font-weight: 700;">₹%.2f</td>
                                                         </tr>
                                                         <tr>
-                                                            <td style="color: #6c757d; font-size: 14px;">Date:</td>
+                                                            <td style="color: #6c757d; font-size: 14px;">Payment Date:</td>
+                                                            <td style="color: #212529; font-size: 14px; text-align: right; font-weight: 600;">%s</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="color: #6c757d; font-size: 14px;">Subscription Expires:</td>
                                                             <td style="color: #212529; font-size: 14px; text-align: right; font-weight: 600;">%s</td>
                                                         </tr>
                                                     </table>
@@ -311,7 +321,8 @@ public class BillingService {
             planName,
             billingCycle,
             amount,
-            now.toString(),
+            now.toLocalDate().toString() + " " + now.toLocalTime().toString().substring(0, 8),
+            subscriptionExpiry.toLocalDate().toString() + " " + subscriptionExpiry.toLocalTime().toString().substring(0, 8),
             getPlanFeaturesList(planType)
         );
     }

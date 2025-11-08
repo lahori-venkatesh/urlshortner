@@ -91,16 +91,34 @@ public class PaymentController {
             boolean isValid = paymentService.verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature);
             
             if (isValid) {
-                // Get payment amount from request
-                Integer amount = request.get("amount") != null ? (Integer) request.get("amount") : 0;
+                // Get payment amount from request - handle both Integer and Double types
+                Double amount = 0.0;
+                Object amountObj = request.get("amount");
+                if (amountObj != null) {
+                    if (amountObj instanceof Integer) {
+                        amount = ((Integer) amountObj).doubleValue();
+                    } else if (amountObj instanceof Double) {
+                        amount = (Double) amountObj;
+                    } else if (amountObj instanceof String) {
+                        try {
+                            amount = Double.parseDouble((String) amountObj);
+                        } catch (NumberFormatException e) {
+                            amount = 0.0;
+                        }
+                    }
+                }
+                
+                // Log the amount for debugging
+                System.out.println("💰 Payment amount received: " + amount);
                 
                 // Process payment success with billing service (sends email)
                 Map<String, Object> paymentDetails = new HashMap<>();
                 paymentDetails.put("razorpayOrderId", razorpayOrderId);
                 paymentDetails.put("razorpayPaymentId", razorpayPaymentId);
+                paymentDetails.put("amount", amount);
                 
                 billingService.processPaymentSuccess(userId, planType, razorpayPaymentId, 
-                                                    razorpayOrderId, amount.doubleValue(), paymentDetails);
+                                                    razorpayOrderId, amount, paymentDetails);
                 
                 // Get updated user data to return to frontend
                 Optional<com.urlshortener.model.User> userOpt = userRepository.findById(userId);
