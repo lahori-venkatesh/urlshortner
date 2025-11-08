@@ -127,6 +127,43 @@ public class RedirectController {
             
             ShortenedUrl url = urlOpt.get();
             
+            // ✅ CHECK PASSWORD PROTECTION
+            if (url.isPasswordProtected()) {
+                System.out.println("🔒 Password-protected link detected - redirecting to password page");
+                // Redirect to frontend password page
+                RedirectView redirectView = new RedirectView();
+                redirectView.setUrl("https://pebly.vercel.app/redirect/" + shortCode);
+                redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
+                return redirectView;
+            }
+            
+            // ✅ CHECK IF URL IS ACTIVE
+            if (!url.isActive()) {
+                System.out.println("❌ URL is not active");
+                RedirectView redirectView = new RedirectView();
+                redirectView.setUrl("https://pebly.vercel.app/404?error=url-inactive");
+                redirectView.setStatusCode(HttpStatus.GONE);
+                return redirectView;
+            }
+            
+            // ✅ CHECK IF URL HAS EXPIRED
+            if (url.getExpiresAt() != null && url.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                System.out.println("❌ URL has expired");
+                RedirectView redirectView = new RedirectView();
+                redirectView.setUrl("https://pebly.vercel.app/404?error=url-expired");
+                redirectView.setStatusCode(HttpStatus.GONE);
+                return redirectView;
+            }
+            
+            // ✅ CHECK IF MAX CLICKS LIMIT REACHED
+            if (url.getMaxClicks() != null && url.getTotalClicks() >= url.getMaxClicks()) {
+                System.out.println("❌ URL has reached maximum clicks limit");
+                RedirectView redirectView = new RedirectView();
+                redirectView.setUrl("https://pebly.vercel.app/404?error=max-clicks-reached");
+                redirectView.setStatusCode(HttpStatus.GONE);
+                return redirectView;
+            }
+            
             // Record analytics if service is available
             if (analyticsService != null) {
                 try {
@@ -146,6 +183,7 @@ public class RedirectController {
             urlShorteningService.incrementClicks(shortCode);
             
             // Perform the redirect
+            System.out.println("✅ Redirecting to: " + url.getOriginalUrl());
             RedirectView redirectView = new RedirectView();
             redirectView.setUrl(url.getOriginalUrl());
             redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
