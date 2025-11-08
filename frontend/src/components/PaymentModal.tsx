@@ -33,7 +33,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   useEffect(() => {
     if (isOpen && user) {
       setFormData({
-        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || '',
+        name: user.name || '',
         email: user.email || '',
         phone: user.phone || ''
       });
