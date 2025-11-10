@@ -133,13 +133,55 @@ public class UrlController {
             String userId = (String) request.get("userId");
             String customAlias = (String) request.get("customAlias");
             String password = (String) request.get("password");
-            Integer expirationDays = (Integer) request.get("expirationDays");
-            Integer maxClicks = (Integer) request.get("maxClicks");
+            
+            // Safe integer conversion with better error handling
+            Integer expirationDays = null;
+            Integer maxClicks = null;
+            
+            try {
+                Object expDaysObj = request.get("expirationDays");
+                if (expDaysObj != null) {
+                    if (expDaysObj instanceof Integer) {
+                        expirationDays = (Integer) expDaysObj;
+                    } else if (expDaysObj instanceof String && !((String) expDaysObj).isEmpty()) {
+                        expirationDays = Integer.parseInt((String) expDaysObj);
+                    } else if (expDaysObj instanceof Number) {
+                        expirationDays = ((Number) expDaysObj).intValue();
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Failed to parse expirationDays: " + e.getMessage());
+            }
+            
+            try {
+                Object maxClicksObj = request.get("maxClicks");
+                if (maxClicksObj != null) {
+                    if (maxClicksObj instanceof Integer) {
+                        maxClicks = (Integer) maxClicksObj;
+                    } else if (maxClicksObj instanceof String && !((String) maxClicksObj).isEmpty()) {
+                        maxClicks = Integer.parseInt((String) maxClicksObj);
+                    } else if (maxClicksObj instanceof Number) {
+                        maxClicks = ((Number) maxClicksObj).intValue();
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Failed to parse maxClicks: " + e.getMessage());
+            }
+            
             String title = (String) request.get("title");
             String description = (String) request.get("description");
             String scopeType = (String) request.getOrDefault("scopeType", "USER");
             String scopeId = (String) request.getOrDefault("scopeId", userId);
             String customDomain = (String) request.get("customDomain"); // New: custom domain support
+            
+            System.out.println("🔍 Creating URL with params:");
+            System.out.println("  - originalUrl: " + originalUrl);
+            System.out.println("  - userId: " + userId);
+            System.out.println("  - customAlias: " + customAlias);
+            System.out.println("  - password: " + (password != null && !password.isEmpty() ? "***" : "null"));
+            System.out.println("  - expirationDays: " + expirationDays);
+            System.out.println("  - maxClicks: " + maxClicks);
+            System.out.println("  - customDomain: " + customDomain);
             
             if (originalUrl == null || originalUrl.trim().isEmpty()) {
                 response.put("success", false);
