@@ -642,8 +642,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ mode, onModeChange }) => 
             userId: user?.id || 'anonymous-user',
             customAlias: finalCustomAlias || undefined,
             password: finalPassword || undefined,
-            expirationDays: finalExpirationDays || undefined,
-            maxClicks: finalMaxClicks || undefined,
+            expirationDays: finalExpirationDays ? parseInt(finalExpirationDays.toString()) : undefined,
+            maxClicks: finalMaxClicks ? parseInt(finalMaxClicks.toString()) : undefined,
             title: `Dashboard URL - ${shortCode}`,
             description: 'Created via Dashboard',
             customDomain: selectedDomain !== 'pebly.vercel.app' ? selectedDomain : undefined
