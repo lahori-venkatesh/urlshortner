@@ -20,7 +20,8 @@ const RedirectPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      // Use relative URL in production to prevent backend URL exposure
+      const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api');
       
       // Determine the type of redirect based on shortCode pattern
       let endpoint = '';
