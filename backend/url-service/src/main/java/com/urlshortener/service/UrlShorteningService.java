@@ -97,9 +97,24 @@ public class UrlShorteningService {
         // Create shortened URL
         ShortenedUrl shortenedUrl = new ShortenedUrl(originalUrl, shortCode, userId, scopeType, scopeId);
         
+        // Set password protection first (before generating short URL)
+        boolean isPasswordProtected = password != null && !password.trim().isEmpty();
+        if (isPasswordProtected) {
+            shortenedUrl.setPassword(password);
+            shortenedUrl.setPasswordProtected(true);
+        }
+        
         // Set the complete short URL with custom domain or default domain
         String domainToUse = customDomain != null ? customDomain : shortUrlDomain;
-        String fullShortUrl = (domainToUse.startsWith("http") ? domainToUse : "https://" + domainToUse) + "/" + shortCode;
+        String baseUrl = domainToUse.startsWith("http") ? domainToUse : "https://" + domainToUse;
+        
+        // For password-protected links, use /redirect/ path
+        String fullShortUrl;
+        if (isPasswordProtected) {
+            fullShortUrl = baseUrl + "/redirect/" + shortCode;
+        } else {
+            fullShortUrl = baseUrl + "/" + shortCode;
+        }
         shortenedUrl.setShortUrl(fullShortUrl);
         
         // Store the domain for multi-tenant support
@@ -115,12 +130,6 @@ public class UrlShorteningService {
         shortenedUrl.setCustomAlias(customAlias);
         shortenedUrl.setTitle(title);
         shortenedUrl.setDescription(description);
-        
-        // Set password protection
-        if (password != null && !password.trim().isEmpty()) {
-            shortenedUrl.setPassword(password);
-            shortenedUrl.setPasswordProtected(true);
-        }
         
         // Set expiration
         if (expirationDays != null && expirationDays > 0) {
