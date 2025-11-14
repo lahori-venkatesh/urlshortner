@@ -47,21 +47,51 @@ public class SubscriptionService {
      */
     public boolean hasPremiumAccess(String userId) {
         Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) return false;
+        if (userOpt.isEmpty()) {
+            System.out.println("⚠️ User not found: " + userId);
+            return false;
+        }
         
         User user = userOpt.get();
         String plan = user.getSubscriptionPlan();
         
+        System.out.println("🔍 Checking premium access for user: " + userId);
+        System.out.println("  - Plan: " + plan);
+        System.out.println("  - Expiry: " + user.getSubscriptionExpiry());
+        
+        // Normalize plan name (handle case variations)
+        String normalizedPlan = plan != null ? plan.toUpperCase().replace(" ", "_") : "FREE";
+        
         // Check if premium subscription is active
-        if ((PRO_MONTHLY.equals(plan) || PRO_YEARLY.equals(plan) || 
-             BUSINESS_MONTHLY.equals(plan) || BUSINESS_YEARLY.equals(plan)) && 
-            user.getSubscriptionExpiry() != null && 
-            user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
-            return true;
+        boolean isPremiumPlan = PRO_MONTHLY.equals(normalizedPlan) || 
+                               PRO_YEARLY.equals(normalizedPlan) || 
+                               BUSINESS_MONTHLY.equals(normalizedPlan) || 
+                               BUSINESS_YEARLY.equals(normalizedPlan);
+        
+        if (isPremiumPlan) {
+            // If expiry is null, assume it's valid (newly upgraded users)
+            if (user.getSubscriptionExpiry() == null) {
+                System.out.println("✅ Premium plan with no expiry (newly upgraded) - granting access");
+                return true;
+            }
+            
+            // Check if not expired
+            if (user.getSubscriptionExpiry().isAfter(LocalDateTime.now())) {
+                System.out.println("✅ Premium plan active - granting access");
+                return true;
+            } else {
+                System.out.println("❌ Premium plan expired - denying access");
+            }
+        } else {
+            System.out.println("❌ Not a premium plan: " + normalizedPlan);
         }
         
         // Check if user is in trial period
-        return isInTrialPeriod(user);
+        boolean inTrial = isInTrialPeriod(user);
+        if (inTrial) {
+            System.out.println("✅ User in trial period - granting access");
+        }
+        return inTrial;
     }
     
     /**
