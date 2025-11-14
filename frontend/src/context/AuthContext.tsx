@@ -219,7 +219,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Try to refresh the token instead of falling back
             try {
               console.log('Attempting automatic token refresh...');
-              const refreshResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/v1/auth/refresh`, {
+              const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api');
+              const refreshResponse = await fetch(`${apiUrl}/v1/auth/refresh`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${savedToken}`,

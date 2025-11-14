@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
-const ANALYTICS_BASE_URL = process.env.REACT_APP_ANALYTICS_URL || 'http://localhost:3001/api';
-const FILE_BASE_URL = process.env.REACT_APP_FILE_URL || 'http://localhost:3002/api';
+// Use relative URLs in production to prevent backend URL exposure
+// Vercel rewrites will proxy these to the backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api');
+const ANALYTICS_BASE_URL = process.env.REACT_APP_ANALYTICS_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api');
+const FILE_BASE_URL = process.env.REACT_APP_FILE_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api');
 
 // Create axios instances
 const apiClient = axios.create({

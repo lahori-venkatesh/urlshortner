@@ -9,34 +9,7 @@
       "TSC_COMPILE_ON_ERROR": "true"
     }
   },
-  "redirects": [
-    {
-      "source": "/([a-zA-Z0-9]{4,12})",
-      "destination": "https://urlshortner-1-hpyu.onrender.com/$1",
-      "statusCode": 307,
-      "has": [
-        {
-          "type": "host",
-          "value": "pebly.vercel.app"
-        }
-      ]
-    }
-  ],
   "rewrites": [
-    {
-      "source": "/api/proxy/(.*)",
-      "destination": "/api/proxy"
-    },
-    {
-      "source": "/([a-zA-Z0-9]{4,12})",
-      "destination": "/api/proxy",
-      "has": [
-        {
-          "type": "host",
-          "value": "(?!pebly\\.vercel\\.app).*"
-        }
-      ]
-    },
     {
       "source": "/api/(.*)",
       "destination": "https://urlshortner-1-hpyu.onrender.com/api/$1"
@@ -44,6 +17,25 @@
     {
       "source": "/actuator/(.*)",
       "destination": "https://urlshortner-1-hpyu.onrender.com/actuator/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ]
 }

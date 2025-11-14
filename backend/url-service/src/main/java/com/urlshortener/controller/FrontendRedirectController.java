@@ -50,7 +50,7 @@ public class FrontendRedirectController {
         
         RedirectView redirectView = new RedirectView();
         redirectView.setUrl(frontendUrl);
-        redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY); // 301 redirect
+        redirectView.setStatusCode(HttpStatus.FOUND); // 302 redirect (temporary, not cached)
         return redirectView;
     }
 }

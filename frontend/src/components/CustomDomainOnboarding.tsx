@@ -47,7 +47,7 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
     try {
       setIsAdding(true);
       
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://urlshortner-1-hpyu.onrender.com/api';
+      const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
       
       const response = await axios.post(`${API_BASE_URL}/v1/domains`, {
         domainName: fullDomain,
