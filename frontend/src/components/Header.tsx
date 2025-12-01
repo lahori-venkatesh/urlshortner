@@ -64,8 +64,8 @@ const Header: React.FC = () => {
             className="flex items-center space-x-2 flex-shrink-0"
           >
             <img 
-              src="/round-logo-ts.png" 
-              alt="TinySlash Logo" 
+              src={`${process.env.PUBLIC_URL}/round-logo-ts.png`}
+              alt="Pebly Logo" 
               className="w-10 h-10 rounded-full"
             />
             <span className="text-lg sm:text-xl font-bold">

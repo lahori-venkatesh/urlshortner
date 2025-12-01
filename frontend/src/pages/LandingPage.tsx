@@ -94,8 +94,8 @@ const LandingPage: React.FC = () => {
             {/* Logo - Left */}
             <div className="flex-shrink-0 flex items-center">
               <img 
-                src="/round-logo-ts.png" 
-                alt="TinySlash Logo" 
+                src={`${process.env.PUBLIC_URL}/round-logo-ts.png`}
+                alt="Pebly Logo" 
                 className="w-10 h-10 rounded-full"
               />
               <span className="ml-2 text-xl font-bold">

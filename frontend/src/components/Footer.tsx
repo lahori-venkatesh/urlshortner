@@ -14,8 +14,8 @@ const Footer: React.FC = () => {
             <div className="flex items-center mb-6">
               <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
                 <img 
-                  src="/round-logo-ts.png" 
-                  alt="TinySlash Logo" 
+                  src={`${process.env.PUBLIC_URL}/round-logo-ts.png`}
+                  alt="Pebly Logo" 
                   className="w-12 h-12 rounded-full"
                 />
               </div>
