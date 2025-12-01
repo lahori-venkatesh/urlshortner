@@ -94,9 +94,13 @@ const LandingPage: React.FC = () => {
             {/* Logo - Left */}
             <div className="flex-shrink-0 flex items-center">
               <img 
-                src={`${process.env.PUBLIC_URL}/round-logo-ts.png`}
+                src="/round-logo-ts.png"
                 alt="Pebly Logo" 
                 className="w-10 h-10 rounded-full"
+                onError={(e) => {
+                  console.error('Logo failed to load');
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <span className="ml-2 text-xl font-bold">
                 <span className="text-black">Tiny</span>

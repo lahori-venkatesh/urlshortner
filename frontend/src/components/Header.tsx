@@ -64,9 +64,13 @@ const Header: React.FC = () => {
             className="flex items-center space-x-2 flex-shrink-0"
           >
             <img 
-              src={`${process.env.PUBLIC_URL}/round-logo-ts.png`}
-              alt="Pebly Logo" 
+              src="/round-logo-ts.png"
+              alt="tinyslash Logo" 
               className="w-10 h-10 rounded-full"
+              onError={(e) => {
+                console.error('Logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <span className="text-lg sm:text-xl font-bold">
               <span className="text-black">Tiny</span>
