@@ -12,17 +12,6 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
-              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
-                <img 
-                  src="/round-logo-ts.png"
-                  alt="tinyslash Logo" 
-                  className="w-12 h-12 rounded-full"
-                  onError={(e) => {
-                    console.error('Logo failed to load');
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
               <span className="text-2xl font-bold">
                 <span className="text-white">Tiny</span>
                 <span className="text-[#36a1ce]">Slash</span>

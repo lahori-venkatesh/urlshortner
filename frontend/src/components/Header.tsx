@@ -63,15 +63,6 @@ const Header: React.FC = () => {
             to={isAuthenticated ? "/dashboard" : "/"} 
             className="flex items-center space-x-2 flex-shrink-0"
           >
-            <img 
-              src="/round-logo-ts.png"
-              alt="tinyslash Logo" 
-              className="w-10 h-10 rounded-full"
-              onError={(e) => {
-                console.error('Logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
             <span className="text-lg sm:text-xl font-bold">
               <span className="text-black">Tiny</span>
               <span className="text-[#36a1ce]">Slash</span>

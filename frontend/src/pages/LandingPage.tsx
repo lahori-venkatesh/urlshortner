@@ -93,16 +93,7 @@ const LandingPage: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo - Left */}
             <div className="flex-shrink-0 flex items-center">
-              <img 
-                src="/round-logo-ts.png"
-                alt="Pebly Logo" 
-                className="w-10 h-10 rounded-full"
-                onError={(e) => {
-                  console.error('Logo failed to load');
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-              <span className="ml-2 text-xl font-bold">
+              <span className="text-xl font-bold">
                 <span className="text-black">Tiny</span>
                 <span className="text-[#36a1ce]">Slash</span>
               </span>
