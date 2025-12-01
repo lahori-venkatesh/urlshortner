@@ -47,7 +47,7 @@ Update your `.env` file and deployment platforms (Render, Vercel):
 
 ```bash
 # Update these variables
-MONGODB_DATABASE=tinyslash-database
+MONGODB_DATABASE=pebly-database
 CLOUDFLARE_FALLBACK_ORIGIN=tinyslash.com
 PROXY_DOMAIN=tinyslash.com
 

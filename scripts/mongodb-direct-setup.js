@@ -5,9 +5,15 @@
 const { MongoClient } = require('mongodb');
 
 // Configuration
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://lahorivenkatesh709:p0SkcBwHo67ghvMW@cluster0.y8ucl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-const DATABASE_NAME = 'pebly';
+const MONGODB_URI = process.env.MONGODB_URI;
+const DATABASE_NAME = process.env.MONGODB_DATABASE || 'pebly';
 const VERIFICATION_SUBDOMAIN = 'verify.bitaurl.com';
+
+if (!MONGODB_URI) {
+  console.error('❌ Error: MONGODB_URI environment variable is required');
+  console.log('Please set it: export MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/..."');
+  process.exit(1);
+}
 
 console.log('🚀 MongoDB Atlas Custom Domain Setup');
 console.log('====================================');

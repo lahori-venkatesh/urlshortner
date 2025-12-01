@@ -19,9 +19,11 @@ name = "tinyslash-proxy-dev"
 vars = { BACKEND_URL = "http://localhost:8080", PROXY_VERSION = "2.0-dev" }
 
 # Custom domain routes for the worker
-routes = [
-  { pattern = "go.pdfcircle.com/*", zone_name = "pdfcircle.com" }
-]
+# Note: Routes will be added after tinyslash.com is active in Cloudflare
+# Uncomment and update after domain is verified:
+# routes = [
+#   { pattern = "tinyslash.com/*", zone_name = "tinyslash.com" }
+# ]
 
 # Analytics and monitoring
 [observability]
