@@ -32,7 +32,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
       setTimeout(() => {
         setMessages([{
           id: '1',
-          message: `Hi ${user?.name || 'there'}! 👋 I'm here to help you with any questions about Pebly. How can I assist you today?`,
+          message: `Hi ${user?.name || 'there'}! 👋 I'm here to help you with any questions about TinySlash. How can I assist you today?`,
           sender: 'agent',
           timestamp: new Date()
         }]);
@@ -93,7 +93,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
       >
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+          className="relative bg-[#36a1ce] text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -138,10 +138,10 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
             className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+            <div className="bg-[#36a1ce] text-white p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-lg">Pebly Support</h3>
+                  <h3 className="font-semibold text-lg">TinySlash Support</h3>
                   <p className="text-blue-100 text-sm">We're here to help! 🚀</p>
                 </div>
                 <div className="flex items-center space-x-2">

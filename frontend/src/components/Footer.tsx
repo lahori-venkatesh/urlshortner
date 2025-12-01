@@ -12,10 +12,17 @@ const Footer: React.FC = () => {
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
-                <LinkIcon className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
+                <img 
+                  src="/round-logo-ts.png" 
+                  alt="TinySlash Logo" 
+                  className="w-12 h-12 rounded-full"
+                />
               </div>
-              <span className="text-2xl font-bold text-white">Pebly</span>
+              <span className="text-2xl font-bold">
+                <span className="text-white">Tiny</span>
+                <span className="text-[#36a1ce]">Slash</span>
+              </span>
             </div>
             <p className="text-gray-300 text-lg mb-6 leading-relaxed">
               The smartest URL shortener for modern businesses. Create, manage, and track your links with powerful analytics.
@@ -23,7 +30,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-300">
                 <span className="text-blue-400 mr-3">✉</span>
-                <span className="text-white font-medium">hello@pebly.in</span>
+                <span className="text-white font-medium">hello@tinyslash.com</span>
               </div>
               <div className="flex items-center text-gray-300">
                 <span className="text-blue-400 mr-3">📞</span>
@@ -74,7 +81,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a 
-                  href="mailto:support@pebly.com" 
+                  href="mailto:support@tinyslash.com" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Support
@@ -127,7 +134,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-700 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-lg mb-4 md:mb-0">
-              © 2025 <span className="text-white font-semibold">Pebly</span>. All rights reserved.
+              © 2025 <span className="text-white font-semibold">TinySlash</span>. All rights reserved.
             </p>
             <div className="flex space-x-8">
               <Link 

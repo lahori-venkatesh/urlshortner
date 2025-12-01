@@ -28,7 +28,7 @@ const About: React.FC = () => {
                 <LinkIcon className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Pebly
+                TinySlash
               </span>
             </div>
           </div>
@@ -44,7 +44,7 @@ const About: React.FC = () => {
             variants={fadeInUp}
           >
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              About <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Pebly</span>
+              About <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TinySlash</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
               Revolutionizing link management with smart technology and user-centric design
@@ -75,7 +75,7 @@ const About: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">The Vision</h3>
                 <p className="text-gray-600 mb-6 leading-relaxed">
                   In today's digital world, links are everywhere. But managing them shouldn't be complicated or expensive. 
-                  We created Pebly to democratize link management - making powerful tools accessible to everyone, 
+                  We created TinySlash to democratize link management - making powerful tools accessible to everyone, 
                   from individual creators to growing businesses.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
@@ -121,7 +121,7 @@ const About: React.FC = () => {
             <div className="text-center mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Meet Our Founders</h2>
               <p className="text-lg text-gray-600">
-                The visionaries behind Pebly's innovative approach to link management
+                The visionaries behind TinySlash's innovative approach to link management
               </p>
             </div>
 
@@ -244,7 +244,7 @@ const About: React.FC = () => {
           >
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Get Started?</h2>
             <p className="text-lg text-blue-100 mb-8">
-              Join thousands of users who trust Pebly for their link management needs
+              Join thousands of users who trust TinySlash for their link management needs
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

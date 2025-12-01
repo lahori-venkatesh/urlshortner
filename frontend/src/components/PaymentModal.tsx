@@ -71,7 +71,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       // Initiate Razorpay payment
       await paymentService.initiateRazorpayPayment(paymentResponse);
       
-      toast.success('Payment successful! Welcome to Pebly Pro!');
+      toast.success('Payment successful! Welcome to TinySlash Pro!');
       onSuccess();
       onClose();
       

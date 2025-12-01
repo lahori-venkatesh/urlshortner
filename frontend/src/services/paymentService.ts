@@ -123,7 +123,7 @@ class PaymentService {
       key: paymentResponse.razorpayKeyId,
       amount: paymentResponse.amount * 100, // Convert to paise
       currency: paymentResponse.currency,
-      name: 'Pebly Pro',
+      name: 'TinySlash Pro',
       description: paymentResponse.description,
       order_id: paymentResponse.orderId,
       prefill: {

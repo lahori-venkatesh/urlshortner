@@ -144,7 +144,7 @@ const Analytics: React.FC = () => {
       const analyticsObject = {
         shortCode: shortCode!,
         originalUrl: analyticsData.originalUrl || `https://example.com/${shortCode}`,
-        shortUrl: analyticsData.shortUrl || `https://pebly.vercel.app/${shortCode}`,
+        shortUrl: analyticsData.shortUrl || `https://tinyslash.com/${shortCode}`,
         totalClicks,
         uniqueVisitors: analyticsData.uniqueClicks || Math.floor(totalClicks * 0.75),
         createdAt: analyticsData.createdAt || new Date().toISOString(),
@@ -187,7 +187,7 @@ const Analytics: React.FC = () => {
       setAnalytics({
         shortCode: shortCode!,
         originalUrl: `https://example.com/${shortCode}`,
-        shortUrl: `https://pebly.vercel.app/${shortCode}`,
+        shortUrl: `https://tinyslash.com/${shortCode}`,
         totalClicks: 0,
         uniqueVisitors: 0,
         createdAt: new Date().toISOString(),

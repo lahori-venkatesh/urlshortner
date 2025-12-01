@@ -63,11 +63,14 @@ const Header: React.FC = () => {
             to={isAuthenticated ? "/dashboard" : "/"} 
             className="flex items-center space-x-2 flex-shrink-0"
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <LinkIcon className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pebly
+            <img 
+              src="/round-logo-ts.png" 
+              alt="TinySlash Logo" 
+              className="w-10 h-10 rounded-full"
+            />
+            <span className="text-lg sm:text-xl font-bold">
+              <span className="text-black">Tiny</span>
+              <span className="text-[#36a1ce]">Slash</span>
             </span>
           </Link>
           

@@ -1,4 +1,4 @@
-name = "pebly-proxy"
+name = "tinyslash-proxy"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
@@ -10,12 +10,12 @@ CACHE_TTL = "300"
 
 # Production environment
 [env.production]
-name = "pebly"
+name = "tinyslash"
 vars = { BACKEND_URL = "https://urlshortner-1-hpyu.onrender.com", PROXY_VERSION = "2.0" }
 
 # Development environment
 [env.development]
-name = "pebly-proxy-dev"
+name = "tinyslash-proxy-dev"
 vars = { BACKEND_URL = "http://localhost:8080", PROXY_VERSION = "2.0-dev" }
 
 # Custom domain routes for the worker

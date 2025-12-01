@@ -91,19 +91,22 @@ const LandingPage: React.FC = () => {
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Link className="w-5 h-5 text-white" />
-                </div>
-                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Pebly
-                </span>
-              </div>
+            {/* Logo - Left */}
+            <div className="flex-shrink-0 flex items-center">
+              <img 
+                src="/round-logo-ts.png" 
+                alt="TinySlash Logo" 
+                className="w-10 h-10 rounded-full"
+              />
+              <span className="ml-2 text-xl font-bold">
+                <span className="text-black">Tiny</span>
+                <span className="text-[#36a1ce]">Slash</span>
+              </span>
             </div>
             
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
+            {/* Navigation Links - Center */}
+            <div className="hidden md:flex flex-1 justify-center">
+              <div className="flex items-center space-x-6">
                 <a href="#features" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
                 <button 
                   onClick={() => navigate('/pricing')}
@@ -112,25 +115,29 @@ const LandingPage: React.FC = () => {
                   Pricing
                 </button>
                 <a href="#about" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</a>
-                <button 
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthModalOpen(true);
-                  }}
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Login
-                </button>
-                <button 
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setIsAuthModalOpen(true);
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all"
-                >
-                  Sign Up Free
-                </button>
               </div>
+            </div>
+
+            {/* Auth Buttons - Right */}
+            <div className="hidden md:flex items-center space-x-4">
+              <button 
+                onClick={() => {
+                  setAuthMode('login');
+                  setIsAuthModalOpen(true);
+                }}
+                className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Login
+              </button>
+              <button 
+                onClick={() => {
+                  setAuthMode('signup');
+                  setIsAuthModalOpen(true);
+                }}
+                className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-all"
+              >
+                Sign Up Free
+              </button>
             </div>
 
             <div className="md:hidden">
@@ -175,7 +182,7 @@ const LandingPage: React.FC = () => {
                   setIsAuthModalOpen(true);
                   setIsMenuOpen(false);
                 }}
-                className="block w-full text-left px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg"
+                className="block w-full text-left px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
               >
                 Sign Up Free
               </button>
@@ -220,7 +227,7 @@ const LandingPage: React.FC = () => {
                   setAuthMode('signup');
                   setIsAuthModalOpen(true);
                 }}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+                className="bg-black text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-gray-800 hover:shadow-xl transition-all transform hover:scale-105"
               >
                 Get Started for Free
               </button>
@@ -245,9 +252,9 @@ const LandingPage: React.FC = () => {
                     <span className="hidden sm:inline">https://very-long-url-example.com/path/to/resource?param=value</span>
                     <span className="sm:hidden">https://very-long-url.com/...</span>
                   </div>
-                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 transform rotate-90 sm:rotate-0" />
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg shadow-sm w-full sm:w-auto text-center">
-                    pebly.vercel.app/abc123
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-[#36a1ce] transform rotate-90 sm:rotate-0" />
+                  <div className="bg-black text-white px-3 sm:px-4 py-2 rounded-lg shadow-sm w-full sm:w-auto text-center">
+                    tinyslash.com/abc123
                   </div>
                 </div>
               </div>
@@ -308,7 +315,7 @@ const LandingPage: React.FC = () => {
                 className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                 variants={fadeInUp}
               >
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg w-fit mb-4">
+                <div className="bg-[#36a1ce] text-white p-3 rounded-lg w-fit mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -380,7 +387,7 @@ const LandingPage: React.FC = () => {
                 className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
                 variants={fadeInUp}
               >
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg w-fit mb-4">
+                <div className="bg-[#36a1ce] text-white p-2 rounded-lg w-fit mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
@@ -402,7 +409,7 @@ const LandingPage: React.FC = () => {
               variants={fadeInUp}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Why Choose Pebly Over Competitors?
+                Why Choose TinySlash Over Competitors?
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 We're not just another URL shortener. We're built specifically for the modern web with features that actually matter.
@@ -470,7 +477,7 @@ const LandingPage: React.FC = () => {
               Trusted by Growing Companies
             </h2>
             <p className="text-xl text-gray-600">
-              Join thousands of businesses already using Pebly
+              Join thousands of businesses already using TinySlash
             </p>
           </motion.div>
 
@@ -568,7 +575,7 @@ const LandingPage: React.FC = () => {
               Start shortening smarter today!
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Join thousands of businesses and individuals who trust Pebly for their link management needs.
+              Join thousands of businesses and individuals who trust TinySlash for their link management needs.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 

@@ -25,7 +25,7 @@ const TeamCollaborationDemo: React.FC = () => {
     {
       id: 'overview',
       title: 'Team Overview',
-      description: 'See how teams work in Pebly',
+      description: 'See how teams work in TinySlash',
       icon: Users
     },
     {

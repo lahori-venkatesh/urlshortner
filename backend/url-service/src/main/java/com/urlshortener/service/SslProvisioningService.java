@@ -23,6 +23,9 @@ public class SslProvisioningService {
     private DomainRepository domainRepository;
     
     @Autowired
+    private CloudflareSaasService cloudflareSaasService;
+    
+    @Autowired
     private WebClient.Builder webClientBuilder;
     
     @Value("${cloudflare.api.token:}")
@@ -31,21 +34,62 @@ public class SslProvisioningService {
     @Value("${cloudflare.zone.id:}")
     private String cloudflareZoneId;
     
+    @Value("${cloudflare.saas.enabled:true}")
+    private boolean cloudflareSaasEnabled;
+    
     @Value("${ssl.provider:CLOUDFLARE}")
     private String defaultSslProvider;
     
     /**
      * Provision SSL certificate for verified domain
+     * NOW USES REAL CLOUDFLARE SAAS SSL API!
      */
     @Async
     public CompletableFuture<Boolean> provisionSslAsync(Domain domain) {
-        logger.info("Starting SSL provisioning for domain: {}", domain.getDomainName());
+        logger.info("🚀 Starting REAL SSL provisioning for domain: {}", domain.getDomainName());
         
         try {
             boolean success = false;
             
-            // Try Cloudflare first if configured
-            if ("CLOUDFLARE".equals(defaultSslProvider) && isCloudflareConfigured()) {
+            // Try Cloudflare SaaS SSL first (FREE for 100 hostnames!)
+            if (cloudflareSaasEnabled && isCloudflareConfigured()) {
+                logger.info("✅ Using Cloudflare for SaaS (FREE tier - 100 hostnames)");
+                success = cloudflareSaasService.createCustomHostname(domain);
+                
+                if (success) {
+                    // Poll for SSL status (usually takes 30-60 seconds)
+                    logger.info("⏳ Waiting for SSL certificate to be issued...");
+                    
+                    for (int i = 0; i < 12; i++) {  // Check for 2 minutes max
+                        Thread.sleep(10000);  // Wait 10 seconds between checks
+                        
+                        String status = cloudflareSaasService.checkSslStatus(domain);
+                        logger.info("📊 SSL Status check {}/12: {}", i + 1, status);
+                        
+                        if ("active".equals(status)) {
+                            logger.info("✅ SSL certificate is ACTIVE for: {}", domain.getDomainName());
+                            return CompletableFuture.completedFuture(true);
+                        } else if ("error".equals(status)) {
+                            logger.error("❌ SSL provisioning failed for: {}", domain.getDomainName());
+                            domain.setSslError("SSL validation failed");
+                            domainRepository.save(domain);
+                            return CompletableFuture.completedFuture(false);
+                        }
+                        // Continue polling if status is pending_validation or pending_issuance
+                    }
+                    
+                    // If we get here, SSL is still pending after 2 minutes
+                    logger.warn("⏰ SSL still pending after 2 minutes for: {}", domain.getDomainName());
+                    domain.setSslStatus("PENDING");
+                    domain.setSslError("SSL provisioning taking longer than expected");
+                    domainRepository.save(domain);
+                    return CompletableFuture.completedFuture(true); // Return true, will check later
+                }
+            }
+            
+            // Fallback to old method if Cloudflare SaaS is not enabled
+            if (!success && "CLOUDFLARE".equals(defaultSslProvider) && isCloudflareConfigured()) {
+                logger.warn("⚠️ Cloudflare SaaS failed, trying legacy method");
                 success = provisionCloudflareSSL(domain);
                 if (success) {
                     domain.setSslProvider("CLOUDFLARE");
@@ -54,6 +98,7 @@ public class SslProvisioningService {
             
             // Fallback to Let's Encrypt if Cloudflare fails or not configured
             if (!success) {
+                logger.warn("⚠️ Trying Let's Encrypt fallback");
                 success = provisionLetsEncryptSSL(domain);
                 if (success) {
                     domain.setSslProvider("LETS_ENCRYPT");
@@ -63,13 +108,13 @@ public class SslProvisioningService {
             if (success) {
                 domain.markSslActive(domain.getSslProvider());
                 domainRepository.save(domain);
-                logger.info("SSL provisioned successfully for domain: {} using {}", 
+                logger.info("✅ SSL provisioned successfully for domain: {} using {}", 
                     domain.getDomainName(), domain.getSslProvider());
             } else {
                 domain.setSslStatus("ERROR");
                 domain.setSslError("Failed to provision SSL certificate");
                 domainRepository.save(domain);
-                logger.error("SSL provisioning failed for domain: {}", domain.getDomainName());
+                logger.error("❌ SSL provisioning failed for domain: {}", domain.getDomainName());
             }
             
             return CompletableFuture.completedFuture(success);
@@ -79,7 +124,7 @@ public class SslProvisioningService {
             domain.setSslError("SSL provisioning error: " + e.getMessage());
             domainRepository.save(domain);
             
-            logger.error("Exception during SSL provisioning for domain: {}", domain.getDomainName(), e);
+            logger.error("❌ Exception during SSL provisioning for domain: {}", domain.getDomainName(), e);
             return CompletableFuture.completedFuture(false);
         }
     }

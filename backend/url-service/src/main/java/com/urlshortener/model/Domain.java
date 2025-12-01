@@ -80,9 +80,9 @@ public class Domain {
         this.ownerType = ownerType;
         this.ownerId = ownerId;
         this.verificationToken = verificationToken;
-        // Set CNAME target to universal proxy domain (Vercel Edge Proxy)
+        // Set CNAME target to universal proxy domain (Cloudflare)
         String proxyDomain = System.getenv("PROXY_DOMAIN");
-        this.cnameTarget = proxyDomain != null ? proxyDomain : "pebly-with-proxy.vercel.app";
+        this.cnameTarget = proxyDomain != null ? proxyDomain : "tinyslash.com";
         this.reservedUntil = LocalDateTime.now().plusMinutes(15);
     }
     

@@ -183,9 +183,9 @@ class SubscriptionService {
           key: process.env.REACT_APP_RAZORPAY_KEY_ID,
           amount: amount,
           currency: 'INR',
-          name: 'Pebly',
+          name: 'TinySlash',
           description: `Upgrade to ${planName}`,
-          image: '/logo192.png',
+          image: '/round-logo-ts.png',
           handler: async (response: any) => {
             try {
               // Verify payment and upgrade user

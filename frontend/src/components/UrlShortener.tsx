@@ -37,7 +37,7 @@ const UrlShortener: React.FC = () => {
   const [qrText, setQrText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customAlias, setCustomAlias] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('pebly.vercel.app');
+  const [selectedDomain, setSelectedDomain] = useState('tinyslash.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [expirationDays, setExpirationDays] = useState<number | ''>('');
@@ -128,7 +128,7 @@ const UrlShortener: React.FC = () => {
   const [aiSuggestions, setAiSuggestions] = useState<AliasSuggestion[]>([]);
   const [securityCheck, setSecurityCheck] = useState<SecurityCheck | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [customDomains, setCustomDomains] = useState<string[]>(['pebly.vercel.app']);
+  const [customDomains, setCustomDomains] = useState<string[]>(['tinyslash.com']);
   const [isLoadingDomains, setIsLoadingDomains] = useState(false);
 
   // Load custom domains from backend API
@@ -152,14 +152,14 @@ const UrlShortener: React.FC = () => {
           if (data.success && data.domains) {
             const domainNames = data.domains.map((domain: any) => domain.domainName);
             // Always include the default domain
-            const allDomains = ['pebly.vercel.app', ...domainNames];
+            const allDomains = ['tinyslash.com', ...domainNames];
             setCustomDomains(Array.from(new Set(allDomains))); // Remove duplicates
           }
         }
       } catch (error) {
         console.error('Failed to load custom domains:', error);
         // Keep default domain on error
-        setCustomDomains(['pebly.vercel.app']);
+        setCustomDomains(['tinyslash.com']);
       } finally {
         setIsLoadingDomains(false);
       }
@@ -216,7 +216,7 @@ const UrlShortener: React.FC = () => {
     const finalPassword = featureAccess.canUsePasswordProtection ? password : '';
     const finalExpirationDays = featureAccess.canUseLinkExpiration ? expirationDays : '';
     const finalMaxClicks = featureAccess.canUseClickLimits ? maxClicks : '';
-    const finalDomain = featureAccess.canUseCustomDomain ? selectedDomain : 'pebly.vercel.app';
+    const finalDomain = featureAccess.canUseCustomDomain ? selectedDomain : 'tinyslash.com';
 
     setIsLoading(true);
 
@@ -236,7 +236,7 @@ const UrlShortener: React.FC = () => {
           maxClicks: finalMaxClicks ? parseInt(finalMaxClicks.toString()) : undefined,
           title: `Short link for ${urlInput}`,
           description: 'Created via URL Shortener',
-          customDomain: finalDomain !== 'pebly.vercel.app' ? finalDomain : undefined
+          customDomain: finalDomain !== 'tinyslash.com' ? finalDomain : undefined
         });
         
         result = await createShortUrl({
@@ -248,7 +248,7 @@ const UrlShortener: React.FC = () => {
           maxClicks: finalMaxClicks ? parseInt(finalMaxClicks.toString()) : undefined,
           title: `Short link for ${urlInput}`,
           description: 'Created via URL Shortener',
-          customDomain: finalDomain !== 'pebly.vercel.app' ? finalDomain : undefined
+          customDomain: finalDomain !== 'tinyslash.com' ? finalDomain : undefined
         });
 
         if (result.success) {
@@ -584,7 +584,7 @@ const UrlShortener: React.FC = () => {
                         e.preventDefault();
                         
                         // Reset dropdown to default
-                        setSelectedDomain('pebly.vercel.app');
+                        setSelectedDomain('tinyslash.com');
                         
                         // Check if user can use custom domains
                         if (!featureAccess.canUseCustomDomain) {
@@ -614,7 +614,7 @@ const UrlShortener: React.FC = () => {
                         {/* Default and custom domains */}
                         {customDomains.map(domain => (
                           <option key={domain} value={domain}>
-                            {domain} {domain === 'pebly.vercel.app' ? '(Default)' : ''}
+                            {domain} {domain === 'tinyslash.com' ? '(Default)' : ''}
                           </option>
                         ))}
                         

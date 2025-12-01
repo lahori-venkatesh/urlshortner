@@ -94,7 +94,7 @@ const LandingPageShortener: React.FC<LandingPageShortenerProps> = ({ onSignupPro
         {activeTab === 'url' && (
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#36a1ce] rounded-full flex items-center justify-center mx-auto mb-4">
                 <Link className="w-8 h-8 text-white" />
               </div>
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Shorten Your URL</h4>
@@ -131,7 +131,7 @@ const LandingPageShortener: React.FC<LandingPageShortenerProps> = ({ onSignupPro
         {activeTab === 'qr' && (
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#36a1ce] rounded-full flex items-center justify-center mx-auto mb-4">
                 <QrCode className="w-8 h-8 text-white" />
               </div>
               <h4 className="text-xl font-semibold text-gray-900 mb-2">Generate QR Code</h4>
@@ -216,7 +216,7 @@ const LandingPageShortener: React.FC<LandingPageShortenerProps> = ({ onSignupPro
               (activeTab === 'url' && !urlInput.trim()) || 
               (activeTab === 'qr' && !qrText.trim())
             }
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-4 rounded-xl text-lg font-semibold hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center space-x-3 mx-auto"
+            className="bg-black text-white px-12 py-4 rounded-xl text-lg font-semibold hover:bg-gray-800 hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center space-x-3 mx-auto"
           >
             {isLoading ? (
               <>

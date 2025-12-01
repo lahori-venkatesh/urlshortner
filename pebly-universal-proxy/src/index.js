@@ -1,5 +1,5 @@
 /**
- * Pebly Universal Custom Domain Proxy v2.0
+ * TinySlash Universal Custom Domain Proxy v2.0
  * Handles UNLIMITED custom domains automatically
  * Enhanced with better error handling, caching, and analytics
  */
@@ -56,7 +56,7 @@ export default {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Pebly Universal Proxy</title>
+          <title>TinySlash Universal Proxy</title>
           <style>
             body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
             .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -67,15 +67,15 @@ export default {
         </head>
         <body>
           <div class="container">
-            <h1>🔗 Pebly Universal Proxy</h1>
+            <h1>🔗 TinySlash Universal Proxy</h1>
             <div class="status">✅ Proxy is running successfully!</div>
-            <div class="info">This is the universal custom domain proxy for Pebly URL shortener.</div>
+            <div class="info">This is the universal custom domain proxy for TinySlash URL shortener.</div>
             <div class="info">
               <strong>For users:</strong> Point your custom domain CNAME to:<br>
-              <code>${hostname}</code>
+              <code>tinyslash.com</code>
             </div>
             <div class="info">
-              <strong>Example:</strong> links.yourdomain.com → CNAME → ${hostname}
+              <strong>Example:</strong> links.yourdomain.com → CNAME → tinyslash.com
             </div>
             <hr style="margin: 30px 0;">
             <div class="info">
@@ -91,7 +91,7 @@ export default {
     }
     
     // Skip if it's your main domains
-    if (hostname.includes('pebly.vercel.app')) {
+    if (hostname.includes('tinyslash.com') || hostname.includes('tinyslash.vercel.app')) {
       return fetch(request);
     }
     
@@ -228,7 +228,7 @@ export default {
             'Access-Control-Allow-Credentials': 'true',
             'Vary': 'Origin',
             'Cache-Control': response.headers.get('Cache-Control') || 'public, max-age=300',
-            'X-Powered-By': 'Pebly Universal Proxy v2.0',
+            'X-Powered-By': 'TinySlash Universal Proxy v2.0',
             'X-Proxy-Host': hostname,
             'X-Proxy-Country': request.headers.get('CF-IPCountry') || 'unknown',
             'X-Response-Time': new Date().toISOString()
@@ -286,7 +286,7 @@ function createErrorPage(hostname, pathname, statusCode = 404, errorMessage = 'N
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${title} - Pebly</title>
+      <title>${title} - TinySlash</title>
       <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -397,10 +397,10 @@ function createErrorPage(hostname, pathname, statusCode = 404, errorMessage = 'N
           <li>The backend service is temporarily unavailable</li>
         </ul>
         
-        <a href="https://pebly.vercel.app" class="btn">Create Your Own Short Links</a>
+        <a href="https://tinyslash.com" class="btn">Create Your Own Short Links</a>
         
         <div class="footer">
-          Powered by <strong>Pebly</strong> • Universal Custom Domain Proxy<br>
+          Powered by <strong>TinySlash</strong> • Universal Custom Domain Proxy<br>
           <small>Cloudflare Workers • Global Edge Network</small>
         </div>
       </div>
@@ -413,7 +413,7 @@ function createErrorPage(hostname, pathname, statusCode = 404, errorMessage = 'N
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'public, max-age=300',
-      'X-Powered-By': 'Pebly Universal Proxy'
+      'X-Powered-By': 'TinySlash Universal Proxy'
     }
   });
 }
