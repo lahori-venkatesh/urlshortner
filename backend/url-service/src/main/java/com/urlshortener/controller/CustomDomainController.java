@@ -5,6 +5,7 @@ import com.urlshortener.repository.DomainRepository;
 import com.urlshortener.service.CloudflareService;
 import com.urlshortener.service.DomainVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -29,7 +30,8 @@ public class CustomDomainController {
     @Autowired
     private DomainVerificationService verificationService;
     
-    private static final String PROXY_TARGET = "pebly-proxy.lahorivenkatesh709.workers.dev";
+    @Value("${app.domain.proxy-target:tinyslash.com}")
+    private String proxyTarget;
     
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addCustomDomain(@RequestBody Map<String, Object> request) {
@@ -69,7 +71,7 @@ public class CustomDomainController {
             String verificationToken = UUID.randomUUID().toString();
             Domain customDomain = new Domain(domain, "USER", userId, verificationToken);
             customDomain.setStatus(Domain.DomainStatus.PENDING);
-            customDomain.setCnameTarget(PROXY_TARGET);
+            customDomain.setCnameTarget(proxyTarget);
             domainRepository.save(customDomain);
             
             System.out.println("✅ Domain added to database: " + domain);
@@ -78,7 +80,7 @@ public class CustomDomainController {
             Map<String, Object> dnsInstructions = new HashMap<>();
             dnsInstructions.put("type", "CNAME");
             dnsInstructions.put("name", verificationService.extractSubdomain(domain));
-            dnsInstructions.put("target", PROXY_TARGET);
+            dnsInstructions.put("target", proxyTarget);
             dnsInstructions.put("ttl", "Auto or 300");
             
             response.put("success", true);
@@ -127,10 +129,10 @@ public class CustomDomainController {
                 response.put("message", "DNS not configured correctly");
                 response.put("domain", domain);
                 response.put("status", "dns_pending");
-                response.put("expectedTarget", PROXY_TARGET);
+                response.put("expectedTarget", proxyTarget);
                 
                 Map<String, Object> troubleshooting = new HashMap<>();
-                troubleshooting.put("step1", "Add CNAME record: " + verificationService.extractSubdomain(domain) + " → " + PROXY_TARGET);
+                troubleshooting.put("step1", "Add CNAME record: " + verificationService.extractSubdomain(domain) + " → " + proxyTarget);
                 troubleshooting.put("step2", "Wait 5-15 minutes for DNS propagation");
                 troubleshooting.put("step3", "Click verify again");
                 response.put("troubleshooting", troubleshooting);

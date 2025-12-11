@@ -139,6 +139,7 @@ app:
   
   # Custom Domain Configuration
   domain:
+    proxy-target: ${PROXY_TARGET:tinyslash.com}
     verification:
       subdomain: verify.bitaurl.com
       max-attempts: 5

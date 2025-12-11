@@ -1,5 +1,6 @@
 package com.urlshortener.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -11,7 +12,8 @@ import java.util.Hashtable;
 @Service
 public class DomainVerificationService {
     
-    private static final String EXPECTED_TARGET = "pebly-proxy.lahorivenkatesh709.workers.dev";
+    @Value("${app.domain.proxy-target:tinyslash.com}")
+    private String expectedTarget;
     
     /**
      * Verify DNS CNAME record
@@ -30,13 +32,13 @@ public class DomainVerificationService {
                          cnameTarget.substring(0, cnameTarget.length() - 1) : 
                          cnameTarget;
             
-            boolean isValid = cnameTarget.equalsIgnoreCase(EXPECTED_TARGET);
+            boolean isValid = cnameTarget.equalsIgnoreCase(expectedTarget);
             
             if (isValid) {
                 System.out.println("✅ DNS verified for: " + domain + " → " + cnameTarget);
             } else {
                 System.out.println("❌ DNS mismatch for: " + domain);
-                System.out.println("   Expected: " + EXPECTED_TARGET);
+                System.out.println("   Expected: " + expectedTarget);
                 System.out.println("   Found: " + cnameTarget);
             }
             
