@@ -23,7 +23,7 @@ const CustomDomainOnboarding: React.FC<CustomDomainOnboardingProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [addedDomain, setAddedDomain] = useState<any>(null);
 
-  // Universal proxy domain configuration - now using Cloudflare
+  // Universal proxy domain configuration - now using Cloudflare SaaS
   const proxyDomain = process.env.REACT_APP_PROXY_DOMAIN || 'tinyslash.com';
 
   if (!isOpen) return null;
