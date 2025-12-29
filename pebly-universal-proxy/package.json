@@ -1,7 +1,7 @@
 {
-  "name": "pebly-universal-proxy",
+  "name": "tinyslash-universal-proxy",
   "version": "1.0.0",
-  "description": "Universal custom domain proxy for Pebly URL shortener - handles unlimited domains automatically",
+  "description": "Universal custom domain proxy for Tinyslash URL shortener - handles unlimited domains automatically",
   "main": "src/index.js",
   "scripts": {
     "dev": "wrangler dev",
@@ -11,7 +11,7 @@
     "test": "node test-proxy.js",
     "logs": "wrangler tail --env production",
     "logs:dev": "wrangler tail --env development",
-    "health": "curl -s https://pebly-universal-proxy.your-subdomain.workers.dev/health | jq",
+    "health": "curl -s https://tinyslash-universal-proxy.your-subdomain.workers.dev/health | jq",
     "setup": "./deploy.sh",
     "validate": "node validate-config.js",
     "presetup": "node validate-config.js"
@@ -22,9 +22,9 @@
     "url-shortener",
     "custom-domain",
     "universal",
-    "pebly"
+    "tinyslash"
   ],
-  "author": "Pebly",
+  "author": "Tinyslash",
   "license": "MIT",
   "devDependencies": {
     "wrangler": "^3.0.0"

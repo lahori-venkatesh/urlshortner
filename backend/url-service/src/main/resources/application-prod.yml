@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: pebly-url-service
+    name: tinyslash-url-service
 
   # MongoDB Configuration for Production
   data:
@@ -37,8 +37,8 @@ spring:
   web:
     cors:
       allowed-origins:
-        - ${FRONTEND_URL:https://pebly.vercel.app}
-        - "https://pebly.vercel.app"
+        - ${FRONTEND_URL:https://tinyslash.com}
+        - "https://tinyslash.com"
         - "https://*.vercel.app"
         - "https://urlshortner-1-hpyu.onrender.com"
         - "https://links.pdfcircle.com"
@@ -67,15 +67,15 @@ spring:
     redis:
       time-to-live: 3600000  # 1 hour in milliseconds
       cache-null-values: false
-      key-prefix: "pebly:"
+      key-prefix: "tinyslash:"
       use-key-prefix: true
 
 # Application Configuration
 app:
   frontend:
-    url: ${FRONTEND_URL:https://pebly.vercel.app}
+    url: ${FRONTEND_URL:https://tinyslash.com}
   shorturl:
-    domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
+    domain: ${SHORT_URL_DOMAIN:https://tinyslash.com}
 
 # Logging Configuration for Production
 logging:

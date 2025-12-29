@@ -8,10 +8,11 @@ const Footer: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          
+
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
+              <img src="/logo.png" alt="Tinyslash Logo" className="w-10 h-10 object-contain mr-2" />
               <span className="text-2xl font-bold">
                 <span className="text-white">Tiny</span>
                 <span className="text-[#36a1ce]">Slash</span>
@@ -41,40 +42,40 @@ const Footer: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-6">Quick Links</h3>
             <ul className="space-y-4">
               <li>
-                <Link 
-                  to="/pricing" 
+                <Link
+                  to="/pricing"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Pricing
-                </Link>
-              </li>
+                  </Link>
+                </li>
               <li>
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Dashboard
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/about" 
+                <Link
+                  to="/about"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/contact" 
+                <Link
+                  to="/contact"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Contact Us
                 </Link>
               </li>
               <li>
-                <a 
-                  href="mailto:support@tinyslash.com" 
+                <a
+                  href="mailto:support@tinyslash.com"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Support
@@ -88,32 +89,32 @@ const Footer: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-6">Legal & Policies</h3>
             <ul className="space-y-4">
               <li>
-                <Link 
-                  to="/privacy" 
+                <Link
+                  to="/privacy"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Privacy Policy
-                </Link>
-              </li>
+                  </Link>
+                </li>
               <li>
-                <Link 
-                  to="/terms" 
+                <Link
+                  to="/terms"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Terms & Conditions
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/cancellation-refund" 
+                <Link
+                  to="/cancellation-refund"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Refund Policy
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/shipping-policy" 
+                <Link
+                  to="/shipping-policy"
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-lg font-medium block"
                 >
                   Shipping Policy
@@ -128,22 +129,22 @@ const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-lg mb-4 md:mb-0">
               © 2025 <span className="text-white font-semibold">TinySlash</span>. All rights reserved.
-            </p>
+          </p>
             <div className="flex space-x-8">
-              <Link 
-                to="/privacy" 
+              <Link
+                to="/privacy"
                 className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg"
               >
                 Privacy
               </Link>
-              <Link 
-                to="/terms" 
+              <Link
+                to="/terms"
                 className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg"
               >
                 Terms
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                to="/contact"
                 className="text-gray-300 hover:text-white transition-colors duration-200 font-medium text-lg"
               >
                 Contact

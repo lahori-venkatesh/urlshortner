@@ -75,10 +75,10 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
@@ -93,7 +93,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
       >
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative bg-[#36a1ce] text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+          className="relative bg-black text-white p-4 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)] border-2 border-white hover:shadow-[0_0_20px_rgba(255,255,255,0.7)] transition-all duration-300 hover:scale-110"
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -118,7 +118,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           {unreadCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
               {unreadCount}
@@ -140,9 +140,14 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
             {/* Header */}
             <div className="bg-[#36a1ce] text-white p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">TinySlash Support</h3>
-                  <p className="text-blue-100 text-sm">We're here to help! 🚀</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">TinySlash Support</h3>
+                    <p className="text-blue-100 text-sm">We're here to help! 🚀</p>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -160,11 +165,10 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
                   <button
                     key={id}
                     onClick={() => setActiveTab(id as any)}
-                    className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-all ${
-                      activeTab === id
-                        ? 'bg-white/20 text-white'
-                        : 'text-blue-100 hover:bg-white/10'
-                    }`}
+                    className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-all ${activeTab === id
+                      ? 'bg-white/20 text-white'
+                      : 'text-blue-100 hover:bg-white/10'
+                      }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span>{label}</span>
@@ -185,22 +189,20 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({ className = '' }) => {
                         className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-2xl ${
-                            msg.sender === 'user'
-                              ? 'bg-blue-600 text-white rounded-br-md'
-                              : 'bg-gray-100 text-gray-800 rounded-bl-md'
-                          }`}
+                          className={`max-w-[80%] p-3 rounded-2xl ${msg.sender === 'user'
+                            ? 'bg-blue-600 text-white rounded-br-md'
+                            : 'bg-gray-100 text-gray-800 rounded-bl-md'
+                            }`}
                         >
                           <p className="text-sm">{msg.message}</p>
-                          <p className={`text-xs mt-1 ${
-                            msg.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
+                          <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                            }`}>
                             {formatTime(msg.timestamp)}
                           </p>
                         </div>
                       </div>
                     ))}
-                    
+
                     {isTyping && (
                       <div className="flex justify-start">
                         <div className="bg-gray-100 p-3 rounded-2xl rounded-bl-md">
@@ -283,14 +285,14 @@ const ContactForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.id) {
       toast.error('Please log in to submit a support ticket');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await createTicket({
         category: formData.category as any,
@@ -298,9 +300,9 @@ const ContactForm: React.FC = () => {
         message: formData.message,
         priority: formData.priority as any
       });
-      
+
       toast.success('Support ticket created successfully! We\'ll get back to you soon.');
-      
+
       // Reset form
       setFormData({
         category: '',
@@ -310,10 +312,10 @@ const ContactForm: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Error creating support ticket:', error);
-      
+
       // Handle authentication errors specifically
-      if (error?.message?.includes('Authentication required') || 
-          error?.message?.includes('Please log in')) {
+      if (error?.message?.includes('Authentication required') ||
+        error?.message?.includes('Please log in')) {
         toast.error('Your session has expired. Please log in again to submit a support ticket.');
       } else if (error?.response?.status === 401 || error?.response?.status === 403) {
         toast.error('Authentication failed. Please log in again to submit a support ticket.');
@@ -503,7 +505,7 @@ const FAQSection: React.FC = () => {
                 </span>
               </div>
             </button>
-            
+
             {expandedFAQ === faq.id && (
               <div className="px-3 pb-3">
                 <p className="text-gray-600 text-sm">{faq.answer}</p>

@@ -22,6 +22,7 @@ import RedirectPage from './pages/RedirectPage';
 import AuthCallback from './pages/AuthCallback';
 import AdvancedQRGenerator from './components/AdvancedQRGenerator';
 import CustomDomainManager from './components/CustomDomainManager';
+import DashboardLayout from './components/layouts/DashboardLayout';
 import UnifiedDashboard from './components/UnifiedDashboard';
 import FileViewer from './pages/FileViewer';
 import QRAnalyticsPage from './pages/QRAnalyticsPage';
@@ -63,104 +64,102 @@ const AppContent: React.FC = () => {
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/links" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/qr-codes" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/file-links" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/analytics" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/domains" element={
               <AuthRedirect requireAuth={true}>
-                <div className="min-h-screen bg-gray-50">
-                  <div className="sticky top-0 z-50">
-                    <Header />
-                  </div>
+                <DashboardLayout>
                   <UnifiedDashboard />
-                </div>
+                </DashboardLayout>
               </AuthRedirect>
             } />
-            
+
+            <Route path="/dashboard/team/members" element={
+              <AuthRedirect requireAuth={true}>
+                <DashboardLayout>
+                  <UnifiedDashboard />
+                </DashboardLayout>
+              </AuthRedirect>
+            } />
+
+            <Route path="/dashboard/team/settings" element={
+              <AuthRedirect requireAuth={true}>
+                <DashboardLayout>
+                  <UnifiedDashboard />
+                </DashboardLayout>
+              </AuthRedirect>
+            } />
+
             {/* Individual Analytics Routes */}
             <Route path="/dashboard/links/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
                 <Analytics />
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/analytics/url/:shortCode" element={
               <AuthRedirect requireAuth={true}>
                 <Analytics />
               </AuthRedirect>
             } />
-            
+
             <Route path="/dashboard/qr-codes/analytics/:qrCode" element={
               <AuthRedirect requireAuth={true}>
                 <QRAnalyticsPage />
               </AuthRedirect>
             } />
-            
 
-            
+
+
             <Route path="/dashboard/file-links/analytics/:fileCode" element={
               <AuthRedirect requireAuth={true}>
                 <FileAnalyticsPage />
               </AuthRedirect>
             } />
-            
+
             {/* Legacy Individual Link Analytics */}
             <Route path="/analytics/:shortCode" element={
               <AuthRedirect requireAuth={true}>
                 <Analytics />
               </AuthRedirect>
             } />
-            
+
             {/* Legacy QR Generator Route */}
             <Route path="/qr-generator" element={
               <div className="min-h-screen bg-gray-50">
@@ -170,7 +169,7 @@ const AppContent: React.FC = () => {
                 </main>
               </div>
             } />
-            
+
             <Route path="/domains" element={
               <div className="min-h-screen bg-gray-50">
                 <Header />
@@ -180,7 +179,7 @@ const AppContent: React.FC = () => {
               </div>
             } />
             <Route path="/pricing" element={
-              <AuthRedirect requireAuth={true}>
+              <AuthRedirect requireAuth={false}>
                 <Pricing />
               </AuthRedirect>
             } />
@@ -195,7 +194,7 @@ const AppContent: React.FC = () => {
               </AuthRedirect>
             } />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            
+
             {/* Policy Pages */}
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/about" element={<About />} />
@@ -203,24 +202,24 @@ const AppContent: React.FC = () => {
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/cancellation-refund" element={<CancellationRefund />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
-            
+
             {/* Team Invite Route */}
             <Route path="/invite/:inviteToken" element={
               <AuthRedirect requireAuth={true}>
                 <TeamInvite />
               </AuthRedirect>
             } />
-            
+
             <Route path="/file/:fileId" element={<FileViewer />} />
             <Route path="/redirect/:shortCode" element={<RedirectPage />} />
           </Routes>
           <Toaster position="top-right" />
         </div>
       </Router>
-      
+
       {/* Global Upgrade Modal - New Context System */}
       <UpgradeModal />
-      
+
       {/* Global Support Widget */}
       <SupportWidget />
     </>

@@ -55,7 +55,7 @@ const LoginPage: React.FC = () => {
           <span className="text-white font-bold text-2xl">P</span>
         </div>
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Pebly Admin
+          Tinyslash Admin
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Sign in to your admin account
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
                 type="email"
                 autoComplete="email"
                 className="input-field"
-                placeholder="admin@pebly.com"
+                placeholder="admin@tinyslash.com"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-error-600">{errors.email.message}</p>

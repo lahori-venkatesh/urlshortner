@@ -1,5 +1,5 @@
 {
-  "name": "pebly-admin-panel",
+  "name": "tinyslash-admin",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -13,6 +13,7 @@
     "axios": "^1.6.0",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.0",
+    "lucide-react": "^0.562.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
@@ -48,8 +49,8 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "^27.5.2",
     "@tailwindcss/forms": "^0.5.7",
+    "@types/jest": "^27.5.2",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31"
   },

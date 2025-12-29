@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowLeft, Crown, Zap, ChevronDown, HelpCircle, Star, Tag, Percent, Infinity } from 'lucide-react';
+import { Check, Crown, Zap, ChevronDown, HelpCircle, Star, Tag, Percent, Infinity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthModal from '../components/AuthModal';
 import PaymentModal from '../components/PaymentModal';
 
 import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
+import PublicHeader from '../components/PublicHeader';
 import { paymentService } from '../services/paymentService';
 import { subscriptionService, PricingData } from '../services/subscriptionService';
 import toast from 'react-hot-toast';
@@ -85,7 +87,7 @@ const Pricing: React.FC = () => {
     setIsLoading(true);
     try {
       const subscriptionPlanType = planType;
-      
+
       await subscriptionService.initializePayment(subscriptionPlanType, user.id);
       toast.success('Payment successful! Your plan has been upgraded.');
       navigate('/dashboard');
@@ -99,27 +101,27 @@ const Pricing: React.FC = () => {
 
   const handlePaymentSuccess = async () => {
     toast.success('Welcome to Pebly Premium! 🎉');
-    
+
     // Refresh user profile to get updated subscription data
     try {
       if (user?.id) {
         const apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
         const response = await fetch(`${apiUrl}/v1/auth/refresh-profile/${user.id}`);
         const data = await response.json();
-        
+
         if (data.success && data.user) {
           // Update localStorage and trigger context refresh
           localStorage.setItem('user', JSON.stringify(data.user));
-          
-          window.dispatchEvent(new CustomEvent('auth-user-updated', { 
-            detail: { user: data.user } 
+
+          window.dispatchEvent(new CustomEvent('auth-user-updated', {
+            detail: { user: data.user }
           }));
         }
       }
     } catch (error) {
       console.error('Failed to refresh user profile:', error);
     }
-    
+
     loadSubscriptionStatus();
     navigate('/dashboard');
   };
@@ -132,7 +134,7 @@ const Pricing: React.FC = () => {
 
     try {
       setCouponError('');
-      
+
       // Check for the special 99% discount coupon
       if (couponCode.toLowerCase() === 'venkat99') {
         setAppliedCoupon({
@@ -172,7 +174,7 @@ const Pricing: React.FC = () => {
 
   const calculateDiscountedPrice = (originalPrice: number) => {
     if (!appliedCoupon) return originalPrice;
-    
+
     if (appliedCoupon.type === 'percentage') {
       const discountedPrice = originalPrice * (1 - appliedCoupon.discount / 100);
       // Ensure minimum price of ₹1 and round to nearest rupee
@@ -200,7 +202,7 @@ const Pricing: React.FC = () => {
     }
 
     setIsProcessingPayment(true);
-    
+
     try {
       const res = await initializeRazorpay();
       if (!res) {
@@ -209,14 +211,14 @@ const Pricing: React.FC = () => {
       }
 
       const finalPrice = calculateDiscountedPrice(originalPrice);
-      
+
       console.log('Payment Details:', {
         originalPrice,
         finalPrice,
         couponCode: appliedCoupon?.code,
         discount: appliedCoupon?.discount
       });
-      
+
       // Create order on backend
       const apiUrl = process.env.REACT_APP_API_URL || 'https://urlshortner-mrrl.onrender.com/api';
       const orderResponse = await fetch(`${apiUrl}/v1/payments/create-order`, {
@@ -237,7 +239,7 @@ const Pricing: React.FC = () => {
       });
 
       const orderData = await orderResponse.json();
-      
+
       if (!orderData.success) {
         throw new Error(orderData.message || 'Failed to create order');
       }
@@ -267,7 +269,7 @@ const Pricing: React.FC = () => {
             });
 
             const verifyData = await verifyResponse.json();
-            
+
             if (verifyData.success) {
               // Update user context with new subscription data if provided
               if (verifyData.user) {
@@ -277,16 +279,16 @@ const Pricing: React.FC = () => {
                   subscriptionPlan: verifyData.user.subscriptionPlan,
                   subscriptionExpiry: verifyData.user.subscriptionExpiry
                 };
-                
+
                 // Update localStorage
                 localStorage.setItem('user', JSON.stringify(verifyData.user));
-                
+
                 // Trigger auth context refresh
-                window.dispatchEvent(new CustomEvent('auth-user-updated', { 
-                  detail: { user: updatedUser } 
+                window.dispatchEvent(new CustomEvent('auth-user-updated', {
+                  detail: { user: updatedUser }
                 }));
               }
-              
+
               handlePaymentSuccess();
             } else {
               toast.error('Payment verification failed');
@@ -309,7 +311,7 @@ const Pricing: React.FC = () => {
           color: '#2563eb',
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             setIsProcessingPayment(false);
           }
         }
@@ -317,7 +319,7 @@ const Pricing: React.FC = () => {
 
       const paymentObject = new (window as any).Razorpay(options);
       paymentObject.open();
-      
+
     } catch (error) {
       console.error('Payment error:', error);
       toast.error('Payment failed. Please try again.');
@@ -385,190 +387,154 @@ const Pricing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {isAuthenticated ? <Header /> : <PublicHeader />}
       {/* Pricing Section */}
-      <section className="py-12">
+      <section className="py-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back to Dashboard */}
-          <div className="mb-8">
-            <button
-              onClick={handleBackToDashboard}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors group"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Back to Dashboard</span>
-            </button>
-          </div>
 
-          <motion.div 
-            className="text-center mb-12"
+
+          <motion.div
+            className="text-center mb-16"
             initial="initial"
             animate="animate"
             variants={fadeInUp}
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Plan
+            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+              Simple, transparent pricing
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-              Start free and scale as you grow. Transparent pricing with no hidden fees.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10">
+              Start free and scale as you grow. No hidden fees. Cancel anytime.
             </p>
-            
-            {/* Simple Billing Toggle */}
-            <div className="inline-flex items-center bg-gray-100 rounded-lg p-1">
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  billingCycle === 'monthly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 relative ${
-                  billingCycle === 'yearly'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Yearly
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  17% off
-                </span>
-              </button>
-            </div>
-          </motion.div>
 
-          {/* Coupon Section */}
-          <motion.div 
-            className="max-w-md mx-auto mb-8"
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-          >
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border border-green-200">
-              <div className="flex items-center justify-center mb-4">
-                <Tag className="w-5 h-5 text-green-600 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900">Have a Coupon Code?</h3>
+            {/* Modern Billing Toggle */}
+            <div className="flex justify-center mb-12">
+              <div className="bg-white p-1 rounded-full shadow-sm border border-gray-200 inline-flex relative">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`px-8 py-3 rounded-full text-sm font-semibold transition-all duration-200 ${billingCycle === 'monthly'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Monthly billing
+                </button>
+                <button
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`px-8 py-3 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${billingCycle === 'yearly'
+                    ? 'bg-gray-900 text-white shadow-md'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  Yearly billing
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${billingCycle === 'yearly' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700'}`}>
+                    Save 17%
+                  </span>
+                </button>
               </div>
-              
+            </div>
+
+            {/* Streamlined Coupon Section */}
+            <div className="max-w-md mx-auto relative z-10">
               {!appliedCoupon ? (
-                <div className="space-y-3">
-                  {!showCouponInput ? (
+                !showCouponInput ? (
+                  <button
+                    onClick={() => setShowCouponInput(true)}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-900 border-b border-dashed border-gray-400 hover:border-gray-900 transition-all pb-0.5"
+                  >
+                    Have a coupon code?
+                  </button>
+                ) : (
+                  <div className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError('');
+                      }}
+                      placeholder="Enter coupon"
+                      className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white/50 backdrop-blur-sm"
+                      autoFocus
+                    />
                     <button
-                      onClick={() => setShowCouponInput(true)}
-                      className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                      onClick={applyCoupon}
+                      className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors shadow-sm"
                     >
-                      <Percent className="w-4 h-4" />
-                      <span>Apply Coupon Code</span>
+                      Apply
                     </button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={couponCode}
-                          onChange={(e) => {
-                            setCouponCode(e.target.value.toUpperCase());
-                            setCouponError('');
-                          }}
-                          placeholder="Enter coupon code (e.g., VENKAT99, VENAKT90)"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        />
-                        <button
-                          onClick={applyCoupon}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                      {couponError && (
-                        <p className="text-red-600 text-sm">{couponError}</p>
-                      )}
-                      <button
-                        onClick={() => {
-                          setShowCouponInput(false);
-                          setCouponCode('');
-                          setCouponError('');
-                        }}
-                        className="text-gray-600 text-sm hover:text-gray-800"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-green-100 rounded-lg p-4 border border-green-300">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800">Coupon Applied!</p>
-                        <p className="text-sm text-green-700">
-                          {appliedCoupon.code} - {appliedCoupon.discount}% OFF
-                        </p>
-                      </div>
-                    </div>
                     <button
-                      onClick={removeCoupon}
-                      className="text-green-600 hover:text-green-800 text-sm font-medium"
+                      onClick={() => {
+                        setShowCouponInput(false);
+                        setCouponCode('');
+                        setCouponError('');
+                      }}
+                      className="p-2 text-gray-400 hover:text-gray-600"
                     >
-                      Remove
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                   </div>
+                )
+              ) : (
+                <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border border-green-200 text-sm font-medium animate-in fade-in zoom-in duration-200">
+                  <Check size={16} />
+                  <span>Coupon <strong>{appliedCoupon.code}</strong> applied: {appliedCoupon.discount}% OFF</span>
+                  <button onClick={removeCoupon} className="ml-2 p-1 hover:bg-green-100 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
                 </div>
               )}
-              
+              {couponError && <p className="text-red-500 text-xs mt-2">{couponError}</p>}
+
+              {/* Coupon Hint */}
               <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                  💡 Try codes <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENKAT99</span> for 99% off or <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-yellow-800">VENAKT90</span> for 90% off!
+                <p className="text-xs text-gray-500">
+                  💡 Try codes <span className="font-mono bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800 font-semibold cursor-pointer hover:bg-yellow-200 transition-colors" onClick={() => { setCouponCode('VENKAT99'); setShowCouponInput(true); }}>VENKAT99</span> or <span className="font-mono bg-yellow-100 px-1.5 py-0.5 rounded text-yellow-800 font-semibold cursor-pointer hover:bg-yellow-200 transition-colors" onClick={() => { setCouponCode('VENAKT90'); setShowCouponInput(true); }}>VENAKT90</span>
                 </p>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
             initial="initial"
             animate="animate"
             variants={staggerContainer}
           >
             {/* Free Plan */}
-            <motion.div 
-              className="bg-white rounded-xl shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
+            <motion.div
+              className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col h-full"
               variants={fadeInUp}
             >
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Tag className="w-6 h-6 text-gray-600" />
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Free</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-gray-900">₹0</span>
+                  <span className="text-gray-500">/month</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Free</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-1">₹0</div>
-                <p className="text-gray-600 text-sm">Perfect to get started</p>
+                <p className="text-gray-500 mt-4 text-sm leading-relaxed">
+                  Perfect for individuals and hobbyists starting out with link management.
+                </p>
               </div>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  "75 short links per month",
-                  "30 QR codes per month", 
-                  "5 file conversions per month",
-                  "Basic analytics",
-                  "Community support"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-green-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
+
+              <div className="flex-grow">
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "75 natural short links/mo",
+                    "30 QR codes/mo",
+                    "5 file conversions/mo",
+                    "Basic click analytics",
+                    "Standard community support"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-gray-700">
+                      <Check className="w-5 h-5 text-gray-400 shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
                 onClick={() => {
                   if (!isAuthenticated) {
                     setAuthMode('signup');
@@ -577,81 +543,67 @@ const Pricing: React.FC = () => {
                     navigate('/dashboard');
                   }
                 }}
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                className="w-full py-4 px-6 rounded-xl border border-gray-200 text-gray-900 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
               >
                 {isAuthenticated ? 'Current Plan' : 'Get Started Free'}
               </button>
             </motion.div>
 
-            {/* Pro Plan */}
-            <motion.div 
-              className={`bg-blue-600 rounded-xl shadow-lg p-6 relative transform scale-105 border-2 ${
-                appliedCoupon ? 'border-yellow-400 ring-2 ring-yellow-300' : 'border-blue-500'
-              }`}
+            {/* Pro Plan - Most Popular */}
+            <motion.div
+              className={`bg-gray-900 rounded-2xl p-8 border border-gray-800 hover:shadow-2xl hover:shadow-blue-900/20 transition-all duration-300 flex flex-col h-full relative overflow-hidden transform md:-translate-y-4 md:shadow-xl ${appliedCoupon ? 'ring-2 ring-green-500/50' : ''
+                }`}
               variants={fadeInUp}
             >
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
-                  <Zap className="w-3 h-3" />
-                  <span>Most Popular</span>
+              {/* Badge */}
+              <div className="absolute top-0 right-0 p-4">
+                <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                  MOST POPULAR
                 </span>
               </div>
-              
-              <div className="text-center mb-6 pt-2">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Crown className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Pro</h3>
-                <div className="space-y-1">
-                  {appliedCoupon ? (
-                    <div>
-                      <div className="text-lg text-blue-200 line-through">
-                        ₹{billingCycle === 'monthly' ? '349' : '2,999'}
-                      </div>
-                      <div className="text-3xl font-bold text-white mb-1">
-                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 349 : 2999)}
-                      </div>
-                      <div className="text-yellow-300 text-sm font-medium">
-                        {appliedCoupon.discount}% OFF Applied!
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-3xl font-bold text-white mb-1">
-                      ₹{billingCycle === 'monthly' ? '349' : '2,999'}
-                    </div>
+
+              <div className="mb-8 relative z-10">
+                <h3 className="text-lg font-semibold text-white mb-2">Pro</h3>
+                <div className="flex flex-col">
+                  {appliedCoupon && (
+                    <span className="text-gray-400 line-through text-lg mb-0.5">₹{billingCycle === 'monthly' ? '349' : '2,999'}</span>
                   )}
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-5xl font-bold tracking-tight ${appliedCoupon ? 'text-green-400' : 'text-white'}`}>
+                      ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 349 : 2999)}
+                    </span>
+                    <span className="text-gray-400">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                  </div>
+                  {billingCycle === 'yearly' && !appliedCoupon && <span className="text-green-400 text-sm mt-2 font-medium">Billed ₹{calculateDiscountedPrice(2999)} yearly</span>}
                 </div>
-                <p className="text-blue-100 text-sm">
-                  per {billingCycle === 'monthly' ? 'month' : 'year'}
+                <p className="text-gray-400 mt-4 text-sm leading-relaxed">
+                  For creators and professionals who need advanced tracking and customization.
                 </p>
-                {billingCycle === 'yearly' && !appliedCoupon && (
-                  <p className="text-yellow-300 font-medium mt-1 text-sm">
-                    Save ₹1,189 annually
-                  </p>
-                )}
               </div>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  "Unlimited short links",
-                  "Unlimited QR codes",
-                  "50 file conversions per month",
-                  "Advanced analytics",
-                  "1 custom domain",
-                  "Up to 3 team members",
-                  "Priority support",
-                  "API access"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-white text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
+
+              <div className="flex-grow relative z-10">
+                <div className="w-full h-px bg-gray-800 mb-8"></div>
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Unlimited short links",
+                    "Unlimited QR codes",
+                    "50 file conversions/mo",
+                    "Advanced analytics dashboard",
+                    "1 Custom Domain included",
+                    "Up to 3 team members",
+                    "Priority email support"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
+                      <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5 text-blue-400" />
+                      </div>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
                 onClick={() => {
                   if (!isAuthenticated) {
                     setAuthMode('signup');
@@ -663,81 +615,62 @@ const Pricing: React.FC = () => {
                     handleRazorpayPayment(planType, planName, originalPrice);
                   }
                 }}
-                className="w-full bg-white text-blue-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 relative z-10 shadow-lg ${isProcessingPayment
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-900 hover:bg-blue-50'
+                  }`}
                 disabled={isProcessingPayment}
               >
                 {isProcessingPayment ? 'Processing...' : 'Upgrade to Pro'}
               </button>
+
+              {/* Background gradient effect */}
+              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
             </motion.div>
 
             {/* Business Plan */}
-            <motion.div 
-              className={`bg-purple-600 rounded-xl shadow-md p-6 border hover:shadow-lg transition-all duration-300 relative ${
-                appliedCoupon ? 'border-yellow-400 ring-2 ring-yellow-300' : 'border-purple-500'
-              }`}
+            <motion.div
+              className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 flex flex-col h-full"
               variants={fadeInUp}
             >
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-pink-500 text-white px-4 py-1 rounded-full text-xs font-semibold">
-                  For Teams
-                </span>
-              </div>
-              
-              <div className="text-center mb-6 pt-2">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Business</h3>
-                <div className="space-y-1">
-                  {appliedCoupon ? (
-                    <div>
-                      <div className="text-lg text-purple-200 line-through">
-                        ₹{billingCycle === 'monthly' ? '699' : '5,999'}
-                      </div>
-                      <div className="text-3xl font-bold text-white mb-1">
-                        ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 699 : 5999)}
-                      </div>
-                      <div className="text-yellow-300 text-sm font-medium">
-                        {appliedCoupon.discount}% OFF Applied!
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-3xl font-bold text-white mb-1">
-                      ₹{billingCycle === 'monthly' ? '699' : '5,999'}
-                    </div>
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Business</h3>
+                <div className="flex flex-col">
+                  {appliedCoupon && (
+                    <span className="text-gray-400 line-through text-lg mb-0.5">₹{billingCycle === 'monthly' ? '699' : '5,999'}</span>
                   )}
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-4xl font-bold text-gray-900 ${appliedCoupon ? 'text-green-600' : ''}`}>
+                      ₹{calculateDiscountedPrice(billingCycle === 'monthly' ? 699 : 5999)}
+                    </span>
+                    <span className="text-gray-500">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                  </div>
                 </div>
-                <p className="text-purple-100 text-sm">
-                  per {billingCycle === 'monthly' ? 'month' : 'year'}
+                <p className="text-gray-500 mt-4 text-sm leading-relaxed">
+                  For scaling teams and agencies needing enterprise power and white-labeling.
                 </p>
-                {billingCycle === 'yearly' && !appliedCoupon && (
-                  <p className="text-yellow-300 font-medium mt-1 text-sm">
-                    Save ₹2,389 annually
-                  </p>
-                )}
               </div>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  "Everything in Pro",
-                  "200 file conversions per month",
-                  "3 custom domains",
-                  "Up to 10 team members",
-                  "White-label branding",
-                  "VIP support",
-                  "99.9% SLA guarantee",
-                  "Advanced API features"
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-white text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
+
+              <div className="flex-grow">
+                <ul className="space-y-4 mb-8">
+                  {[
+                    "Everything in Pro",
+                    "200 file conversions/mo",
+                    "3 Custom Domains",
+                    "Up to 10 team members",
+                    "White-label branding",
+                    "Dedicated account manager",
+                    "99.9% Uptime SLA"
+                  ].map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-gray-700">
+                      <Check className="w-5 h-5 text-purple-600 shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
                 onClick={() => {
                   if (!isAuthenticated) {
                     setAuthMode('signup');
@@ -749,7 +682,7 @@ const Pricing: React.FC = () => {
                     handleRazorpayPayment(planType, planName, originalPrice);
                   }
                 }}
-                className="w-full bg-white text-purple-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="w-full py-4 px-6 rounded-xl bg-purple-50 text-purple-700 font-semibold border border-purple-100 hover:bg-purple-100 transition-all duration-200"
                 disabled={isProcessingPayment}
               >
                 {isProcessingPayment ? 'Processing...' : 'Upgrade to Business'}
@@ -758,7 +691,7 @@ const Pricing: React.FC = () => {
           </motion.div>
 
           {/* Feature Comparison Table */}
-          <motion.div 
+          <motion.div
             className="mt-16 bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-200"
             initial="initial"
             animate="animate"
@@ -810,7 +743,7 @@ const Pricing: React.FC = () => {
           </motion.div>
 
           {/* FAQ Section */}
-          <motion.div 
+          <motion.div
             className="mt-16 bg-white rounded-xl shadow-md p-6 md:p-8 border border-gray-200"
             initial="initial"
             animate="animate"
@@ -825,7 +758,7 @@ const Pricing: React.FC = () => {
               </p>
             </div>
 
-            <motion.div 
+            <motion.div
               className="max-w-4xl mx-auto space-y-4"
               variants={faqStaggerContainer}
             >
@@ -851,7 +784,7 @@ const Pricing: React.FC = () => {
                       <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors duration-200" />
                     </motion.div>
                   </button>
-                  
+
                   <AnimatePresence>
                     {openFAQ === index && (
                       <motion.div
@@ -875,7 +808,7 @@ const Pricing: React.FC = () => {
             </motion.div>
 
             {/* Call to Action */}
-            <motion.div 
+            <motion.div
               className="mt-8 text-center p-4 bg-gray-50 rounded-lg"
               variants={faqFadeInUp}
             >
@@ -892,7 +825,7 @@ const Pricing: React.FC = () => {
           </motion.div>
 
           {/* Policy Links for Razorpay Compliance */}
-          <motion.div 
+          <motion.div
             className="mt-12 text-center"
             initial="initial"
             animate="animate"

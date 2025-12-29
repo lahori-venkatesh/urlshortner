@@ -23,37 +23,44 @@ import java.util.Optional;
 @Aspect
 @Component
 public class PlanValidationAspect {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PlanValidationAspect.class);
-    
+
     @Autowired
     private PlanValidationService planValidationService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Around("@annotation(requiresPlan)")
     public Object validatePlanAccess(ProceedingJoinPoint joinPoint, RequiresPlan requiresPlan) throws Throwable {
-        
+
         // Get current user from authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new PlanLimitException("Authentication required");
+
+        // Allow anonymous access if authentication is missing or user is not found
+        // This is required for "Try without login" features like QR creation
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            logger.debug("Allowing anonymous access to feature {}", requiresPlan.feature());
+            return joinPoint.proceed();
         }
-        
+
         String userId = authentication.getName();
         Optional<User> userOpt = userService.findById(userId);
-        
+
         if (userOpt.isEmpty()) {
-            throw new PlanLimitException("User not found");
+            logger.debug("User not found for ID {}, treating as anonymous", userId);
+            // Treat missing users as anonymous for features that allow it
+            return joinPoint.proceed();
         }
-        
+
         User user = userOpt.get();
-        
+
         try {
             // Validate feature access
             String feature = requiresPlan.feature();
-            
+
             if (requiresPlan.checkLimit()) {
                 // For limit-based features, we need to check current usage
                 validateUsageLimit(user, feature);
@@ -61,19 +68,19 @@ public class PlanValidationAspect {
                 // For feature-based access, just check if user has the feature
                 planValidationService.validateFeatureAccess(user, feature);
             }
-            
+
             logger.debug("Plan validation passed for user {} accessing feature {}", userId, feature);
-            
+
             // Proceed with the original method
             return joinPoint.proceed();
-            
+
         } catch (PlanLimitException e) {
-            logger.warn("Plan validation failed for user {} accessing feature {}: {}", 
-                       userId, requiresPlan.feature(), e.getMessage());
+            logger.warn("Plan validation failed for user {} accessing feature {}: {}",
+                    userId, requiresPlan.feature(), e.getMessage());
             throw e;
         }
     }
-    
+
     /**
      * Validate usage limits for countable resources
      */
@@ -83,31 +90,31 @@ public class PlanValidationAspect {
             case "urls":
                 planValidationService.validateUrlLimit(user, user.getMonthlyUrlsCreated());
                 break;
-                
+
             case "qrcreation":
             case "qrcodes":
                 planValidationService.validateQRLimit(user, user.getMonthlyQrCodesCreated());
                 break;
-                
+
             case "fileupload":
             case "files":
                 planValidationService.validateFileLimit(user, user.getMonthlyFilesUploaded());
                 break;
-                
+
             case "customdomains":
             case "domains":
                 // Domain count validation will be handled in the controller method itself
                 // since we need to query the database for current count
                 planValidationService.validateFeatureAccess(user, "customDomain");
                 break;
-                
+
             case "teammembers":
             case "team":
                 // Team member count validation will be handled in the controller method itself
                 // since we need to query the database for current count
                 planValidationService.validateFeatureAccess(user, "teamCollaboration");
                 break;
-                
+
             default:
                 // For non-countable features, just check feature access
                 planValidationService.validateFeatureAccess(user, feature);

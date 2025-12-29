@@ -30,7 +30,7 @@ const ContactUs: React.FC = () => {
       // Here you would typically send the form data to your backend
       // For now, we'll just simulate a successful submission
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
@@ -81,7 +81,7 @@ const ContactUs: React.FC = () => {
           >
             <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -89,7 +89,7 @@ const ContactUs: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">support@pebly.com</p>
+                    <p className="text-gray-600">support@tinyslash.com</p>
                     <p className="text-sm text-gray-500 mt-1">We typically respond within 24 hours</p>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ const ContactUs: React.FC = () => {
             className="bg-white rounded-xl shadow-md p-8 border border-gray-200"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -180,7 +180,7 @@ const ContactUs: React.FC = () => {
                     placeholder="Your full name"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address *

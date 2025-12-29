@@ -43,8 +43,8 @@ const PrivacyPolicy: React.FC = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 mb-4">
-                At Pebly, we are committed to protecting your privacy and ensuring the security of your 
-                personal information. This Privacy Policy explains how we collect, use, disclose, and 
+                At Tinyslash, we are committed to protecting your privacy and ensuring the security of your
+                personal information. This Privacy Policy explains how we collect, use, disclose, and
                 safeguard your information when you use our URL shortening and QR code generation service.
               </p>
             </section>
@@ -116,11 +116,11 @@ const PrivacyPolicy: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-700">
                 <p>We do not sell, trade, or rent your personal information. We may share information in the following circumstances:</p>
-                
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-semibold text-blue-900 mb-2">Service Providers</h3>
                   <p className="text-blue-800">
-                    We work with trusted third-party service providers who assist us in operating our service, 
+                    We work with trusted third-party service providers who assist us in operating our service,
                     such as payment processors (Razorpay), hosting providers, and analytics services.
                   </p>
                 </div>
@@ -128,7 +128,7 @@ const PrivacyPolicy: React.FC = () => {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h3 className="font-semibold text-green-900 mb-2">Legal Requirements</h3>
                   <p className="text-green-800">
-                    We may disclose information when required by law, court order, or government request, 
+                    We may disclose information when required by law, court order, or government request,
                     or to protect our rights, property, or safety.
                   </p>
                 </div>
@@ -136,7 +136,7 @@ const PrivacyPolicy: React.FC = () => {
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <h3 className="font-semibold text-orange-900 mb-2">Business Transfers</h3>
                   <p className="text-orange-800">
-                    In the event of a merger, acquisition, or sale of assets, user information may be 
+                    In the event of a merger, acquisition, or sale of assets, user information may be
                     transferred as part of the business transaction.
                   </p>
                 </div>
@@ -165,7 +165,7 @@ const PrivacyPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Your Rights and Choices</h2>
               <div className="space-y-4 text-gray-700">
                 <p>You have the following rights regarding your personal information:</p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h3 className="font-semibold text-gray-900 mb-2">Access</h3>
@@ -198,7 +198,7 @@ const PrivacyPolicy: React.FC = () => {
                   <li>Improve our services and user experience</li>
                 </ul>
                 <p>
-                  You can control cookie settings through your browser preferences. However, disabling 
+                  You can control cookie settings through your browser preferences. However, disabling
                   cookies may affect the functionality of our service.
                 </p>
               </div>
@@ -215,7 +215,7 @@ const PrivacyPolicy: React.FC = () => {
                   <li>Improve our services</li>
                 </ul>
                 <p>
-                  When you delete your account, we will delete your personal information within 90 days, 
+                  When you delete your account, we will delete your personal information within 90 days,
                   except where retention is required by law.
                 </p>
               </div>
@@ -225,8 +225,8 @@ const PrivacyPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">9. International Data Transfers</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Your information may be transferred to and processed in countries other than your own. 
-                  We ensure appropriate safeguards are in place to protect your information during such transfers, 
+                  Your information may be transferred to and processed in countries other than your own.
+                  We ensure appropriate safeguards are in place to protect your information during such transfers,
                   including:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
@@ -241,8 +241,8 @@ const PrivacyPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Children's Privacy</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Our service is not intended for children under 13 years of age. We do not knowingly 
-                  collect personal information from children under 13. If we become aware that we have 
+                  Our service is not intended for children under 13 years of age. We do not knowingly
+                  collect personal information from children under 13. If we become aware that we have
                   collected such information, we will take steps to delete it promptly.
                 </p>
               </div>
@@ -252,7 +252,7 @@ const PrivacyPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Changes to This Policy</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  We may update this Privacy Policy from time to time. We will notify you of any material 
+                  We may update this Privacy Policy from time to time. We will notify you of any material
                   changes by:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
@@ -261,7 +261,7 @@ const PrivacyPolicy: React.FC = () => {
                   <li>Displaying an in-app notification</li>
                 </ul>
                 <p>
-                  Your continued use of our service after such changes constitutes acceptance of the 
+                  Your continued use of our service after such changes constitutes acceptance of the
                   updated Privacy Policy.
                 </p>
               </div>
@@ -274,17 +274,17 @@ const PrivacyPolicy: React.FC = () => {
                   If you have any questions about this Privacy Policy or our data practices, please contact us:
                 </p>
                 <div className="space-y-2 text-gray-700">
-                  <p><strong>Email:</strong> privacy@pebly.com</p>
+                  <p><strong>Email:</strong> privacy@tinyslash.com</p>
                   <p><strong>Phone:</strong> +91 9876543210</p>
                   <p><strong>Address:</strong> 123 Tech Park, Sector 5, Bangalore, Karnataka 560001, India</p>
-                  <p><strong>Data Protection Officer:</strong> dpo@pebly.com</p>
+                  <p><strong>Data Protection Officer:</strong> dpo@tinyslash.com</p>
                 </div>
               </div>
             </section>
 
             <div className="border-t border-gray-200 pt-6">
               <p className="text-sm text-gray-600 text-center">
-                By using Pebly, you acknowledge that you have read and understood this Privacy Policy 
+                By using Tinyslash, you acknowledge that you have read and understood this Privacy Policy
                 and agree to our collection, use, and disclosure of your information as described herein.
               </p>
             </div>

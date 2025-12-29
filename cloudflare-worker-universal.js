@@ -6,17 +6,17 @@ export default {
     const url = new URL(request.url);
     const hostname = url.hostname;
     const pathname = url.pathname;
-    
+
     // Skip if it's your main domains
-    if (hostname === 'pebly.vercel.app' || hostname === 'pebly-proxy.vercel.app') {
+    if (hostname === 'tinyslash.com' || hostname === 'tinyslash-proxy.vercel.app') {
       return fetch(request);
     }
-    
+
     // For ALL custom domains, proxy to your backend
     const backendUrl = 'https://urlshortner-1-hpyu.onrender.com';
-    
+
     console.log(`🌐 Universal Proxy: ${hostname}${pathname} → ${backendUrl}${pathname}`);
-    
+
     try {
       // Create new request to your backend
       const backendRequest = new Request(`${backendUrl}${pathname}${url.search}`, {
@@ -31,16 +31,16 @@ export default {
         },
         body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined
       });
-      
+
       const response = await fetch(backendRequest);
-      
+
       // Handle redirects (main purpose for short links)
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get('location');
         console.log(`🔄 Redirect: ${response.status} → ${location}`);
         return Response.redirect(location, response.status);
       }
-      
+
       // Handle successful responses
       const newResponse = new Response(response.body, {
         status: response.status,
@@ -52,12 +52,12 @@ export default {
           'Access-Control-Allow-Headers': '*'
         }
       });
-      
+
       return newResponse;
-      
+
     } catch (error) {
       console.error('❌ Proxy Error:', error);
-      
+
       // Beautiful error page
       return new Response(`
         <!DOCTYPE html>
@@ -65,7 +65,7 @@ export default {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Link Not Found - Pebly</title>
+          <title>Link Not Found - Tinyslash</title>
           <style>
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -113,7 +113,7 @@ export default {
             <h1>Link Not Found</h1>
             <p>The short link you're looking for doesn't exist or has expired.</p>
             <p><strong>Domain:</strong> ${hostname}</p>
-            <a href="https://pebly.vercel.app" class="btn">Create Your Own Short Links</a>
+            <a href="https://tinyslash.com" class="btn">Create Your Own Short Links</a>
           </div>
         </body>
         </html>

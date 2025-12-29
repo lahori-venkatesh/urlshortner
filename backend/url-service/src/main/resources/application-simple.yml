@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: pebly-url-service
+    name: tinyslash-url-service
   
   # Allow circular references as fallback
   main:
@@ -13,7 +13,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI}
-      database: ${MONGODB_DATABASE:pebly-database}
+      database: ${MONGODB_DATABASE:tinyslash-database}
       auto-index-creation: false
 
   cache:
@@ -22,9 +22,9 @@ spring:
 # Application Configuration
 app:
   frontend:
-    url: ${FRONTEND_URL:https://pebly.vercel.app}
+    url: ${FRONTEND_URL:https://tinyslash.com}
   shorturl:
-    domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
+    domain: ${SHORT_URL_DOMAIN:https://tinyslash.com}
   admin:
     enabled: false  # Disable admin functionality in simple mode
 

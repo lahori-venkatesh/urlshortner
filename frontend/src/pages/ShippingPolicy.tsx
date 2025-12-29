@@ -46,7 +46,7 @@ const ShippingPolicy: React.FC = () => {
               <div>
                 <h3 className="font-semibold text-blue-900 mb-2">Digital Service Notice</h3>
                 <p className="text-blue-800">
-                  Pebly is a digital URL shortening and QR code generation service. We do not ship physical products. 
+                  Tinyslash is a digital URL shortening and QR code generation service. We do not ship physical products.
                   All our services are delivered digitally and are available immediately upon subscription activation.
                 </p>
               </div>
@@ -61,7 +61,7 @@ const ShippingPolicy: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  As Pebly provides digital services, there is no physical shipping involved. Our services include:
+                  As Tinyslash provides digital services, there is no physical shipping involved. Our services include:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>URL shortening and management</li>
@@ -107,7 +107,7 @@ const ShippingPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Access and Availability</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Our services are available 24/7 through our web platform at <strong>pebly.com</strong>. 
+                  Our services are available 24/7 through our web platform at <strong>pebly.com</strong>.
                   You can access your account and use all features immediately after:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
@@ -116,7 +116,7 @@ const ShippingPolicy: React.FC = () => {
                   <li>Successful payment processing (for paid plans)</li>
                 </ul>
                 <p>
-                  In case of any service activation delays, our support team will be notified automatically 
+                  In case of any service activation delays, our support team will be notified automatically
                   and will resolve the issue within 2 hours during business hours.
                 </p>
               </div>
@@ -126,7 +126,7 @@ const ShippingPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Geographic Availability</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Pebly services are available globally to users in all countries, with the following considerations:
+                  Tinyslash services are available globally to users in all countries, with the following considerations:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li><strong>Global Access:</strong> Our platform is accessible worldwide</li>
@@ -141,7 +141,7 @@ const ShippingPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Service Interruptions</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  While we strive for 99.9% uptime, occasional maintenance or technical issues may temporarily 
+                  While we strive for 99.9% uptime, occasional maintenance or technical issues may temporarily
                   affect service availability:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
@@ -202,7 +202,7 @@ const ShippingPolicy: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Policy Updates</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  This shipping policy may be updated from time to time to reflect changes in our services 
+                  This shipping policy may be updated from time to time to reflect changes in our services
                   or legal requirements. We will notify users of any significant changes through:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">

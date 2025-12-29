@@ -12,14 +12,14 @@ server:
 
 spring:
   application:
-    name: pebly-url-service
+    name: tinyslash-url-service
   
   # CORS Configuration
   web:
     cors:
       allowed-origins: 
         - ${FRONTEND_URL:http://localhost:3000}
-        - "https://pebly.vercel.app"
+        - "https://tinyslash.com"
         - "https://*.vercel.app"
         - "https://urlshortner-1-hpyu.onrender.com"
       allowed-methods: 
@@ -41,7 +41,7 @@ spring:
   # MongoDB Configuration - Production Ready with Team Collaboration
   data:
     mongodb:
-      uri: ${MONGODB_URI}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/pebly-database}
       database: ${MONGODB_DATABASE:pebly-database}
       auto-index-creation: false
       # Connection pool settings for high performance
@@ -76,7 +76,7 @@ spring:
     redis:
       time-to-live: 3600000  # 1 hour
       cache-null-values: false
-      key-prefix: "pebly:"
+      key-prefix: "tinyslash:"
       use-key-prefix: true
   
   # File upload configuration
@@ -120,8 +120,8 @@ sendgrid:
   api:
     key: ${SENDGRID_API_KEY:}
   from:
-    email: ${SENDGRID_FROM_EMAIL:noreply@pebly.com}
-    name: ${SENDGRID_FROM_NAME:Pebly Team}
+    email: ${SENDGRID_FROM_EMAIL:noreply@tinyslash.com}
+    name: ${SENDGRID_FROM_NAME:Tinyslash Team}
 
 # Cloudflare Configuration (for SSL provisioning)
 cloudflare:
@@ -135,7 +135,7 @@ app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
   shorturl:
-    domain: ${SHORT_URL_DOMAIN:https://pebly.vercel.app}
+    domain: ${SHORT_URL_DOMAIN:https://tinyslash.com}
   
   # Custom Domain Configuration
   domain:
@@ -224,7 +224,7 @@ management:
         http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
         cache.gets: 1ms, 5ms, 10ms, 50ms
     tags:
-      application: pebly-url-service
+      application: tinyslash-url-service
       environment: ${ENVIRONMENT:development}
 
 # Connection pool monitoring

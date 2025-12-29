@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: pebly-backend
+    name: tinyslash-backend
   
   # Minimal MongoDB config
   data:

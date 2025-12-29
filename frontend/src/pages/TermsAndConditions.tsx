@@ -43,8 +43,8 @@ const TermsAndConditions: React.FC = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-700 mb-4">
-                By accessing and using Pebly ("the Service"), you accept and agree to be bound by the terms 
-                and provision of this agreement. If you do not agree to abide by the above, please do not 
+                By accessing and using Tinyslash ("the Service"), you accept and agree to be bound by the terms
+                and provision of this agreement. If you do not agree to abide by the above, please do not
                 use this service.
               </p>
             </section>
@@ -52,11 +52,11 @@ const TermsAndConditions: React.FC = () => {
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Service Description</h2>
               <p className="text-gray-700 mb-4">
-                Pebly provides URL shortening, QR code generation, file-to-link conversion, and analytics 
+                Tinyslash provides URL shortening, QR code generation, file-to-link conversion, and analytics
                 services. We offer free, Pro, and Business subscription plans with varying features and limitations.
               </p>
-            </section>    
-        <section className="mb-8">
+            </section>
+            <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">3. User Accounts</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
@@ -99,7 +99,7 @@ const TermsAndConditions: React.FC = () => {
                   <li><strong>Business Monthly:</strong> Team features billed monthly</li>
                   <li><strong>Business Yearly:</strong> Team features billed annually with discount</li>
                 </ul>
-                
+
                 <h3 className="text-lg font-semibold text-gray-900 mt-6">5.2 Billing Terms</h3>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Subscription fees are billed in advance</li>
@@ -115,12 +115,12 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Intellectual Property</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  The Service and its original content, features, and functionality are owned by Pebly and are 
-                  protected by international copyright, trademark, patent, trade secret, and other intellectual 
+                  The Service and its original content, features, and functionality are owned by Tinyslash and are
+                  protected by international copyright, trademark, patent, trade secret, and other intellectual
                   property laws.
                 </p>
                 <p>
-                  You retain ownership of content you create using our Service, but grant us a license to 
+                  You retain ownership of content you create using our Service, but grant us a license to
                   store, process, and display such content as necessary to provide the Service.
                 </p>
               </div>
@@ -130,8 +130,8 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Privacy and Data Protection</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Your privacy is important to us. Our Privacy Policy explains how we collect, use, and 
-                  protect your information when you use our Service. By using our Service, you agree to 
+                  Your privacy is important to us. Our Privacy Policy explains how we collect, use, and
+                  protect your information when you use our Service. By using our Service, you agree to
                   the collection and use of information in accordance with our Privacy Policy.
                 </p>
               </div>
@@ -141,7 +141,7 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Service Availability</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  We strive to maintain high service availability but do not guarantee uninterrupted access. 
+                  We strive to maintain high service availability but do not guarantee uninterrupted access.
                   The Service may be temporarily unavailable due to:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
@@ -157,8 +157,8 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Limitation of Liability</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  To the maximum extent permitted by law, Pebly shall not be liable for any indirect, 
-                  incidental, special, consequential, or punitive damages, including but not limited to 
+                  To the maximum extent permitted by law, Tinyslash shall not be liable for any indirect,
+                  incidental, special, consequential, or punitive damages, including but not limited to
                   loss of profits, data, use, goodwill, or other intangible losses.
                 </p>
               </div>
@@ -168,12 +168,12 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Termination</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  We may terminate or suspend your account and access to the Service immediately, without 
-                  prior notice, for conduct that we believe violates these Terms or is harmful to other 
+                  We may terminate or suspend your account and access to the Service immediately, without
+                  prior notice, for conduct that we believe violates these Terms or is harmful to other
                   users, us, or third parties.
                 </p>
                 <p>
-                  You may terminate your account at any time by contacting our support team. Upon termination, 
+                  You may terminate your account at any time by contacting our support team. Upon termination,
                   your right to use the Service will cease immediately.
                 </p>
               </div>
@@ -183,8 +183,8 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Governing Law</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  These Terms shall be governed by and construed in accordance with the laws of India, 
-                  without regard to its conflict of law provisions. Any disputes arising from these Terms 
+                  These Terms shall be governed by and construed in accordance with the laws of India,
+                  without regard to its conflict of law provisions. Any disputes arising from these Terms
                   shall be subject to the exclusive jurisdiction of the courts in Bangalore, Karnataka, India.
                 </p>
               </div>
@@ -194,8 +194,8 @@ const TermsAndConditions: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Changes to Terms</h2>
               <div className="space-y-4 text-gray-700">
                 <p>
-                  We reserve the right to modify these Terms at any time. We will notify users of any 
-                  material changes via email or through the Service. Your continued use of the Service 
+                  We reserve the right to modify these Terms at any time. We will notify users of any
+                  material changes via email or through the Service. Your continued use of the Service
                   after such modifications constitutes acceptance of the updated Terms.
                 </p>
               </div>
