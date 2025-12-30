@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { SEO } from '../components/SEO';
 
 const ContactUs: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +48,10 @@ const ContactUs: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with the TinySlash team. We're here to help with any questions about our URL shortener and QR code services."
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Back Button */}
         <div className="mb-8">

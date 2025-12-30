@@ -11,6 +11,7 @@ import LandingPageShortener from '../components/LandingPageShortener';
 import TrustedCompanies from '../components/TrustedCompanies';
 import Footer from '../components/Footer';
 import PublicHeader from '../components/PublicHeader';
+import { SEO } from '../components/SEO';
 
 const FaqItem = ({ question, answer }: { question: string; answer: string }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +76,10 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white selection:bg-blue-100 selection:text-blue-900 font-sans">
+      <SEO
+        title="Home"
+        description="TinySlash - The ultimate URL shortener and QR code generator for business and individuals. Track clicks, manage links, and grow your audience."
+      />
       <PublicHeader />
 
       {/* Hero Section */}

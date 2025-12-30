@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
@@ -229,17 +230,19 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <QueryProvider>
-      <AuthProvider>
-        <TeamProvider>
-          <SubscriptionProvider>
-            <SupportProvider>
-              <ModalProvider>
-                <AppContent />
-              </ModalProvider>
-            </SupportProvider>
-          </SubscriptionProvider>
-        </TeamProvider>
-      </AuthProvider>
+      <HelmetProvider>
+        <AuthProvider>
+          <TeamProvider>
+            <SubscriptionProvider>
+              <SupportProvider>
+                <ModalProvider>
+                  <AppContent />
+                </ModalProvider>
+              </SupportProvider>
+            </SubscriptionProvider>
+          </TeamProvider>
+        </AuthProvider>
+      </HelmetProvider>
     </QueryProvider>
   );
 }

@@ -8,6 +8,7 @@ import PaymentModal from '../components/PaymentModal';
 import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import PublicHeader from '../components/PublicHeader';
+import { SEO } from '../components/SEO';
 import { paymentService } from '../services/paymentService';
 import { subscriptionService, PricingData } from '../services/subscriptionService';
 import toast from 'react-hot-toast';
@@ -387,6 +388,10 @@ const Pricing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <SEO
+        title="Pricing"
+        description="Simple, transparent pricing for everyone. Start free and scale as you grow. No credit card required."
+      />
       {isAuthenticated ? <Header /> : <PublicHeader />}
       {/* Pricing Section */}
       <section className="py-36">
